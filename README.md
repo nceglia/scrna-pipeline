@@ -1,28 +1,27 @@
 # Single Cell RNA-Seq Pipeline #
 
-[![Docker Repository on Quay](https://quay.io/repository/nceglia/scrna-pipeline/status "Docker Repository on Quay")](https://quay.io/repository/nceglia/scrna-pipeline)
-
-[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/2919)
 
 
-Pipeline for running single cell RNA-seq experiments.
-This is primarily built on Cell Ranger with additional analysis from CellAssign, CloneAlign, and SCViz tools.
-The workflow is inferred based on the inclusion (or omission) of command line arguments.
+
+Pipeline for running single cell rna-seq analysis.
 
 # Running with Docker #
 
-#### Current docker image @ nceglia/scrna-pipeline:v1.0.0
+[![Docker Repository on Quay](https://quay.io/repository/nceglia/scrna-pipeline/status "Docker Repository on Quay")](https://quay.io/repository/nceglia/scrna-pipeline)
+
+```
+docker run -e "R_HOME=/usr/local/lib/R/" -e "LD_LIBRARY_PATH=/usr/local/lib/R/lib/" -e "PYTHONPATH=$PYTHONPATH:/codebase/SCRNApipeline/" --mount type=bind,source="$(pwd)"/reference,target=/reference --mount type=bind,source="$(pwd)"/results,target=/results --mount type=bind,source="$(pwd)"/data,target=/data --mount type=bind,source="$(pwd)/runs",target=/runs -w="/runs" -t nceglia/scrna-pipeline:v1.0.0 run_vm --sampleid test --build test
+```
+
+# Running with Singularity #
+
+[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/2919)
+
+# Setup #
 
 1. Required arguments.
 - sampleid (test)
 - build (GRCh38,mm10,test)
-
-All fastqs should be previously loaded into azure under the appropriate sampleid in scrnadata under rnaseq container.
-
-Pull docker image:
-```
-docker pull nceglia/scrna-pipeline:v1.0.0
-```
 
 Create a job directory with the directory structure including jobs/ data/ reference/.
 ```
@@ -34,9 +33,6 @@ mkdir somedirectory/test-run/runs
 ```
 
 Run docker on VM (not lsf).
-```
-docker run -e "R_HOME=/usr/local/lib/R/" -e "LD_LIBRARY_PATH=/usr/local/lib/R/lib/" -e "PYTHONPATH=$PYTHONPATH:/codebase/SCRNApipeline/" --mount type=bind,source="$(pwd)"/reference,target=/reference --mount type=bind,source="$(pwd)"/results,target=/results --mount type=bind,source="$(pwd)"/data,target=/data --mount type=bind,source="$(pwd)/runs",target=/runs -w="/runs" -t nceglia/scrna-pipeline:v1.0.0 run_vm --sampleid test --build test
-```
 
 
 Main results are stored in mounted volumes and loaded into azure.
@@ -44,43 +40,6 @@ Main results are stored in mounted volumes and loaded into azure.
 2. Aligned Bams in `bams`
 2. QC'd SCEs in `rdatav3`
 3. HTML report, figures, cellassign, clonealign, scvis compressed in `results`
-
-
-Notes:
-1. If the build specified is not available in /reference (example /reference/GRCh38), it will be pulled and built.  This will take a long time.
-
-
-
-## Examples ##
-
-Running pipeline starting from binary base call directory (BCL) to report generation.
-The top level BCL directory must include a single CSV worksheet with minimum columns for Lane, Sample, Index (10x index used for library construction).
-
-```
-    $ python3 pipeline.py --bcl tests/cellranger-tiny-bcl-1.2.0/
-```
-
-The FASTQ directory can be the output of `cellranger mkfastq` or a directory where FASTQ files are named `{sample}_S{sample_num}_L00{lane}_{R{read} || I1}_001`.
-If this argument is omitted, but the `bcl` argument is included, the FASTQ path will be inferred.
-
-```
-    $ python3 pipeline.py --fastq tests/tiny-fastqs-mk/outs/fastq_path/
-```
-
-The tenx analysis folder can be the output of `cellranger count` or a directory that includes a `{filtered || raw}_gene_bc_matrices` folder.
-If this argument is omitted, but `bcl` or `fastq` is included, the path will be inferred.
-If this directory includes Cell Ranger analysis, this will be included in the report generation.
-
-```
-    $ python3 pipeline.py --tenx tests/tiny-fastqs-count/outs/
-```
-
-Single Cell Experiment objects can be created from tenx analysis folders or loaded from serialized RData objects.
-You can load these and run the pipeline downstream analysis starting from these serialized objects.
-
-```
-    $ python3 pipeline.py --rdata tests/example_sce.RData
-```
 
 
 # SCRNA Viz json
