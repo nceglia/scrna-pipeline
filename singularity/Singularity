@@ -1,0 +1,5 @@
+Bootstrap: docker
+From: nceglia/scrna-pipeline:latest
+
+%environment
+    export PATH="/codebase/cellranger-3.0.2:$PATH
