@@ -14,10 +14,7 @@ from workflows.run_cellranger import RunCellranger
 from workflows.run_qc import RunQC
 from workflows.run_report import RunReport
 from workflows.run_cellassign import RunCellAssign
-from workflows.run_clonealign import RunCloneAlign
 from workflows.run_clustering import RunClustering
-from workflows.run_de import RunDifferentialAnalysis
-from workflows.run_scvis import RunScvis
 
 config = Configuration()
 
