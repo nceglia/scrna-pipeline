@@ -59,7 +59,7 @@ class CellAssign(object):
         filtered_sce = os.path.join(os.path.split(rdata)[0],"sce_cas.rdata")
         filtered_rho = os.path.join(os.path.split(rdata)[0],"rho_cas.rdata")
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        configured = open(".cache/run_cellassign.R","w")
+        configured = open(".cache/run_cellassign2.R","w")
         configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho))
         configured.close()
         match = open(".cache/match.R","w")
@@ -125,10 +125,3 @@ barcodes <- data.frame(barcode=colData(sce)$Barcode,celltype=fit$cell_type)
 write.csv(barcodes, file="{fname}")
 
 """
-
-
-if __name__ == '__main__':
-    rho_yaml = "/work/shah/reference/transcriptomes/markers/hgsc_v1.yaml"
-    rdata = "/work/shah/ceglian/Project_09443_D/ABDOM-CD45N_IGO_09443_D_2/runs/.cache/ABDOM-CD45N_IGO_09443_D_2/ABDOM-CD45N_IGO_09443_D_2.rdata"
-    results = "cellassignfit.rds"
-    CellAssign.run(rdata, rho_yaml, results)

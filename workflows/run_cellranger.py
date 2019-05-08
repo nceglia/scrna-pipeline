@@ -34,13 +34,13 @@ def RunCellranger(sampleid, workflow):
             pypeliner.managed.OutputFile("cellranger.complete")
         )
     )
-    workflow.transform (
-        name = "upload_tenx",
-        func = upload_tenx,
-        args = (
-            sampleid,
-            pypeliner.managed.InputFile("cellranger.complete"),
-            pypeliner.managed.OutputFile("upload.complete")
-        )
-    )
+    # workflow.transform (
+    #     name = "upload_tenx",
+    #     func = upload_tenx,
+    #     args = (
+    #         sampleid,
+    #         pypeliner.managed.InputFile("cellranger.complete"),
+    #         pypeliner.managed.OutputFile("upload.complete")
+    #     )
+    # )
     return workflow

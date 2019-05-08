@@ -35,7 +35,7 @@ low_counts_genes_threshold: 4
 qc_type: "standard"
 scviz_embedding: None
 copy_number_data: None
-mito: 10
+mito: 15
 lsf: {6}
 """
 
