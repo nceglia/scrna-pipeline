@@ -16,7 +16,7 @@ import collections
 import os
 import sys
 
-sns.set(style="darkgrid")
+sns.set(style="dark")
 
 
 def celltypes(pyfit, sampleid, directory, known_types=None):
@@ -92,6 +92,32 @@ def reduced_dims_by_cell_type(cell_types, rdims, barcodes, filename, dimtype, kn
     plt.tight_layout()
     plt.savefig(filename)
 
+
+def reduced_dims_by_cluster(cluster_labels, rdims, barcodes, filename, dimtype):
+    x_coded = dict(zip(barcodes, rdims[0]))
+    y_coded = dict(zip(barcodes, rdims[1]))
+    x = []
+    y = []
+    clusters = []
+    for barcode, cluster in cluster_labels.items():
+        try:
+            x_val = x_coded[barcode]
+            y_val = y_coded[barcode]
+        except Exception as e:
+            continue
+        try:
+            clusters.append(cell_types[barcode])
+        except Exception as e:
+            clusters.append("Other")
+        x.append(x_val)
+        y.append(y_val)
+    f, ax = plt.subplots(figsize=(10,8))
+    sns.scatterplot(x=x, y=y, hue=clusters, hue_order=list(sorted(known_types)), alpha=0.85)
+    ax.set_title("{} - Clusters".format(dimtype))
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(filename)
+
 def umap_by_cell_type(rdata, fit, sampleid, directory, known_types=None):
     sce = SingleCellExperiment.fromRData(rdata)
     umap_dims = sce.reducedDims["UMAP"]
@@ -110,70 +136,21 @@ def tsne_by_cell_type(rdata, fit, sampleid, directory, known_types=None):
     filename = os.path.join(directory, "tsne_by_cell_type.png")
     reduced_dims_by_cell_type(cell_types, tsne_dims, barcodes, filename, "TSNE", known_types=known_types)
 
-def pca_by_cell_type(rdata, cell_assign_fit, prefix):
+def tsne_by_cluster(rdata, cluster_labels, sampleid, directory):
     sce = SingleCellExperiment.fromRData(rdata)
-    fit = pickle.load(open(cell_assign_fit,"rb"))
-    tsne_dims = sce.getReducedDims("PCA")
-    barcodes = sce.colData["Barcode"]
-    cell_types = dict(zip(fit["Barcode"][:len(barcodes)],fit["cell_type"][:len(barcodes)]))
-    #tsne_dims = numpy.array(tsne_dims).reshape(2, len(barcodes))
-    x_coded = dict(zip(barcodes, tsne_dims[0]))
-    y_coded = dict(zip(barcodes, tsne_dims[1]))
-    x = []
-    y = []
-    clusters = []
-    for barcode, cluster in cell_types.items():
-        try:
-            x_val = x_coded[barcode]
-            y_val = y_coded[barcode]
-        except Exception as e:
-            continue
-        try:
-            clusters.append(cell_types[barcode])
-        except Exception as e:
-            clusters.append("Other")
-        x.append(x_val)
-        y.append(y_val)
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("PCA - Cell Type - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("figures/pca_by_celltype.png")
-
-def tsne_by_cluster(rdata, tenx, prefix, pcs):
-    sce = SingleCellExperiment.fromRData(rdata)
-    cluster_labels = tenx.clusters(sce, pcs=pcs)
     tsne_dims = sce.reducedDims["TSNE"]
     barcodes = sce.colData["Barcode"]
     tsne_dims = numpy.array(tsne_dims).reshape(2, len(barcodes))
-    x_coded = dict(zip(barcodes, tsne_dims[0]))
-    y_coded = dict(zip(barcodes, tsne_dims[1]))
-    x = []
-    y = []
-    clusters = []
-    embedding = dict()
-    labels = dict()
-    for barcode, cluster in cluster_labels.items():
-        clusters.append("Cluster {}".format(cluster))
-        x.append(x_coded[barcode])
-        y.append(y_coded[barcode])
-        embedding[barcode] = (x_coded[barcode],y_coded[barcode])
-        labels[barcode] = cluster
-    embedding_str = json.dumps(embedding)
-    output = open("{}/tsne_embedding.json".format(prefix),"w")
-    output.write(embedding_str)
-    output.close()
-    output = open("{}/tsne_clusters.json".format(prefix),"w")
-    clusters_str = json.dumps(labels)
-    output.write(clusters_str)
-    output.close()
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("TSNE - Clusters - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("{}/tsne_by_cluster.png".format(prefix))
+    filename = os.path.join(directory, "tsne_by_cluster.png")
+    reduced_dims_by_cluster(cluster_labels, tsne_dims, barcodes, filename, "TSNE")
+
+def umap_by_cluster(rdata, cluster_labels, sampleid, directory):
+    sce = SingleCellExperiment.fromRData(rdata)
+    umap_dims = sce.reducedDims["UMAP"]
+    barcodes = sce.colData["Barcode"]
+    umap_dims = numpy.array(umap_dims).reshape(2, len(barcodes))
+    filename = os.path.join(directory, "umap_by_cluster.png")
+    reduced_dims_by_cluster(cluster_labels, umap_dims, barcodes, filename, "UMAP")
 
 def tsne_by_cluster_markers(rdata, tenx_analysis, prefix, pcs):
     tenx = TenxAnalysis(tenx_analysis)

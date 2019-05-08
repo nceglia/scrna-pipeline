@@ -29,13 +29,22 @@ def Run(sampleid, before, finished):
     results.add_analysis(tenx.tenx_path)
     results.add_sce(qc.qcdsce)
 
+    #QC Figures
     umi = os.path.join(plots,"umi.png")
     mito = os.path.join(plots,"mito.png")
     ribo = os.path.join(plots, "ribo.png")
     total_counts = os.path.join(plots, "total_counts.png")
     tfbc = os.path.join(plots, "total_features_by_counts.png")
     tcvfc = os.path.join(plots, "total_counts_v_features_by_counts.png")
+
+    #Cellassign
     celltypes = os.path.join(cellassign, "cell_types.png")
+    tsne_celltypes = os.path.join(cellassign, "tsne_by_cell_type.png")
+    umap_celltypes = os.path.join(cellassign, "umap_by_cell_type.png")
+
+    #Clusters
+    tsne_clusters = os.path.join(cellassign, "tsne_by_clusters.png")
+    umap_clusters = os.path.join(cellassign, "umap_by_clusters.png")
 
     results.add_plot(umi,"UMI Distribution")
     results.add_plot(mito,"Mito Distribution")
@@ -43,7 +52,13 @@ def Run(sampleid, before, finished):
     results.add_plot(total_counts,"Total Counts Distribution")
     results.add_plot(tcvfc,"Total Counts")
     results.add_plot(tcvfc,"Total Features by Counts")
+
+    results.add_plot(tsne_celltypes,"TSNE - Cell Types")
+    results.add_plot(umap_celltypes,"UMAP - Cell Types")
     results.add_plot(celltypes,"Cell Types")
+
+    results.add_plot(tsne_clusters,"TSNE - Clusters")
+    results.add_plot(umap_clusters,"UMAP - Clusters")
 
     exportMD(results)
     exportUpload(results)

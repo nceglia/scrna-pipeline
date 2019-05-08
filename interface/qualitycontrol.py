@@ -199,10 +199,10 @@ print("Filtering")
 cells_to_keep <- sce$pct_counts_mito < args[3]
 table_cells_to_keep <- table(cells_to_keep)
 sce <- sce[,cells_to_keep]
-summ <- summary(sce$total_counts)
-thresh <- summ[[2]]
-keep <- sce$total_counts > thresh
-sce <- sce[,keep]
+# summ <- summary(sce$total_counts)
+# thresh <- summ[[2]]
+# keep <- sce$total_counts > thresh
+# sce <- sce[,keep]
 
 saveRDS(sce, file=args[2])
 print("Finished Filtering")

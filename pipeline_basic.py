@@ -30,12 +30,11 @@ def create_workflow():
     workflow = RunCellranger(prefix, workflow)
     workflow = RunQC(prefix, workflow)
     workflow = RunCellAssign(prefix, workflow)
-    workflow = RunClustering(prefix, workflow)
-    workflow = RunCloneAlign(prefix, workflow)
-    workflow = RunScvis(prefix, workflow)
-    workflow = RunClustering(prefix, workflow)
-    workflow = RunDifferentialAnalysis(prefix, workflow)
-    workflow = RunReport(prefix, workflow)
+    # workflow = RunClustering(prefix, workflow)
+    # workflow = RunCloneAlign(prefix, workflow)
+    # workflow = RunScvis(prefix, workflow)
+    # workflow = RunDifferentialAnalysis(prefix, workflow)
+    # workflow = RunReport(prefix, workflow)
 
     return workflow
 

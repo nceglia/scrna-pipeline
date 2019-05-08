@@ -25,7 +25,7 @@ class CellAssign(object):
         env["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + ":/usr/local/lib/R/lib"
         env["RETICULATE_PYTHON"] = "/home/ceglian/anaconda/bin/python3"
         submit = ["/home/ceglian/anaconda/bin/Rscript",".cache/run_cellassign.R"]
-        #subprocess.call(submit, env=env)
+        subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         submit = ["/home/ceglian/anaconda/bin/Rscript",".cache/match.R"]
         subprocess.call(submit, env=env)
@@ -80,14 +80,16 @@ rho <- rho[,-1]
 
 sce <- readRDS("{sce}")
 
-# cells_to_keep <- sce$pct_counts_mito < 15
-# table_cells_to_keep <- table(cells_to_keep)
-# sce <- sce[,cells_to_keep]
-# summ <- summary(sce$total_counts)
-# thresh <- summ[[2]]
-# keep <- sce$total_counts > thresh
-# sce <- sce[,keep]
+print('qc')
+cells_to_keep <- sce$pct_counts_mito < 15
+table_cells_to_keep <- table(cells_to_keep)
+sce <- sce[,cells_to_keep]
+summ <- summary(sce$total_counts)
+thresh <- summ[[2]]
+keep <- sce$total_counts > thresh
+sce <- sce[,keep]
 
+print('filter')
 rownames(sce) <- rowData(sce)$Symbol
 rho <- as.matrix(rho)
 counts(sce) <- data.matrix(counts(sce))
@@ -100,12 +102,12 @@ sce <- sce[rowSums(counts(sce)) > 1,]
 common_genes <- intersect(rowData(sce)$Symbol,rownames(rho))
 rho <- rho[common_genes,]
 
+
 rho <- data.matrix(rho)
 s <- sizeFactors(sce)
-
-library(tensorflow)
-
+print('call')
 fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, shrinkage=TRUE)
+print('save')
 saveRDS(fit_cellassign, file = '{fname}')
 saveRDS(sce, file="{fsce}")
 saveRDS(sce, file="{frho}")
