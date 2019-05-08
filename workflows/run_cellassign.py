@@ -45,6 +45,7 @@ def Analysis(sampleid, before, finished):
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
     cell_types = marker_list.celltypes()
     if "B cell" not in cell_types: cell_types.append("B cell")
+    print("CELLTYPES",cell_types)
     celltypes(pyfit, sampleid, cellassign_analysis, known_types=cell_types)
     tsne_by_cell_type(qc.sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
     umap_by_cell_type(qc.sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
