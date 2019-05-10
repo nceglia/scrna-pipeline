@@ -13,7 +13,7 @@ class Scanorama(object):
     def get_genes(samples):
         genes_by_sample = []
         for sample in samples:
-            sce = sample.qcd_sce()
+            sce = sample.sce()
             genes_by_sample.append(set(sce.rowData["Symbol"]))
         return set.intersection(*genes_by_sample)
 
@@ -27,23 +27,14 @@ class Scanorama(object):
         return tenxs
 
     @staticmethod
-    def get_qcd_adata(tenx,subset):
-        sce = tenx.qcd_adata(subset=subset)
+    def get_qcd_adata(tenx):
+        sce = tenx.adata(subset=subset)
         return sce
 
     @staticmethod
-    def integrate_and_correct(adatas, assay="counts"):
+    def correct(adatas):
         correcteds = scanorama.correct_scanpy(adatas)
-        correct = correcteds.pop(0)
-        corrected = correct.concatenate(*correcteds, batch_key="batch")
-        return corrected
-
-
-    @staticmethod
-    def plot_integrated(tenxs):
-        for tenx in tenxs:
-            integrated = tenx.get_integrated()
-            print (integrated[1].shape)
+        return correcteds.pop(0)
 
     @staticmethod
     def plot_corrected(tenx, sample="qcd", subset=None):
@@ -63,7 +54,6 @@ def main():
     # tenxs = Scanorama.get_tenx(samples)
     # genes = Scanorama.get_genes(tenxs)
     # samples_to_tenx = zip(samples,tenxs)
-    Scanorama.read_molecules("molecule_info.h5")
     # Scanorama.plot_integrated(tenxs)
     # for sample, tenx in samples_to_tenx:
     #     Scanorama.plot_corrected(tenx, sample=sample, subset=genes)

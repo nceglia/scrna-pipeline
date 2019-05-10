@@ -25,9 +25,10 @@ def Run(sampleid, before, finished):
     plots = qc.plots
     cellassign = os.path.join(os.path.split(plots)[0],"cellassignanalysis")
     results = Results(config.jobpath)
+    filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
 
     results.add_analysis(tenx.tenx_path)
-    results.add_sce(qc.qcdsce)
+    results.add_sce(filtered_sce)
 
     #QC Figures
     umi = os.path.join(plots,"umi.png")

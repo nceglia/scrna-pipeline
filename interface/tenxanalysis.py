@@ -183,91 +183,36 @@ class TenxAnalysis(object):
     def filtered_sce(self):
         return TenX.read10xCountsFiltered(tenx,rdata)
 
-    def make_10x_output(self):
-        rows = open("Unselected_Cal-KB_1_dense.csv","r").read().splitlines()
-        genes = rows.pop(0).split(",")
-        genes = genes[2:]
-        barcodes = []
-        exprs = []
-        for row in tqdm.tqdm(rows):
-            row = row.split(",")
-            exp = list(map(int,row[2:]))
-            exprs.append(exp)
-            barcode = row[0]
-            barcodes.append(row[0])
+    @staticmethod
+    def make_10x_output(adata, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-        output = open("barcodes.tsv","w")
-        for barcode in barcodes:
+        output = open(os.path.join(path, "barcodes.tsv"),"w")
+        for barcode in adata.obs.index:
             output.write(barcode+"\n")
         output.close()
 
-        _gene_map = open("../genes.tsv","r").read().splitlines()
-        gene_map = dict()
-        for row in _gene_map:
-            row = row.split()
-            gene_map[row[1].upper()] = row[0]
-
-        misses = []
-        output = open("genes.tsv","w")
+        output = open(os.path.join(path,"genes.tsv"),"w")
         for gene in genes:
-            try:
-                symbol = gene_map[gene]
-            except KeyError:
-                misses.append(gene)
-                symbol = "---"
-            output.write(symbol+"\t"+gene+"\n")
+            output.write(gene+"\t"+gene+"\n")
         output.close()
 
-        print (len(misses), len(genes))
-
-        print (misses)
-
-        for gene in misses:
-            print(gene)
-        nd = numpy.matrix(exprs)
+        nd = numpy.matrix(adata.X)
         mat = sparse.csr_matrix(nd).T
-        print(mat.shape)
-
-        rows = open("matrix3.mtx","r").read().splitlines()
-        output = open("matrix.mtx","w")
-        header = rows[:2]
-        for x in header:
-            output.write(x+"\n")
-        x = rows[2].split()
-        output.write(" ".join([x[1],x[0],x[2]])+"\n")
-        sorted_rows = []
-        for row in reversed(rows[3:]):
-            row = row.split()
-            new_row = [row[1],row[0],row[2]]
-            sorted_rows.append(new_row)
-            #output.write(" ".join(new_row)+"\n")
-        sorted_rows = sorted(sorted_rows, key=lambda x: x[1])
-        for row in sorted_rows:
-            output.write(" ".join(row)+"\n")
-        output.close()
-        io.mmwrite("matrix.mtx",mat)
+        io.mmwrite(os.path.join(path, "matrix.mtx"),mat)
 
 
-    def qcd_adata(self,subset=None):
-        sce = self.qcd_sce()
-        return self.create_scanpy_adata(sce,subset=subset)
+    def adata(self, scepath, subset=None):
+        if scepath is None:
+            scepath = self.rdata
+        scepath = os.path.abspath(scepath)
+        print(scepath)
+        sce = SingleCellExperiment.fromRData(scepath)
+        return self.create_scanpy_adata(sce, subset=subset)
 
-    def qcd_sce(self):
-        # if not os.path.exists(self.qcdrdata):
-        #     qc = QualityControl(self)
-        #     qc.build()
-        #     qc.filter()
-        #
-        #     # TenX.read10xCountsFiltered(self,self.rdata)
-        #     # rscript = ScaterCode(self.directory).generate_script()
-        #     # cwd = os.getcwd()
-        #     # os.chdir(self.directory)
-        #     # print(os.getcwd())
-        #     # cmd = ["Rscript",os.path.split(rscript)[-1],self.rdata,self.qcdrdata]
-        #     # subprocess.call(cmd)
-        #     # os.chdir(cwd)
-        # print (self.qcdrdata)
-        return SingleCellExperiment.fromRData(self.qcdrdata)
+    def sce(self):
+        return SingleCellExperiment.fromRData(self.rdata)
 
     def bam_tarball(self):
         return self.bamtarball
@@ -370,11 +315,6 @@ class TenxAnalysis(object):
 
     def create_scanpy_adata_basic(self, assay="counts", sample_key=None):
         adata = sc.read_10x_mtx(self.filtered_matrices(), make_unique=True)
-        # adata.var_names_make_unique()
-        # adata.obs_names_make_unique()
-        # sc.pp.highly_variable_genes(adata, flavor="cell_ranger", subset=True)
-        # adata = sc.tl.pca(adata, copy=True)
-        # adata = sc.pp.neighbors(adata, copy=True)
         return adata
 
 
@@ -384,35 +324,8 @@ class TenxAnalysis(object):
         adata = sc.read_10x_mtx(self.filtered_matrices(), make_unique=True)
         adata.var_names_make_unique()
         adata.obs_names_make_unique()
-        print(adata.X)
-        sc.pp.highly_variable_genes(adata, flavor="cell_ranger", subset=True)
-        transcripts = []
-        if subset == None:
-            subset = _transcripts
-        for symbol in _transcripts:
-            if symbol not in subset: continue
-            if symbol not in adata.var.index:
-                symbol = symbol.replace(".","-")
-                if symbol not in adata.var.index:
-                    symbol = symbol.split("-")
-                    symbol = "-".join(symbol[:-1]) + ".{}".format(symbol[-1])
-                    if symbol not in adata.var.index:
-                        symbol = symbol.split(".")[0]
-            transcripts.append(symbol)
         adata.barcodes = pandas.read_csv(os.path.join(self.filtered_matrices(),'barcodes.tsv'), header=None)[0]
-        adata = adata[:,transcripts]
-        assert set(adata.var.index) == set(transcripts), "Issues with symbol conversion."
         adata = adata[barcodes,:]
-        adata.var_names_make_unique()
-        if high_var:
-            var_transcripts = sc.pp.highly_variable_genes(adata, flavor="cell_ranger", inplace=False, n_top_genes=1000, n_bins=100)
-            assert len(var_transcripts) == len(adata.var.index)
-            var_transcripts = [x[0] for x in zip(adata.var.index, var_transcripts) if x[1][0] == True]
-            adata = adata[:,var_transcripts]
-        adata = sc.tl.pca(adata, copy=True)
-        adata = sc.pp.neighbors(adata, copy=True)
-        adata = sc.tl.umap(adata, copy=True)
-        adata = sc.tl.tsne(adata, copy=True)
         return adata
 
     def get_scvis_dimensions(self, embedding_file):

@@ -16,8 +16,7 @@ import collections
 import os
 import sys
 
-sns.set(style="dark")
-
+sns.set(style="darkgrid")
 
 def celltypes(pyfit, sampleid, directory, known_types=None):
     cell_types = list(pyfit["cell_type"])
@@ -31,45 +30,16 @@ def celltypes(pyfit, sampleid, directory, known_types=None):
     #         break
     f, ax = plt.subplots(figsize=(12,6))
     ax.set_title("Cell Type Assignments - {}".format(sampleid))
-    sns.countplot(cell_types, palette="tab10", order=list(sorted(known_types)))
+    sns.countplot(cell_types, palette="deep", order=list(sorted(known_types)))
     ax.set_xticklabels(labels=list(sorted(known_types)),rotation=90)
     plt.tight_layout()
     figure = os.path.join(directory, "cell_types.png")
     plt.savefig(figure)
 
-def scvis_by_cell_type(rdata, cell_assign_fit, prefix, embedding_file):
-    fit = pickle.load(open(cell_assign_fit,"rb"))
-    sce = SingleCellExperiment.fromRData(rdata)
-    barcodes = sce.colData["Barcode"]
-    cell_types = dict(zip(fit["Barcode"][:len(barcodes)],fit["cell_type"][:len(barcodes)]))
-    rows = open(embedding_file,"r").read().splitlines()
-    dims = []
-    rows.pop(0)
-    for row in rows:
-        row = row.split("\t")
-        row = list(map(float,row[1:]))
-        dims.append(row)
-    x = []
-    y = []
-    clusters = []
-    for barcode, dim in zip(barcodes,dims):
-        try:
-            clusters.append(cell_types[barcode])
-        except KeyError as e:
-            clusters.append("Other")
-        x.append(dim[0])
-        y.append(dim[1])
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("SCVIS - Cell Type - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("figures/scvis_by_cell_type_{}.png".format(prefix))
-
 def reduced_dims_by_cell_type(cell_types, rdims, barcodes, filename, dimtype, known_types=None):
     x_coded = dict(zip(barcodes, rdims[0]))
     y_coded = dict(zip(barcodes, rdims[1]))
-    known_types = [".".join(x.split()) for x in known_types]
+    known_types = [str(".".join(x.split())) for x in known_types]
     x = []
     y = []
     clusters = []
@@ -77,16 +47,17 @@ def reduced_dims_by_cell_type(cell_types, rdims, barcodes, filename, dimtype, kn
         try:
             x_val = x_coded[barcode]
             y_val = y_coded[barcode]
+            if x_val == None or y_val == None: continue
         except Exception as e:
             continue
         try:
-            clusters.append(cell_types[barcode])
+            clusters.append(str(cell_types[barcode]))
         except Exception as e:
-            clusters.append("Other")
+            continue
         x.append(x_val)
         y.append(y_val)
     f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, hue_order=list(sorted(known_types)), alpha=0.85)
+    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85, palette="deep")
     ax.set_title("{} - Cell Types".format(dimtype))
     ax.legend()
     plt.tight_layout()
@@ -112,7 +83,7 @@ def reduced_dims_by_cluster(cluster_labels, rdims, barcodes, filename, dimtype):
         x.append(x_val)
         y.append(y_val)
     f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, hue_order=list(sorted(known_types)), alpha=0.85)
+    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85, palette="deep")
     ax.set_title("{} - Clusters".format(dimtype))
     ax.legend()
     plt.tight_layout()
@@ -183,94 +154,6 @@ def umap_by_cluster_markers(rdata, tenx_analysis, prefix, pcs):
     markers = tenx.markers_by_clusters(sce, rep="UMAP", pcs=pcs)
     print(markers.keys())
 
-def scvis_by_cluster_markers(rdata, tenx_analysis, prefix, pcs, embedding_file):
-    try:
-        tenx = TenxAnalysis(tenx_analysis)
-        tenx.load()
-        sce = SingleCellExperiment.fromRData(rdata)
-        cluster_labels = tenx.markers_by_clusters(sce, rep="SCVIS", pcs=pcs, embedding_file=embedding_file)
-    except Exception as e:
-        return
-
-def pca_by_cluster(rdata, tenx, prefix, pcs):
-    # tenx = TenxAnalysis(tenx_analysis)
-    # tenx.load()
-    sce = SingleCellExperiment.fromRData(rdata)
-    cluster_labels = tenx.clusters(sce, pcs=pcs)
-    tsne_dims = sce.getReducedDims("PCA",n=pcs)
-    barcodes = sce.colData["Barcode"]
-    x_coded = dict(zip(barcodes, tsne_dims[0]))
-    y_coded = dict(zip(barcodes, tsne_dims[1]))
-    x = []
-    y = []
-    clusters = []
-    for barcode, cluster in cluster_labels.items():
-        try:
-            x_val = x_coded[barcode]
-            y_val = y_coded[barcode]
-        except Exception as e:
-            continue
-        x.append(x_val)
-        y.append(y_val)
-        clusters.append("Cluster {}".format(cluster))
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("PCA - Clusters - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("{}/pca_by_cluster.png".format(prefix))
-
-
-def scvis_by_cluster(rdata, tenx, prefix, pcs, embedding_file):
-    # tenx = TenxAnalysis(tenx_analysis)
-    # tenx.load()
-    sce = SingleCellExperiment.fromRData(rdata)
-    cluster_labels = tenx.clusters(sce, pcs=pcs)
-    rows = open(embedding_file,"r").read().splitlines()
-    dims = []
-    rows.pop(0)
-    for row in rows:
-        row = row.split("\t")
-        row = list(map(float,row[1:]))
-        dims.append(row)
-    barcodes = sce.colData["Barcode"]
-    print(dims)
-    x = []
-    y = []
-    clusters = []
-    for barcode, dim in zip(barcodes,dims):
-        x.append(dim[0])
-        y.append(dim[1])
-        clusters.append("Cluster {}".format(cluster_labels[barcode]))
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("SCVIS - Clusters - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("{}}/svis_by_cluster.png".format(prefix))
-
-
-def umap_by_cluster(rdata, tenx, prefix, pcs):
-    sce = SingleCellExperiment.fromRData(rdata)
-    cluster_labels = tenx.clusters(sce, pcs=pcs)
-    tsne_dims = sce.reducedDims["UMAP"]
-    barcodes = sce.colData["Barcode"]
-    tsne_dims = numpy.array(tsne_dims).reshape(2, len(barcodes))
-    x_coded = dict(zip(barcodes, tsne_dims[0]))
-    y_coded = dict(zip(barcodes, tsne_dims[1]))
-    x = []
-    y = []
-    clusters = []
-    for barcode, cluster in cluster_labels.items():
-        clusters.append("Cluster {}".format(cluster))
-        x.append(x_coded[barcode])
-        y.append(y_coded[barcode])
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("UMAP - Clusters - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("{}/umap_by_cluster.png".format(prefix))
 
 def umap_by_gene(rdata, gene, prefix, pcs):
     tenx = TenxAnalysis(tenx_analysis)
@@ -379,32 +262,6 @@ def plot_by_markers(rdata, tenx_analysis, genes, prefix, rep, pcs, embedding_fil
         print("Gene {}".format(gene))
     plt.tight_layout()
     plt.savefig("figures/expression/{}_counts_{}.png".format(prefix.replace(" ","_").lower(), rep.lower()))
-
-def pca_by_gene(rdata, genes, prefix, pcs):
-    tenx = TenxAnalysis(tenx_analysis)
-    tenx.load()
-    sce = SingleCellExperiment.fromRData(rdata)
-    tsne_dims = sce.getReducedDims("PCA",n=pcs)
-    barcodes = sce.colData["Barcode"]
-    transcripts = sce.rowData["Symbol"]
-    adata = tenx.create_scanpy_adata(barcodes=barcodes,transcripts=symbols)
-    assert len(barcodes) == len(adata[:,gene])
-    expression = dict(zip(barcodes,adata[:,gene]))
-    x_coded = dict(zip(barcodes, tsne_dims[0]))
-    y_coded = dict(zip(barcodes, tsne_dims[1]))
-    x = []
-    y = []
-    clusters = []
-    for barcode in barcodes:
-        clusters.append(float(expression[barcode]))
-        x.append(x_coded[barcode])
-        y.append(y_coded[barcode])
-    f, ax = plt.subplots(figsize=(10,8))
-    sns.scatterplot(x=x, y=y, hue=clusters, alpha=0.85)
-    ax.set_title("PCA - Clusters - {}".format(prefix))
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("figures/umap_by_{}.png".format(gene))
 
 
 
