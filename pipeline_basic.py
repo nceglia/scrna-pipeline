@@ -26,7 +26,7 @@ def create_workflow():
     prefix = config.prefix
     workflow = RunCellranger(prefix, workflow)
     workflow = RunQC(prefix, workflow)
-    workflow = RunCorrection(prefix, workflow)
+    #workflow = RunCorrection(prefix, workflow)
     workflow = RunCellAssign(prefix, workflow)
     workflow = RunClustering(prefix, workflow)
     # workflow = RunDifferentialAnalysis(prefix, workflow)

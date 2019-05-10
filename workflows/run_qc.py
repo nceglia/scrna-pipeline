@@ -34,7 +34,7 @@ def RunQC(tenx, workflow):
         func = Run,
         args = (
             tenx,
-            pypeliner.managed.InputFile("upload.complete"),
+            pypeliner.managed.InputFile("cellranger.complete"),
             pypeliner.managed.OutputFile("qc.complete")
         )
     )

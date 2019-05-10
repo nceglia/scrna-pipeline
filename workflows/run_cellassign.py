@@ -57,7 +57,7 @@ def RunCellAssign(sampleid, workflow):
         func = Run,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("correction.complete"),
+            pypeliner.managed.InputFile("qc.complete"),
             pypeliner.managed.OutputFile("cellassign.complete")
         )
     )
