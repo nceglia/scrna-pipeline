@@ -3,6 +3,7 @@ import pypeliner.app
 import pypeliner.managed
 
 import sys
+import os
 
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
