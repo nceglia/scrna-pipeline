@@ -19,15 +19,15 @@ def Run(sampleid, before, finished):
     clustering = ".cache/{}/clustering/".format(sampleid)
     if not os.path.exists(clustering):
         os.makedirs(clustering)
-    cluster_results = os.path.join(clustering, "{}_clusters.pkl".format(sampleid))
+    cluster_results = os.path.join(clustering, "{}_clusters.pkl".format(sampleid))    
+    tenx = TenxDataStorage(sampleid, version="v3")
+    tenx.download()
+    analysis_path = tenx.tenx_path
+    tenx_analysis = TenxAnalysis(analysis_path)
+    tenx_analysis.load()
+    tenx_analysis.extract()
+    qc = QualityControl(tenx_analysis, sampleid)
     if not os.path.exists(cluster_results):
-        tenx = TenxDataStorage(sampleid, version="v3")
-        tenx.download()
-        analysis_path = tenx.tenx_path
-        tenx_analysis = TenxAnalysis(analysis_path)
-        tenx_analysis.load()
-        tenx_analysis.extract()
-        qc = QualityControl(tenx_analysis, sampleid)
         clusters = tenx_analysis.clusters(qc.sce)
         pickle.dump(clusters, open(cluster_results,"wb"))
     else:

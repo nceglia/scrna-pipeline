@@ -15,7 +15,7 @@ from workflows.run_qc import RunQC
 from workflows.run_report import RunReport
 from workflows.run_cellassign import RunCellAssign
 from workflows.run_clustering import RunClustering
-from workflows.run_correct import RunCorrection
+# from workflows.run_correct import RunCorrection
 
 config = Configuration()
 

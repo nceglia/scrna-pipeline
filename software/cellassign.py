@@ -25,7 +25,7 @@ class CellAssign(object):
         env["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + ":/usr/local/lib/R/lib"
         env["RETICULATE_PYTHON"] = "/home/ceglian/anaconda/bin/python3"
         submit = ["/home/ceglian/anaconda/bin/Rscript",".cache/run_cellassign.R"]
-        # subprocess.call(submit, env=env)
+        subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         submit = ["/home/ceglian/anaconda/bin/Rscript",".cache/match.R"]
         subprocess.call(submit, env=env)
