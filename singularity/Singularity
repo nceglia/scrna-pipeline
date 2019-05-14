@@ -4,9 +4,21 @@ From: nceglia/scrna-pipeline:dev
 %help
 scrna pipeline meant to be run on juno mskcc.
 
+%files
+    lsf.template /codebase/cellranger-3.0.2/martian-cs/v3.2.0/jobmanagers/lsf.template
+    run /bin/run
+
 %environment
     export PATH="/codebase/cellranger-3.0.2:$PATH
     export PATH=$PATH:/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/
     export R_HOME=/usr/local/lib/R/
     export LD_LIBRARY_PATH=/usr/local/lib/R/lib/
     export NPY_MKL_FORCE_INTEL=GNU
+    export SINGULARITY_BINDPATH="/common,/admin:/work/shah/reference/transcriptomes,/work/shah/data"
+
+%post
+    chmod 777 /bin/run
+
+%runscript
+    ln -s /common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub /codebase/cellranger-3.0.2/cellranger-cs/3.0.2/lib/bin/bsub
+    /bin/run $*
