@@ -25,4 +25,4 @@
 #BSUB -R span[hosts=1]
 #BSUB -R "select[type==CentOS7]"
 
-SINGULARITYENV_PATH=$PATH:/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/ SINGULARITYENV_R_HOME=/usr/local/lib/R/ SINGULARITYENV_LD_LIBRARY_PATH=/usr/local/lib/R/lib/ singularity exec --bind /common --bind /admin --bind /work/shah/reference/transcriptomes --bind /work/shah/data --bind /work/shah/software/ --bind /home/ceglian/codebase/ --bind $(pwd):$(pwd) /work/shah/images/scrna-pipeline-v1.0.4.img __MRO_CMD__
+singularity exec --bind /common --bind /admin --bind /work/shah/reference/transcriptomes --bind /work/shah/data /work/shah/images/scrna-pipeline-v1.0.4.img __MRO_CMD__
