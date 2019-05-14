@@ -1,3 +1,5 @@
+FROM nceglia/cellranger-base:latest AS cellranger
+
 FROM nceglia/base-r-scrna:latest
 
 MAINTAINER Nicholas Ceglia <nickceglia@gmail.com>
@@ -20,8 +22,10 @@ RUN mkdir /results
 RUN mkdir /runs
 RUN git clone https://github.com/shahcompbio/scvis.git /codebase/scvis/
 RUN cd /codebase/scvis && python3 setup.py install
-RUN git clone https://github.com/shahcompbio/SCRNApipeline.git /codebase/SCRNApipeline/
+RUN git clone https://github.com/nceglia/scrna-pipeline.git /codebase/SCRNApipeline/
 RUN git clone https://github.com/shahcompbio/pypeliner.git /codebase/pypeliner/
 RUN cd /codebase/pypeliner && python3 setup.py install
+RUN Rscript /codebase/install.R
+COPY --from=cellranger /codebase/cellranger-3.0.2 /codebase/cellranger-3.0.2
 
 CMD ["/bin/bash"]
