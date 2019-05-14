@@ -18,6 +18,7 @@ RUN python3 -m pip install rpy2
 RUN python3 -m pip install networkx
 RUN python3 -m pip install dill
 RUN python3 -m pip install azure
+RUN python3 -m pip install scanorama
 RUN mkdir /results
 RUN mkdir /runs
 RUN git clone https://github.com/shahcompbio/scvis.git /codebase/scvis/
@@ -27,5 +28,5 @@ RUN git clone https://github.com/shahcompbio/pypeliner.git /codebase/pypeliner/
 RUN cd /codebase/pypeliner && python3 setup.py install
 RUN Rscript /codebase/install.R
 COPY --from=cellranger /codebase/cellranger-3.0.2 /codebase/cellranger-3.0.2
-
+COPY lsf.template /codebase/cellranger-3.0.2/martian-cs/v3.2.0/jobmanagers/lsf.template
 CMD ["/bin/bash"]
