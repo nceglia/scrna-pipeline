@@ -31,14 +31,14 @@ def Search(sampleid):
     print ("Loading main sce {}".format(sampleid))
     sys.stdout.flush()
     samples = glob.glob("../../*/runs/.cache/*/metrics_summary.csv")
-    for sample in samples[2:]:
+    for sample in samples[:2]:
         print ("Loading project sample {}".format(sample))
         sys.stdout.flush()
         sample_rel_path = os.path.split(sample)[0]
         sid = sample_rel_path.split("/")[-1]
         sidsce = os.path.join(sample_rel_path,"{0}.rdata".format(sid))
         if not os.path.exists(sidsce):
-            print(sidsce)
+            print("Not found",sidsce)
             continue
         tenx_analysis = TenxAnalysis(sample_rel_path)
         tenx_analysis.load()

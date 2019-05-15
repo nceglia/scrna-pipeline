@@ -36,10 +36,20 @@ RUN git clone https://github.com/nceglia/scrna-pipeline.git /codebase/SCRNApipel
 RUN git clone https://github.com/shahcompbio/pypeliner.git /codebase/pypeliner/
 RUN cd /codebase/pypeliner && python3 setup.py install
 
+RUN apt-get install -y r-base
+
 RUN R -e "install.packages('httr')"
 RUN R -e "install.packages('devtools')"
 RUN R -e "install.packages('BiocManager')"
 RUN R -e "install.packages('Seurat')"
+
+RUN R -e "BiocManager::install('scran')"
+RUN R -e "BiocManager::install('scater')"
+RUN R -e "BiocManager::install('SingleCellExperiment')"
+RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
+
+RUN R -e "devtools::install_github('Irrationone/cellassign')"
+RUN R -e "devtools::install_github('kieranrcampbell/clonealign')"
 
 RUN mkdir /results
 RUN mkdir /runs
