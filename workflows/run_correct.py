@@ -22,10 +22,12 @@ def Search(sampleid):
     tenx = TenxDataStorage(sampleid, version="v3")
     tenx.download()
     analysis_path = tenx.tenx_path
+    print(analysis_path)
     tenx_analysis = TenxAnalysis(analysis_path)
     tenx_analysis.load()
     tenx_analysis.extract()
     qc = QualityControl(tenx_analysis, sampleid)
+    print(qc.sce)
     tenxs.append(tenx_analysis.adata(qc.sce))
     samples = glob.glob("../../*/runs/.cache/*/metrics_summary.csv")
     for sample in samples:
@@ -61,4 +63,4 @@ def RunCorrection(sampleid, workflow):
     return workflow
 
 if __name__ == '__main__':
-    Run("LBOWEL-CD45N_IGO_09443_E_4", "qc.complete", "correction.complete")
+    Run("AS_CD45P_IGO_09443_F_16", "qc.complete", "correction.complete")
