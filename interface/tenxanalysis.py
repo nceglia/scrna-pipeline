@@ -194,7 +194,7 @@ class TenxAnalysis(object):
         output.close()
 
         output = open(os.path.join(path,"genes.tsv"),"w")
-        for gene in adata.vars.index:
+        for gene in adata.var.index:
             output.write(gene+"\t"+gene+"\n")
         output.close()
 
