@@ -48,6 +48,11 @@ RUN R -e "BiocManager::install('scater')"
 RUN R -e "BiocManager::install('SingleCellExperiment')"
 RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
 
+RUN R -e "install.packages('XML')"
+RUN export GITHUB_PAT=b4e0f61f39f253efd3a8d6358528db8bd775b6a2
+RUN R -e "install.packages('tensorflow')"
+RUN git clone https://github.com/Irrationone/cellassign.git /codebase/cellassign/
+RUN cd /codebase; R CMD build --no-build-vignettes cellassign; ls; R CMD INSTALL cellassign_0.99.2.tar.gz
 RUN R -e "devtools::install_github('Irrationone/cellassign')"
 RUN R -e "devtools::install_github('kieranrcampbell/clonealign')"
 

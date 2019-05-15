@@ -194,13 +194,15 @@ class TenxAnalysis(object):
         output.close()
 
         output = open(os.path.join(path,"genes.tsv"),"w")
-        for gene in genes:
+        for gene in adata.vars.index:
             output.write(gene+"\t"+gene+"\n")
         output.close()
 
         nd = numpy.matrix(adata.X)
         mat = sparse.csr_matrix(nd).T
-        io.mmwrite(os.path.join(path, "matrix.mtx"),mat)
+        output = open(os.path.join(path, "matrix.mtx"),"w")
+        print(os.path.join(path, "matrix.mtx"))
+        io.mmwrite(output,mat)
 
 
     def adata(self, scepath, subset=None):

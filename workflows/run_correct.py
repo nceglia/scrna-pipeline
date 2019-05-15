@@ -53,8 +53,6 @@ def Run(sampleid, before, finished):
     print ("Correcting on {} samples.".format(len(adatas)))
     sys.stdout.flush()
     corrected = Scanorama.correct(adatas)
-    print("Correction complete.")
-    print(type(corrected[0]))
     sys.stdout.flush()
     if not os.path.exists(".cache/corrected"):
         os.makedirs(".cache/corrected")
