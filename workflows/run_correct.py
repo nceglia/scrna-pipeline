@@ -56,7 +56,7 @@ def Run(sampleid, before, finished):
     sys.stdout.flush()
     if not os.path.exists(".cache/corrected"):
         os.makedirs(".cache/corrected")
-    TenxAnalysis.make_10x_output(str(corrected[0]),".cache/corrected")
+    TenxAnalysis.make_10x_output(corrected[0],".cache/corrected")
     open(finished,"w").write("Completed")
 
 

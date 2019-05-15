@@ -200,8 +200,7 @@ class TenxAnalysis(object):
 
         nd = numpy.matrix(adata.X)
         mat = sparse.csr_matrix(nd).T
-        output = open(os.path.join(path, "matrix.mtx"),"w")
-        print(os.path.join(path, "matrix.mtx"))
+        output = str(os.path.join(path, "matrix.mtx"))
         io.mmwrite(output,mat)
 
 
