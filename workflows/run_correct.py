@@ -27,28 +27,40 @@ def Search(sampleid):
     tenx_analysis.load()
     tenx_analysis.extract()
     qc = QualityControl(tenx_analysis, sampleid)
-    print(qc.sce)
     tenxs.append(tenx_analysis.adata(qc.sce))
+    print ("Loading main sce {}".format(sampleid))
+    sys.stdout.flush()
     samples = glob.glob("../../*/runs/.cache/*/metrics_summary.csv")
-    for sample in samples:
+    for sample in samples[2:]:
+        print ("Loading project sample {}".format(sample))
+        sys.stdout.flush()
         sample_rel_path = os.path.split(sample)[0]
         sid = sample_rel_path.split("/")[-1]
         sidsce = os.path.join(sample_rel_path,"{0}.rdata".format(sid))
-        assert os.path.exists(sidsce)
+        if not os.path.exists(sidsce):
+            print(sidsce)
+            continue
         tenx_analysis = TenxAnalysis(sample_rel_path)
         tenx_analysis.load()
         tenx_analysis.extract()
         tenxs.append(tenx_analysis.adata(sidsce))
+    print ("Finished project tree search.")
+    sys.stdout.flush()
     return tenxs
 
 def Run(sampleid, before, finished):
     adatas = Search(sampleid)
+    print ("Correcting on {} samples.".format(len(adatas)))
+    sys.stdout.flush()
     corrected = Scanorama.correct(adatas)
+    print("Correction complete.")
     print(type(corrected[0]))
+    sys.stdout.flush()
     if not os.path.exists(".cache/corrected"):
         os.makedirs(".cache/corrected")
     TenxAnalysis.make_10x_output(corrected[0],".cache/corrected")
     open(finished,"w").write("Completed")
+
 
 def RunCorrection(sampleid, workflow):
     workflow.transform (
