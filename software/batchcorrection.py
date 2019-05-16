@@ -33,7 +33,7 @@ class Scanorama(object):
 
     @staticmethod
     def correct(adatas):
-        correcteds = scanorama.correct_scanpy(adatas)
+        correcteds = scanorama.integrate_scanpy(adatas)
         return correcteds.pop(0)
 
     @staticmethod

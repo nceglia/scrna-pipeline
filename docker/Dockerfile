@@ -6,7 +6,6 @@ MAINTAINER Nicholas Ceglia <nickceglia@gmail.com>
 RUN apt-get clean && apt-get update && apt-get install -y locales
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
-ENV GITHUB_PAT=b4e0f61f39f253efd3a8d6358528db8bd775b6a2
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
@@ -49,7 +48,6 @@ RUN R -e "BiocManager::install('SingleCellExperiment')"
 RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
 
 RUN R -e "install.packages('XML')"
-RUN export GITHUB_PAT=b4e0f61f39f253efd3a8d6358528db8bd775b6a2
 RUN R -e "install.packages('tensorflow')"
 RUN git clone https://github.com/Irrationone/cellassign.git /codebase/cellassign/
 RUN cd /codebase; R CMD build --no-build-vignettes cellassign; R CMD INSTALL cellassign_0.99.2.tar.gz
