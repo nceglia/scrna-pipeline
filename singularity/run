@@ -5,5 +5,6 @@ export LD_LIBRARY_PATH=/usr/local/lib/R/lib/
 bash /software/cellranger-3.0.2/sourceme.bash
 export PYTHONPATH=$PYTHONPATH:/codebase/SCRNApipeline/
 export PATH=$PATH:/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin
-python3 /work/shah/software/SCRNApipeline/generate_config.py --cellranger /software/cellranger-3.0.2/cellranger-cs/3.0.2/bin/ --lsf $*
-python3 /work/shah/software/SCRNApipeline/pipeline_basic.py --submit local
+ln -s /common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub /codebase/cellranger-3.0.2/cellranger-cs/3.0.2/lib/bin/bsub
+python3 /software/SCRNApipeline/generate_config.py --cellranger /software/cellranger-3.0.2/cellranger-cs/3.0.2/bin/ --lsf $*
+python3 /software/SCRNApipeline/pipeline_basic.py --submit local

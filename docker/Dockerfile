@@ -59,4 +59,5 @@ RUN mkdir /runs
 
 COPY --from=cellranger /codebase/cellranger-3.0.2 /codebase/cellranger-3.0.2
 COPY lsf.template /codebase/cellranger-3.0.2/martian-cs/v3.2.0/jobmanagers/lsf.template
+RUN -R cd /codebase/SCRNApipeline/; git pull;
 CMD ["/bin/bash"]

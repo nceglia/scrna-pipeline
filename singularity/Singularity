@@ -20,5 +20,4 @@ scrna pipeline meant to be run on juno mskcc.
     chmod 777 /bin/run
 
 %runscript
-    ln -s /common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub /codebase/cellranger-3.0.2/cellranger-cs/3.0.2/lib/bin/bsub
-    /bin/run $*
+    exec run "$@"
