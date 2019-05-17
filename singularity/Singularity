@@ -11,8 +11,6 @@ scrna pipeline meant to be run on juno mskcc.
 %environment
     export PATH=/codebase/cellranger-3.0.2:$PATH
     export PATH=$PATH:/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/
-    export R_HOME=/usr/local/lib/R/
-    export LD_LIBRARY_PATH=/usr/local/lib/R/lib/
     export NPY_MKL_FORCE_INTEL=GNU
     export SINGULARITY_BINDPATH="/common,/admin:/work/shah/reference/transcriptomes,/work/shah/data,/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin"
 
