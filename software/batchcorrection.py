@@ -33,8 +33,14 @@ class Scanorama(object):
 
     @staticmethod
     def correct(adatas):
-        correcteds = scanorama.integrate_scanpy(adatas)
-        return correcteds.pop(0)
+        integrated, correcteds = scanorama.correct_scanpy(adatas, return_dimred=True)
+        return correcteds
+
+    @staticmethod
+    def integrate(adatas):
+        datasets = [adata.X for adata in adatas]
+        integrated = scanorama.assemble(datasets)
+        return integrated
 
     @staticmethod
     def plot_corrected(tenx, sample="qcd", subset=None):

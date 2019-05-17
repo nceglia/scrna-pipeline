@@ -12,30 +12,46 @@ from utils.cloud import TenxDataStorage
 from interface.qualitycontrol import QualityControl
 from interface.genemarkermatrix import GeneMarkerMatrix
 from utils.plotting import celltypes, tsne_by_cell_type, umap_by_cell_type
+from software.dropletutils import DropletUtils
 
 from utils.config import Configuration
 
 config = Configuration()
 
-def Run(sampleid, before, finished):
-    tenx = TenxDataStorage(sampleid, version="v3")
-    tenx.download()
-    analysis_path = tenx.tenx_path
-    tenx_analysis = TenxAnalysis(analysis_path)
-    tenx_analysis.load()
-    tenx_analysis.extract()
-    qc = QualityControl(tenx_analysis, sampleid)
-    CellAssign.run(qc.sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
+def Run(sampleid, before, finished, use_corrected=True):
+    if use_corrected and os.path.exists(".cache/corrected/"):
+        sce = ".cache/corrected/corrected_sce.rdata"
+        if not os.path.exists(sce):
+            utils = DropletUtils()
+            utils.read10xCounts(".cache/corrected/",".cache/corrected/corrected_sce.rdata")
+    else:
+        tenx = TenxDataStorage(sampleid, version="v3")
+        tenx.download()
+        analysis_path = tenx.tenx_path
+        tenx_analysis = TenxAnalysis(analysis_path)
+        tenx_analysis.load()
+        tenx_analysis.extract()
+        qc = QualityControl(tenx_analysis, sampleid)
+        sce = qc.sce
+    CellAssign.run(sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
     open(finished,"w").write("Completed")
 
-def Analysis(sampleid, before, finished):
-    tenx = TenxDataStorage(sampleid, version="v3")
-    tenx.download()
-    analysis_path = tenx.tenx_path
-    tenx_analysis = TenxAnalysis(analysis_path)
-    tenx_analysis.load()
-    tenx_analysis.extract()
-    qc = QualityControl(tenx_analysis, sampleid)
+def Analysis(sampleid, before, finished, use_corrected=True):
+    if use_corrected and os.path.exists(".cache/corrected"):
+        sce = ".cache/corrected/corrected_sce.rdata"
+        if not os.path.exists(sce):
+            utils = DropletUtils()
+            utils.read10xCounts(".cache/corrected/",".cache/corrected/corrected_sce.rdata")
+        filtered_sce = sce
+    else:
+        tenx = TenxDataStorage(sampleid, version="v3")
+        tenx.download()
+        analysis_path = tenx.tenx_path
+        tenx_analysis = TenxAnalysis(analysis_path)
+        tenx_analysis.load()
+        tenx_analysis.extract()
+        qc = QualityControl(tenx_analysis, sampleid)
+        filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
     if not os.path.exists(cellassign_analysis):
         os.makedirs(cellassign_analysis)
@@ -46,7 +62,7 @@ def Analysis(sampleid, before, finished):
     cell_types = marker_list.celltypes()
     if "B cell" not in cell_types: cell_types.append("B cell")
     celltypes(pyfit, sampleid, cellassign_analysis, known_types=cell_types)
-    filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
+
     tsne_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
     umap_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
     open(finished,"w").write("Completed")
@@ -57,7 +73,7 @@ def RunCellAssign(sampleid, workflow):
         func = Run,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("qc.complete"),
+            pypeliner.managed.InputFile("correct.complete"),
             pypeliner.managed.OutputFile("cellassign.complete")
         )
     )

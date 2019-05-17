@@ -198,10 +198,8 @@ class TenxAnalysis(object):
             output.write(gene+"\t"+gene+"\n")
         output.close()
 
-        nd = numpy.matrix(adata.X)
-        mat = sparse.csr_matrix(nd).T
         output = str(os.path.join(path, "matrix.mtx"))
-        io.mmwrite(output,mat)
+        io.mmwrite(output,adata.X.T)
 
 
     def adata(self, scepath, subset=None):

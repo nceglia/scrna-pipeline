@@ -1,7 +1,6 @@
 import rpy2.robjects as robjects
 from rpy2.robjects.packages import importr
 from interface.singlecellexperiment import SingleCellExperiment
-#import gc
 
 class DropletUtils(object):
 
@@ -13,14 +12,13 @@ class DropletUtils(object):
             else:
                 setattr(self, attr, reference)
 
-    def barcodeRanks(self, sparse_matrix):
-        results = self._barcodeRanks(sparse_matrix.todense())
-        return results
-
-    def emptyDrops(self, sparse_matrix):
-        dcg_matrix = SingleCellExperiment.CSRtoDCG(sparse_matrix)
-        results = self._emptyDrops(dcg_matrix)
-        return results
+    @staticmethod
+    def read10xCounts(path, output):
+        utils = DropletUtils()
+        counts = utils.read10xCounts(path)
+        sce = SingleCellExperiment.fromRS4(counts)
+        sce.save(output)
+        return sce
 
 
 

@@ -31,7 +31,7 @@ def Search(sampleid):
     print ("Loading main sce {}".format(sampleid))
     sys.stdout.flush()
     samples = glob.glob("../../*/runs/.cache/*/metrics_summary.csv")
-    for sample in samples[:2]:
+    for sample in samples:
         print ("Loading project sample {}".format(sample))
         sys.stdout.flush()
         sample_rel_path = os.path.split(sample)[0]
@@ -56,7 +56,6 @@ def Run(sampleid, before, finished):
     sys.stdout.flush()
     if not os.path.exists(".cache/corrected"):
         os.makedirs(".cache/corrected")
-    print(corrected[0].X.shape)
     TenxAnalysis.make_10x_output(corrected[0],".cache/corrected")
     open(finished,"w").write("Completed")
 
