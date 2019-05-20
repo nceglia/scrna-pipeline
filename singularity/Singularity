@@ -15,7 +15,9 @@ scrna pipeline meant to be run on juno mskcc.
     export SINGULARITY_BINDPATH="/common,/admin:/work/shah/reference/transcriptomes,/work/shah/data,/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin"
 
 %post
+    ln -s /usr/lib/R/lib /usr/local/lib/R/
     chmod 777 /bin/run
+    chmod 775 /
 
 %runscript
     exec run "$@"
