@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: quay.io/nceglia/scrna-pipeline
+From: nceglia/scrna-pipeline:dev
 
 %help
 scrna pipeline meant to be run on juno mskcc.
