@@ -61,4 +61,6 @@ RUN mkdir /runs
 COPY --from=cellranger /codebase/cellranger-3.0.2 /codebase/cellranger-3.0.2
 COPY lsf.template /codebase/cellranger-3.0.2/martian-cs/v3.2.0/jobmanagers/lsf.template
 RUN cd /codebase/SCRNApipeline/; git pull;
+RUN python3 -m pip install --user scipy==1.2.1
+RUN cd /codebase/SCRNApipeline/; git pull;
 CMD ["/bin/bash"]

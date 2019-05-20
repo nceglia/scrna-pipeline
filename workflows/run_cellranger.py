@@ -32,4 +32,4 @@ def RunCellranger(sampleid, workflow):
             pypeliner.managed.OutputFile("cellranger.complete"),
         )
     )
-    return workflowye
+    return workflow
