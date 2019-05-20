@@ -14,7 +14,6 @@ scrna pipeline meant to be run on juno mskcc.
     export NPY_MKL_FORCE_INTEL=GNU
 
 %post
-    python3 -m pip install tzlocal
     ln -s /usr/lib/R/lib /usr/local/lib/R/
     chmod 777 /bin/run
     chmod 775 /
