@@ -27,6 +27,7 @@ RUN python3 -m pip install dill
 RUN python3 -m pip install azure
 RUN python3 -m pip install scanorama
 RUN python3 -m pip install scanpy
+RUN python3 -m pip install tzlocal
 
 RUN apt-get install -y git
 RUN git clone https://github.com/shahcompbio/scvis.git /codebase/scvis/
