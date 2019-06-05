@@ -7,7 +7,7 @@ yaml_file = os.path.join(os.getcwd(), "settings.yaml")
 def yaml_configuration():
     if os.path.exists(yaml_file):
         with open(yaml_file, "r") as f:
-            doc = yaml.load(f)
+            doc = yaml.load(f, Loader=yaml.FullLoader)
             return doc
 
 basic_yaml = """
