@@ -19,15 +19,15 @@ class CellAssign(object):
     def cmd(rdata, rho_csv, results, lsf=True):
         CellAssign.script(rdata, rho_csv, results)
         env = os.environ.copy()
-        env["NPY_MKL_FORCE_INTEL"] = "GNU"
-        env["PATH"] = os.environ["PATH"] + ":/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/"
-        env["R_HOME"] = "/usr/local/lib/R/"
-        env["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + ":/usr/local/lib/R/lib"
-        env["RETICULATE_PYTHON"] = "/home/ceglian/anaconda/bin/python3"
-        submit = ["/home/ceglian/anaconda/bin/Rscript",".cache/run_cellassign.R"]
+        #env["NPY_MKL_FORCE_INTEL"] = "GNU"
+        #env["PATH"] = os.environ["PATH"] + ":/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/"
+        #env["R_HOME"] = "/usr/local/lib/R/"
+        #env["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"] + ":/usr/local/lib/R/lib"
+        #env["RETICULATE_PYTHON"] = "/home/ceglian/anaconda/bin/python3"
+        submit = ["Rscript",".cache/run_cellassign.R"]
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        submit = ["/home/ceglian/anaconda/bin/Rscript",".cache/match.R"]
+        submit = ["Rscript",".cache/match.R"]
         subprocess.call(submit, env=env)
 
     @staticmethod

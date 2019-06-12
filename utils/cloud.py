@@ -35,11 +35,15 @@ class TenxDataStorage(object):
     def upload_cellranger(self, tenx):
         bam_tarball = tenx.bam_tarball()
         bam_tarball_name = os.path.split(bam_tarball)[-1]
+        if self.sampleid not in bam_tarball:
+            bam_tarball = os.path.join(self.sampleid, bam_tarball)
+        print("Uploading {} {}".format(bam_tarball, bam_tarball_name))
         outs_tarball = tenx.outs_tarball()
         outs_tarball_name = os.path.split(outs_tarball)[-1]
-        self.upload("bams" ,bam_tarball_name, bam_tarball)
+        self.upload("bams" ,bam_tarball, bam_tarball)
         self.upload("cellranger{}".format(self.version), outs_tarball_name, outs_tarball)
-
+        #assert bams_tarball_name in self.block_blob_service.list_blobs("bams"), "Bam files did not upload correctly"
+        #assert outs_tarball_name in self.block_blob_service.list_blobs("cellranger{}".format(self.version)), "Cellranger did not upload correctly"
 
     def unpack(self,path):
         tar = tarfile.open(path)

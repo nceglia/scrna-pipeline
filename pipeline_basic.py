@@ -15,7 +15,7 @@ from workflows.run_qc import RunQC
 from workflows.run_report import RunReport
 from workflows.run_cellassign import RunCellAssign
 from workflows.run_clustering import RunClustering
-from workflows.run_correct import RunCorrection
+#from workflows.run_correct import RunCorrection
 
 config = Configuration()
 
@@ -27,8 +27,8 @@ def create_workflow():
     workflow = RunCellranger(prefix, workflow)
     workflow = RunQC(prefix, workflow)
     # workflow = RunCorrection(prefix, workflow)
-    workflow = RunCellAssign(prefix, workflow)
-    workflow = RunClustering(prefix, workflow)
+    #workflow = RunCellAssign(prefix, workflow)
+    #workflow = RunClustering(prefix, workflow)
     # workflow = RunDifferentialAnalysis(prefix, workflow)
     workflow = RunReport(prefix, workflow)
 

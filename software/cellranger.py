@@ -16,9 +16,8 @@ class CellRanger(object):
             cmd.append("--{}".format(flag)
             )
             cmd.append(value)
-        cmd.append("--jobmode=lsf")
-        cmd.append("--mempercore=8")
-        cmd.append("--maxjobs=200")
+        #cmd.append("--jobmode=lsf")
+        #cmd.append("--maxjobs=200")
         return cmd
 
     @staticmethod
