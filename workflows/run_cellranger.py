@@ -15,7 +15,6 @@ config = Configuration()
 
 def Run(sampleid, finished):
     if not os.path.exists("cellranger.complete"):
-        CellRanger.count([sampleid])
         tenx = TenxAnalysis("./{}/outs/".format(sampleid))
         tenx.finalize()
         tenxds = TenxDataStorage(sampleid)

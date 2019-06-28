@@ -26,7 +26,6 @@ def Run(sampleid, before, finished):
         qc.run(mito=config.mito)
         print ("Uploading")
         qc.upload_raw()
-        qc.upload()
     open(finished,"w").write("Completed")
 
 def RunQC(tenx, workflow):

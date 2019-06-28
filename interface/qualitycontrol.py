@@ -137,10 +137,6 @@ rowData(sce)$Symbol <- gsub("hg19_", "", rowData(sce)$Symbol)
 
 rowData(sce)$ensembl_gene_id <- rownames(sce)
 
-sce <- getBMFeatureAnnos(sce, filters = "ensembl_gene_id",
-attributes = c("ensembl_gene_id", "hgnc_symbol", "entrezgene",
-"start_position", "end_position", "chromosome_name"),
-dataset = "hsapiens_gene_ensembl")
 
 
 print("Calculating Size Factors")
@@ -159,14 +155,12 @@ sce <- normalize(sce)
 
 
 # Get Mitochondrial genes for QC:
-mt_genes <- which(rowData(sce)$chromosome_name == "MT")
+mt_genes <- as.character(rowData(sce_combined)$Symbol[str_detect(rowData(sce_combined)$Symbol, "^MT\\-")])
 ribo_genes <- grepl("^RP[LS]", rowData(sce)$Symbol)
-feature_ctrls <- list(mito = rownames(sce)[mt_genes],
-                      ribo = rownames(sce)[ribo_genes])
-
 # Calculate QC metrics
 print("Calculating QC Metrics")
-sce <- calculateQCMetrics(sce, feature_controls = feature_ctrls)
+sce <- calculateQCMetrics(sce_combined, exprs_values = "counts", feature_controls =
+                          list(mito=mt_genes, ribo=ribo_genes))
 
 #Reduced dimensions
 print("Running PCA")
