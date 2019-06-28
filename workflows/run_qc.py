@@ -13,7 +13,7 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def Run(sampleid, before, finished):
+def Run(sampleid, finished):
     print("Running QC.")
     tenx = TenxDataStorage(sampleid, version="v3")
     tenx.download()
@@ -34,7 +34,6 @@ def RunQC(tenx, workflow):
         func = Run,
         args = (
             tenx,
-            pypeliner.managed.InputFile("cellranger.complete"),
             pypeliner.managed.OutputFile("qc.complete")
         )
     )
