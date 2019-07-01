@@ -13,11 +13,7 @@ class Results(object):
     def __init__(self, output):
         self.plots = list()
         self.output = config.jobpath
-        self.report_dir = os.path.join(config.jobpath,"{}_report/".format(config.prefix))
-        try:
-            os.makedirs(self.report_dir)
-        except Exception as e:
-            pass
+        self.report_dir = os.path.join(config.jobpath,"report/")
         self.paths = []
 
     def qc_reports(self):
