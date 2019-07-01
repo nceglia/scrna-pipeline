@@ -18,9 +18,5 @@ parser.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 args = parser.parse_args()
 
-if not os.path.exists(os.path.join(args.datapath, args.sampleid)):
-    os.makedirs(os.path.join(args.datapath, args.sampleid))
-
-
 write_config(args.sampleid, args.build, args.jobpath, os.path.join(args.datapath, args.sampleid), args.referencepath, args.cellranger, args.lsf, args.markers)
 print("Config written to settings.yaml")
