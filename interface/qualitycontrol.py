@@ -159,6 +159,9 @@ mt_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^M
 ribo_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
 # Calculate QC metrics
 print("Calculating QC Metrics")
+
+rownames(sce) <- rowData(sce)$Symbol
+
 sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls =
                           list(mito=mt_genes, ribo=ribo_genes))
 #Reduced dimensions
