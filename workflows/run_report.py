@@ -61,7 +61,6 @@ def Run(sampleid, before, finished):
     results.add_plot(tsne_clusters,"TSNE - Clusters")
     results.add_plot(umap_clusters,"UMAP - Clusters")
 
-    exportMD(results)
     exportUpload(results)
     open(finished,"w").write("Completed")
 
