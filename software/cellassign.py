@@ -81,7 +81,7 @@ rho <- rho[,-1]
 sce <- readRDS("{sce}")
 
 print('qc')
-cells_to_keep <- sce$pct_counts_mito < 15
+cells_to_keep <- sce$pct_counts_mito < 20
 table_cells_to_keep <- table(cells_to_keep)
 sce <- sce[,cells_to_keep]
 summ <- summary(sce$total_counts)
@@ -106,7 +106,7 @@ rho <- rho[common_genes,]
 rho <- data.matrix(rho)
 s <- sizeFactors(sce)
 print('call')
-fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, shrinkage=TRUE)
+fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B=20, shrinkage=TRUE)
 print('save')
 saveRDS(fit_cellassign, file = '{fname}')
 saveRDS(sce, file="{fsce}")

@@ -14,11 +14,11 @@ from utils.config import Configuration, write_config
 config = Configuration()
 
 def Run(sampleid, finished):
-    if not os.path.exists("cellranger.complete"):
-        tenx = TenxAnalysis("./{}/outs/".format(sampleid))
-        tenx.finalize()
-        tenxds = TenxDataStorage(sampleid)
-        tenxds.upload_cellranger(tenx)
+    tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
+    tenx = TenxAnalysis(tenx_output)
+    tenx.finalize()
+    tenxds = TenxDataStorage(sampleid)
+    tenxds.upload_cellranger(tenx)
     open(finished,"w").write("Completed")
 
 
