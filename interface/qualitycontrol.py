@@ -156,12 +156,11 @@ sce <- normalize(sce)
 
 # Get Mitochondrial genes for QC:
 mt_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
-ribo_genes <- grepl("^RP[LS]", rowData(sce)$Symbol)
+ribo_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
 # Calculate QC metrics
 print("Calculating QC Metrics")
 sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls =
                           list(mito=mt_genes, ribo=ribo_genes))
-
 #Reduced dimensions
 print("Running PCA")
 sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
