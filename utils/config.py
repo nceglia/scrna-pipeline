@@ -18,7 +18,7 @@ jobpath: "{jobpath}"
 datapath: "{datapath}"
 referencepath: "{referencepath}"
 rho_matrix: {markers}
-cellranger: "{cellranger_bin}"
+cellranger: "{cellranger}"
 copy_number_data: None
 scviz_embedding: None
 run_scvis: False
