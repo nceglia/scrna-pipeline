@@ -72,7 +72,8 @@ def write_config(args):
                                    datapath=datapath,
                                    referencepath=referencepath,
                                    cellranger=cellranger,
-                                   markers=markers))
+                                   markers=markers,
+                                   samples=sample_file))
 
 class Configuration(object):
     def __init__(self):
