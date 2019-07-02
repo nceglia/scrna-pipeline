@@ -50,7 +50,7 @@ def RunCollection(workflow):
         func = RunDownload,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample")
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.OutputFile("sample.rdata","sample")
         )
     )
