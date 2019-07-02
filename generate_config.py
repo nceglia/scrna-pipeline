@@ -24,10 +24,11 @@ sample_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastq
 sample_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 integration_args = subparsers.add_parser("integrate")
+integration_args.add_argument('--prefix', type=str, help='Analysis prefix')
 integration_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.")
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 args = parser.parse_args()
 
-write_config(args.subparser, args.sampleid, args.build, args.jobpath, os.path.join(args.datapath, args.sampleid), args.referencepath, args.cellranger, args.markers, args.samples)
+write_config(args)
 print("Config written to settings.yaml")

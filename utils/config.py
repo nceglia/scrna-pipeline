@@ -40,8 +40,29 @@ mito: 20
 """
 
 
-def write_config(subcommand, prefix, build, jobpath, datapath, referencepath, cellranger, markers, samples):
+def write_config(args):
     output = open("settings.yaml","w")
+    subcommand = args.subparser
+    jobpath    = args.jobpath
+    build = args.build
+    prefix = "scrna"
+    cellranger = "none"
+    referencepath = "none"
+    markers = "none"
+
+    if subcommand == "cellranger":
+        datapath = args.datapath
+        referencepath = os.path.join(args.datapath, args.sampleid)
+        cellranger = args.cellranger
+        prefix     = args.sampleid
+    elif subcommand == "sample":
+        markers = args.markers
+        prefix  = args.sampleid
+    elif subcommand == "integrate":
+        sample_file = args.samples
+        prefix = args.prefix
+        markers = args.markers
+
     output.write(basic_yaml.format(run_command=subcommand,
                                    prefix=prefix,
                                    build=build,
