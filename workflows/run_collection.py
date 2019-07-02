@@ -44,7 +44,8 @@ def RunCollect(rdata, manifest):
     output.close()
 
 def RunCollection(workflow):
-    all_samples = open(config.samples, "r").read().splitlines(),
+    all_samples = open(config.samples, "r").read().splitlines()
+    print (all_samples)
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
