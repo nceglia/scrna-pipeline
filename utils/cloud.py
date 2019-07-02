@@ -10,19 +10,18 @@ import shutil
 import gzip
 from multiprocessing import Pool
 
+
+def get_tenx_object(sampleid):
+    tenx = TenxDataStorage(sampleid)
+    tenx.download()
+    tenx.unpack()
+
 class SampleCollection(object):
 
     def __init__(self, sampleids):
-        self.tenxs = []
-        for sampleid in sampleids:
-            self.tenxs.append(TenxDataStorage(sampleid))
-
-    def cache(self):
-        download = lambda tenx: tenx.download()
-        unpack = lambda tenx: tenx.unpack()
+        self.tenxs = sampleids
         pool = Pool(processes=len(self.tenxs))
-        pool.map(download, self.tenxs)
-        pool.map(unpack, self.tenxs)
+        pool.map(get_tenx_object, self.tenxs)
         print("Finished cache")
 
 
