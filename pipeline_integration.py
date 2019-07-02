@@ -28,7 +28,6 @@ def create_workflow():
     sampleids = open(config.samples, "r").read().splitlines()
 
     tenx_collection = SampleCollection(sampleids)
-    tenx_collection.cache()
     # workflow = RunQC(prefix, workflow)
     # workflow = RunCellAssign(prefix, workflow)
     # workflow = RunReport(prefix, workflow)
