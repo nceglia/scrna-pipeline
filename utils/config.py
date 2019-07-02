@@ -55,6 +55,7 @@ def write_config(args):
         referencepath = os.path.join(args.datapath, args.sampleid)
         cellranger = args.cellranger
         prefix     = args.sampleid
+        datapath = args.datapath
     elif subcommand == "sample":
         markers = args.markers
         prefix  = args.sampleid
