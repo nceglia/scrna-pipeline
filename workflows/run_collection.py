@@ -16,23 +16,22 @@ from utils.config import Configuration, write_config
 config = Configuration()
 
 def RunDownload(sampleids, finished):
-    print("Getting Collection.")
     for sample in sampleids:
         tenx = TenxDataStorage(sample)
         path = tenx.download()
         path_json = {sample: path}
         open(finished(sample),"w").write(json.dumps(path_json))
 
-def RunExtract(sample_to_path, finished):
+def RunExtract(sample_to_path, rdata_path):
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
     tenx_analysis.load()
     tenx_analysis.extract()
-    print("Extracted.")
-    # qc = QualityControl(tenx_analysis,sampleid)
-    # if not os.path.exists(qc.sce):
-    #     qc.run(mito=config.mito)
+    qc = QualityControl(tenx_analysis,sampleid)
+    if not os.path.exists(qc.sce):
+        qc.run(mito=config.mito)
+    copyfile(qc.sce, rdata_path)
 
 
 
