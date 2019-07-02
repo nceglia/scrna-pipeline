@@ -28,13 +28,17 @@ def Run(sampleid, finished):
         qc.upload_raw()
     open(finished,"w").write("Completed")
 
-def RunQC(tenx, workflow):
+def RunQC(tenx, workflow, prefix=None):
+    if prefix != None:
+        qc_complete = "{}_qc.complete".format(prefix)
+    else:
+        qc_complete = "qc.complete"
     workflow.transform (
         name = "quality_control",
         func = Run,
         args = (
             tenx,
-            pypeliner.managed.OutputFile("qc.complete")
+            pypeliner.managed.OutputFile(qc_complete)
         )
     )
     return workflow

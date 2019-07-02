@@ -22,7 +22,7 @@ def create_workflow():
     print("Creating workflow.")
     workflow = pypeliner.workflow.Workflow()
 
-    prefix   = config.prefix
+    prefix = config.prefix
     workflow = RunQC(prefix, workflow)
     workflow = RunCellAssign(prefix, workflow)
     workflow = RunReport(prefix, workflow)
