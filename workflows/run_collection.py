@@ -34,8 +34,14 @@ def RunExtract(sample_to_path, rdata_path):
     qc = QualityControl(tenx_analysis,sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
-    print(rdata_path)
     shutil.copyfile(qc.sce, rdata_path)
+
+
+def RunCollect(rdata, manifest):
+    output = open(manifest,"w")
+    for id, rdata in rdata.items():
+        output.write(rdata+"\n")
+    output.close()
 
 def RunCollection(workflow):
     workflow.transform (
@@ -53,6 +59,16 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.OutputFile("sample.rdata","sample")
+        )
+    )
+
+    workflow.transform (
+        name = "extract_rdata",
+        func = RunCollect,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.InputFile("sample.json","sample"),
+            pypeliner.managed.OutputFile("manifest.txt")
         )
     )
 
