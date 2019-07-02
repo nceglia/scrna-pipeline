@@ -20,11 +20,11 @@ class QualityControl(object):
         self.cache = ".cache"
         if not os.path.exists(self.cache):
             os.makedirs(self.cache)
-        self.script = os.path.join(self.cache,"qc.R")
-        self.construct = os.path.join(self.cache,"build.R")
-        self.figures = os.path.join(self.cache,"figures.R")
+        self.script = os.path.join(self.cache,"qc_{}.R".format(sampleid))
+        self.construct = os.path.join(self.cache,"build_{}.R".format(sampleid))
+        self.figures = os.path.join(self.cache,"figures_{}.R".format(sampleid))
         self.plots = os.path.join(self.tenx.path, "qc_figures")
-        self.veryraw = os.path.join(self.tenx.path, "raw_build.R")
+        self.veryraw = os.path.join(self.tenx.path, "raw_build_{}.R".format(sampleid))
 
         output = open(self.script,"w")
         output.write(filter)
