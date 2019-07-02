@@ -14,7 +14,7 @@ from multiprocessing import Pool
 def get_tenx_object(sampleid):
     tenx = TenxDataStorage(sampleid)
     path = tenx.download()
-    tenx.unpack(path)
+    return path
 
 aztok = open(".sas_token","r").read().strip()
 
@@ -23,7 +23,9 @@ class SampleCollection(object):
     def __init__(self, sampleids):
         self.tenxs = sampleids
         pool = Pool(processes=len(self.tenxs))
-        pool.map(get_tenx_object, self.tenxs)
+        paths = pool.map(get_tenx_object, self.tenxs)
+        for sample, path in zip(self.tenxs, paths):
+            print(sample,path)
         print("Finished cache")
 
 
