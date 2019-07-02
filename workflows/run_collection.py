@@ -42,7 +42,7 @@ def RunRdata(sampleid, finished):
 def RunCollection(workflow):
     workflow.transform (
         name = "download_collection",
-        func = Run,
+        func = RunDownload,
         args = (
             open(config.samples, "r").read().splitlines(),
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
