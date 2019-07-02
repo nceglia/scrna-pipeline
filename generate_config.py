@@ -28,9 +28,6 @@ integration_args.add_argument("--samples", type=str, help="txt file with valid s
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 args = parser.parse_args()
-print(args)
-if args.subparser == "integrate":
-    pass
-else:
-    write_config(args.sampleid, args.build, args.jobpath, os.path.join(args.datapath, args.sampleid), args.referencepath, args.cellranger, args.markers)
+
+write_config(args.subparser, args.sampleid, args.build, args.jobpath, os.path.join(args.datapath, args.sampleid), args.referencepath, args.cellranger, args.markers, args.samples)
 print("Config written to settings.yaml")
