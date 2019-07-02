@@ -25,7 +25,6 @@ def RunDownload(sampleids, finished):
 
 def RunExtract(sample_to_path, rdata_path):
     sample = json.loads(open(sample_to_path,"r").read())
-    print(sample)
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
     tenx_analysis.load()
@@ -39,7 +38,7 @@ def RunExtract(sample_to_path, rdata_path):
 def RunCollect(rdata, manifest):
     output = open(manifest,"w")
     for id, rdata in rdata.items():
-        output.write(rdata+"\n")
+        output.write(id +"\t" + rdata+"\n")
     output.close()
 
 def RunCollection(workflow):
@@ -59,7 +58,7 @@ def RunCollection(workflow):
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.OutputFile("sample.rdata","sample")
+            pypeliner.managed.TempOutputFile("sample.rdata","sample")
         )
     )
 
@@ -67,7 +66,7 @@ def RunCollection(workflow):
         name = "create_manifest",
         func = RunCollect,
         args = (
-            pypeliner.managed.InputFile("sample.rdata","sample"),
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
             pypeliner.managed.OutputFile("manifest.txt")
         )
     )
