@@ -8,6 +8,25 @@ import json
 import tarfile
 import shutil
 import gzip
+from multiprocessing import Pool
+
+class SampleCollection(object):
+
+    def __init__(self, sampleids):
+        self.tenxs = []
+        for sampleid in sampleids:
+            self.tenxs.append(TenxDataStorage(sampleid))
+
+    def cache(self):
+        download = lambda tenx: tenx.download()
+        unpack = lambda tenx: tenx.unpack()
+        pool = Pool(processes=len(self.tenxs))
+        pool.map(download, self.tenxs)
+        pool.map(unpack, self.tenxs)
+        print("Finished cache")
+
+
+
 
 class TenxDataStorage(object):
 
@@ -51,8 +70,9 @@ class TenxDataStorage(object):
 
     def download(self):
         local = ".cache/{}.tar.gz".format(self.sampleid)
+        local_unzipped = ".cache/{}".format(self.sampleid)
         gzipped = "{}.tar.gz".format(self.sampleid)
-        if not os.path.exists(local):
+        if not os.path.exists(local_unzipped):
             self.block_blob_service.get_blob_to_path(self.container, gzipped, local)
             self.unpack(local)
         self.tenx_path = os.path.join(self.cache,self.sampleid)

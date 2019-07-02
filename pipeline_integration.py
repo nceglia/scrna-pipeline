@@ -9,6 +9,7 @@ import pypeliner.app
 import pypeliner.managed
 
 from utils.config import Configuration
+from utils.cloud import SampleCollection
 
 from workflows.run_cellranger import RunCellranger
 from workflows.run_qc import RunQC
@@ -19,13 +20,18 @@ from workflows.run_clustering import RunClustering
 config = Configuration()
 
 def create_workflow():
-    print("Creating workflow.")
+    print("Creating integration analysis workflow.")
     workflow = pypeliner.workflow.Workflow()
 
     prefix = config.prefix
-    workflow = RunQC(prefix, workflow)
-    workflow = RunCellAssign(prefix, workflow)
-    workflow = RunReport(prefix, workflow)
+    print("******* {} ********".format(prefix))
+    sampleids = open(args.samples, "r").read().splitlines()
+
+    tenx_collection = SampleCollection(sampleids)
+    tenx_collection.cache()
+    # workflow = RunQC(prefix, workflow)
+    # workflow = RunCellAssign(prefix, workflow)
+    # workflow = RunReport(prefix, workflow)
 
     return workflow
 
