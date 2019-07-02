@@ -17,7 +17,6 @@ from utils.config import Configuration, write_config
 config = Configuration()
 
 def RunDownload(sampleids, finished):
-    print(sampleids)
     for sample in sampleids:
         tenx = TenxDataStorage(sample)
         path = tenx.download()
@@ -67,7 +66,6 @@ def RunCollection(workflow):
     workflow.transform (
         name = "create_manifest",
         func = RunCollect,
-        axes = ('sample',),
         args = (
             pypeliner.managed.InputFile("sample.rdata","sample"),
             pypeliner.managed.OutputFile("manifest.txt")
