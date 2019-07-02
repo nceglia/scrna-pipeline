@@ -16,6 +16,7 @@ from workflows.run_qc import RunQC
 from workflows.run_report import RunReport
 from workflows.run_cellassign import RunCellAssign
 from workflows.run_clustering import RunClustering
+from workflows.run_collection import RunCollection
 
 config = Configuration()
 
@@ -26,7 +27,7 @@ def create_workflow():
     prefix = config.prefix
     print("******* {} ********".format(prefix))
 
-    workflow = RunQC(workflow)
+    workflow = RunCollection(workflow)
     # workflow = RunCellAssign(prefix, workflow)
     # workflow = RunReport(prefix, workflow)
 
