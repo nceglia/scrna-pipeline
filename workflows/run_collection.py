@@ -21,6 +21,7 @@ def RunDownload(sampleids, finished):
         tenx = TenxDataStorage(sample)
         path = tenx.download()
         path_json = {sample: path}
+        print(sample)
         open(finished(sample),"w").write(json.dumps(path_json))
 
 def RunExtract(sample_to_path, rdata_path):
