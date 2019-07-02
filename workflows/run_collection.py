@@ -17,6 +17,7 @@ from utils.config import Configuration, write_config
 config = Configuration()
 
 def RunDownload(sampleids, finished):
+    print(sampleids)
     for sample in sampleids:
         tenx = TenxDataStorage(sample)
         path = tenx.download()
@@ -25,7 +26,6 @@ def RunDownload(sampleids, finished):
 
 def RunExtract(sample_to_path, rdata_path):
     sample = json.loads(open(sample_to_path,"r").read())
-    print(sample_to_path)
     print(sample)
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
@@ -34,6 +34,7 @@ def RunExtract(sample_to_path, rdata_path):
     qc = QualityControl(tenx_analysis,sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
+    print(rdata_path)
     shutil.copyfile(qc.sce, rdata_path)
 
 def RunCollection(workflow):
