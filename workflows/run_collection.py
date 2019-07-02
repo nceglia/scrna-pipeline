@@ -17,12 +17,11 @@ from utils.config import Configuration, write_config
 config = Configuration()
 
 def RunDownload(sampleids, finished):
-    for sample in sampleids:
+    for i, sample in enumerate(sampleids):
         tenx = TenxDataStorage(sample)
         path = tenx.download()
         path_json = {sample: path}
-        print(sample)
-        open(finished(sample),"w").write(json.dumps(path_json))
+        open(finished(i),"w").write(json.dumps(path_json))
 
 def RunExtract(sample_to_path, rdata_path):
     sample = json.loads(open(sample_to_path,"r").read())
