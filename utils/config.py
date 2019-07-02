@@ -11,13 +11,14 @@ def yaml_configuration():
             return doc
 
 basic_yaml = """
-prefix: "{0}"
-build: "{1}"
-jobpath: "{2}"
-datapath: "{3}"
-referencepath: "{4}"
-rho_matrix: {7}
-cellranger: "{5}"
+run_command: {run_command}
+prefix: "{prefix}"
+build: "{build}"
+jobpath: "{jobpath}"
+datapath: "{datapath}"
+referencepath: "{referencepath}"
+rho_matrix: {markers}
+cellranger: "{cellranger_bin}"
 copy_number_data: None
 scviz_embedding: None
 run_scvis: False
@@ -35,14 +36,20 @@ low_counts_genes_threshold: 4
 qc_type: "standard"
 scviz_embedding: None
 copy_number_data: None
-mito: 15
-lsf: {6}
+mito: 20
 """
 
 
-def write_config(prefix, build, jobpath, datapath, referencepath, cellranger, lsf, markers):
+def write_config(subcommand, prefix, build, jobpath, datapath, referencepath, cellranger, markers, samples):
     output = open("settings.yaml","w")
-    output.write(basic_yaml.format(prefix, build, jobpath, datapath, referencepath, cellranger, lsf, markers))
+    output.write(basic_yaml.format(run_command=subcommand,
+                                   prefix=prefix,
+                                   build=build,
+                                   jobpath=jobpath,
+                                   datapath=datapath,
+                                   referencepath=referencepath,
+                                   cellranger=cellranger,
+                                   markers=markers))
 
 class Configuration(object):
     def __init__(self):
@@ -51,7 +58,8 @@ class Configuration(object):
         if overrides != None:
             for attr, value in overrides.items():
                 setattr(self, attr, value)
-        refobj = ReferenceDataStorage(self.build, self.referencepath)
-        if not hasattr(self, "reference"):
-            self.reference = refobj.download()
-        self.genes_gtf = os.path.join(self.reference, "genes/genes.gtf")
+        if self.run_command == "cellranger":
+            refobj = ReferenceDataStorage(self.build, self.referencepath)
+            if not hasattr(self, "reference"):
+                self.reference = refobj.download()
+            self.genes_gtf = os.path.join(self.reference, "genes/genes.gtf")
