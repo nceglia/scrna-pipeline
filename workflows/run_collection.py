@@ -18,7 +18,7 @@ config = Configuration()
 def RunDownload(sampleids, finished):
     print("Getting Collection.")
     for sample in sampleids:
-        tenx = TenxDataStorage(sampleid)
+        tenx = TenxDataStorage(sample)
         path = tenx.download()
         path_json = {sample,path}
         open(finished(sample),"w").write(json.dumps(paths))
@@ -49,4 +49,13 @@ def RunCollection(workflow):
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )
+    # workflow.transform (
+    #     name = "process_rdata",
+    #     func = RunDownload,
+    #     args = (
+    #         open(config.samples, "r").read().splitlines(),
+    #         pypeliner.managed.TempOutputFile("sample_path.json","sample")
+    #     )
+    # )
+
     return workflow
