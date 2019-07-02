@@ -63,7 +63,7 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
-        name = "extract_rdata",
+        name = "create_manifest",
         func = RunCollect,
         axes = ('sample',),
         args = (
