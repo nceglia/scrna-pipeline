@@ -11,12 +11,12 @@ import pypeliner.managed
 from utils.config import Configuration
 from utils.cloud import SampleCollection
 
-from tasks.run_cellranger import RunCellranger
-from tasks.run_qc import RunQC
-from tasks.run_report import RunReport
-from tasks.run_cellassign import RunCellAssign
-from tasks.run_clustering import RunClustering
-from tasks.run_collection import RunCollection
+from workflows.run_cellranger import RunCellranger
+from workflows.run_qc import RunQC
+from workflows.run_report import RunReport
+from workflows.run_cellassign import RunCellAssign
+from workflows.run_clustering import RunClustering
+from workflows.run_collection import RunCollection
 
 config = Configuration()
 
