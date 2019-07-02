@@ -10,6 +10,7 @@ parser = argparse.ArgumentParser("SCRNA Pipeline")
 
 parser.add_argument("--build", type=str, help="Reference build.", default="GRCh38")
 parser.add_argument("--jobpath", type=str, help="Path to job folder.", default = "/results")
+parser.add_argument("--aztok", type=str, help="Path to token folder", default = "/codebase/.sas_token")
 
 subparsers = parser.add_subparsers(dest="subparser")
 

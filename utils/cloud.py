@@ -16,6 +16,8 @@ def get_tenx_object(sampleid):
     tenx.download()
     tenx.unpack()
 
+aztok = open(".sas_token","r").read().strip()
+
 class SampleCollection(object):
 
     def __init__(self, sampleids):
@@ -23,8 +25,6 @@ class SampleCollection(object):
         pool = Pool(processes=len(self.tenxs))
         pool.map(get_tenx_object, self.tenxs)
         print("Finished cache")
-
-
 
 
 class TenxDataStorage(object):
@@ -35,7 +35,7 @@ class TenxDataStorage(object):
         self.storage_account = "scrnadata"
         self.container = "cellranger{}".format(version)
         self.rdatacontainer = "rawrdata{}".format(version)
-        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
         self.tenx_path = None
         self.cache = ".cache"
         try:
