@@ -25,7 +25,7 @@ def create_workflow():
 
     prefix = config.prefix
     print("******* {} ********".format(prefix))
-    sampleids = open(args.samples, "r").read().splitlines()
+    sampleids = open(config.samples, "r").read().splitlines()
 
     tenx_collection = SampleCollection(sampleids)
     tenx_collection.cache()
