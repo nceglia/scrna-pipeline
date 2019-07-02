@@ -13,6 +13,7 @@ def yaml_configuration():
 basic_yaml = """
 run_command: {run_command}
 prefix: "{prefix}"
+samples: "{samples}"
 build: "{build}"
 jobpath: "{jobpath}"
 datapath: "{datapath}"
@@ -50,6 +51,7 @@ def write_config(args):
     referencepath = "none"
     markers = "none"
     datapath = "none"
+    samples = "none"
 
     if subcommand == "cellranger":
         datapath = args.datapath
