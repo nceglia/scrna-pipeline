@@ -26,7 +26,6 @@ def RunRdata(sampleid, finished):
     print("Getting Collection.")
     sampleids = open(config.samples, "r").read().splitlines()
     tenx_collection = SampleCollection(sampleids)
-    tenx_str = json.loads(str(tenx_collection))
     open("sample_paths.json","w").write(json.dumps(tenx_str))
     # for sampleid, tenx_path in tenx_collection:
     #     tenx_analysis = TenxAnalysis(tenx_path)

@@ -24,8 +24,7 @@ class SampleCollection(object):
         self.tenxs = sampleids
         pool = Pool(processes=len(self.tenxs))
         paths = pool.map(get_tenx_object, self.tenxs)
-        for sample, path in zip(self.tenxs, paths):
-            print(sample,path)
+        samples = dict(zip(self.tenxs,paths))
         print("Finished cache")
 
 
