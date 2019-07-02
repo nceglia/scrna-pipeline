@@ -28,7 +28,7 @@ integration_args.add_argument("--samples", type=str, help="txt file with valid s
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 args = parser.parse_args()
-
+print(args)
 if args.integrate:
     pass
 else:
