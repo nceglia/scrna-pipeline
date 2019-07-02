@@ -5,6 +5,7 @@ import pypeliner.managed
 import sys
 import os
 import json
+import shutil
 
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
@@ -31,9 +32,7 @@ def RunExtract(sample_to_path, rdata_path):
     qc = QualityControl(tenx_analysis,sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
-    copyfile(qc.sce, rdata_path)
-
-
+    shutil.copyfile(qc.sce, rdata_path)
 
 def RunCollection(workflow):
     workflow.transform (
