@@ -25,10 +25,8 @@ def create_workflow():
 
     prefix = config.prefix
     print("******* {} ********".format(prefix))
-    sampleids = open(config.samples, "r").read().splitlines()
 
-    tenx_collection = SampleCollection(sampleids)
-    # workflow = RunQC(prefix, workflow)
+    workflow = RunQC(workflow)
     # workflow = RunCellAssign(prefix, workflow)
     # workflow = RunReport(prefix, workflow)
 
