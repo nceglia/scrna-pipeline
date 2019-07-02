@@ -25,6 +25,8 @@ def RunDownload(sampleids, finished):
 
 def RunExtract(sample_to_path, rdata_path):
     sample = json.loads(open(sample_to_path,"r").read())
+    print(sample_to_path)
+    print(sample)
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
     tenx_analysis.load()
