@@ -23,7 +23,7 @@ def RunDownload(sampleids, finished):
         path_json = {sample: path}
         open(finished(sample),"w").write(json.dumps(path_json))
 
-def RunRdata(sample_to_path, finished):
+def RunExtract(sample_to_path, finished):
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = sample.items().pop()
     tenx_analysis = TenxAnalysis(path)
@@ -47,7 +47,7 @@ def RunCollection(workflow):
     )
     workflow.transform (
         name = "extract_rdata",
-        func = RunDownload,
+        func = RunExtract,
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
