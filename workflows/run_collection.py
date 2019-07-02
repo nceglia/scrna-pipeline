@@ -18,7 +18,8 @@ config = Configuration()
 def RunDownload(sampleids, finished):
     print("Getting Collection.")
     tenx_collection = SampleCollection(sampleids)
-    tenx_str = json.loads(str(tenx_collection))
+    paths = tenx_collection.sample_paths()
+    tenx_str = json.loads(str(paths))
     open("sample_paths.json","w").write(json.dumps(tenx_str))
     open(finished,"w").write("Completed")
 
