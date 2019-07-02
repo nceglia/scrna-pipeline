@@ -20,7 +20,7 @@ def RunDownload(sampleids, finished):
     for sample in sampleids:
         tenx = TenxDataStorage(sample)
         path = tenx.download()
-        path_json = {sample,path}
+        path_json = {sample: path}
         open(finished(sample),"w").write(json.dumps(path_json))
 
 def RunRdata(sampleid, finished):
