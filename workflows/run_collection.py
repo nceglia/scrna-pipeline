@@ -19,8 +19,7 @@ def RunDownload(sampleids, finished):
     print("Getting Collection.")
     tenx_collection = SampleCollection(sampleids)
     paths = tenx_collection.sample_paths()
-    tenx_str = json.loads(str(paths))
-    open("sample_paths.json","w").write(json.dumps(tenx_str))
+    open("sample_paths.json","w").write(json.dumps(paths))
     open(finished,"w").write("Completed")
 
 def RunRdata(sampleid, finished):
