@@ -68,7 +68,7 @@ def RunCollection(workflow):
         func = RunCollect,
         axes = ('sample',),
         args = (
-            pypeliner.managed.InputFile("sample.json","sample"),
+            pypeliner.managed.InputFile("sample.rdata","sample"),
             pypeliner.managed.OutputFile("manifest.txt")
         )
     )
