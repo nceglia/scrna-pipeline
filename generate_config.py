@@ -25,11 +25,9 @@ sample_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 integration_args = subparsers.add_parser("integration")
 integration_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.")
-integration_args.add_argument("--integrate", action='store_true', help="Running integration pipeline. (Requires sample list)")
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 args = parser.parse_args()
-print(args)
 
 if args.integrate:
     pass
