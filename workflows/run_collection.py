@@ -47,7 +47,6 @@ def RunCollection(workflow):
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
-        axes = ('sample',),
         args = (
             all_samples,
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
