@@ -49,6 +49,7 @@ def write_config(args):
     cellranger = "none"
     referencepath = "none"
     markers = "none"
+    datapath = "none"
 
     if subcommand == "cellranger":
         datapath = args.datapath
