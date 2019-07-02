@@ -26,6 +26,7 @@ class SampleCollection(object):
         paths = pool.map(get_tenx_object, self.tenxs)
         samples = dict(zip(self.tenxs,paths))
         print("Finished cache")
+        return samples
 
 
 class TenxDataStorage(object):
