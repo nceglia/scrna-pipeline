@@ -13,8 +13,8 @@ from multiprocessing import Pool
 
 def get_tenx_object(sampleid):
     tenx = TenxDataStorage(sampleid)
-    tenx.download()
-    tenx.unpack()
+    path = tenx.download()
+    tenx.unpack(path)
 
 aztok = open(".sas_token","r").read().strip()
 
@@ -59,7 +59,7 @@ class TenxDataStorage(object):
         self.upload("cellranger{}".format(self.version), outs_tarball_name, outs_tarball)
 
 
-    def unpack(self,path):
+    def unpack(self, path):
         tar = tarfile.open(path)
         tar.extractall(".cache/{}".format(self.sampleid))
         tar.close()
