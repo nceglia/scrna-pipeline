@@ -17,10 +17,11 @@ config = Configuration()
 
 def RunDownload(sampleids, finished):
     print("Getting Collection.")
-    tenx_collection = SampleCollection(sampleids)
-    paths = tenx_collection.sample_paths()
-    open("sample_paths.json","w").write(json.dumps(paths))
-    open(finished,"w").write("Completed")
+    for sample in sampleids:
+        tenx = TenxDataStorage(sampleid)
+        path = tenx.download()
+        path_json = {sample,path}
+        open(finished(sample),"w").write(json.dumps(paths))
 
 def RunRdata(sampleid, finished):
     print("Getting Collection.")
