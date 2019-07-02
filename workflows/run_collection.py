@@ -44,11 +44,12 @@ def RunCollect(rdata, manifest):
     output.close()
 
 def RunCollection(workflow):
+    all_samples = open(config.samples, "r").read().splitlines(),
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
         args = (
-            open(config.samples, "r").read().splitlines(),
+            all_samples,
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )
