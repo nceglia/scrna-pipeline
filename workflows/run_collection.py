@@ -63,7 +63,7 @@ def RunConvert(sce, seurat):
     shutil.copyfile(seurat_cached, seurat)
 
 def RunSeuratWorkflow(seurat, qcd_seurat):
-    seurat_cached = os.path.join(os.path.split(sce)[0],"seurat.rdata")
+    seurat_cached = os.path.join(os.path.split(seurat)[0],"seurat.rdata")
     rcode = """
     library(Seurat)
     seurat <- readRDS("{seurat}")
