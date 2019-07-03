@@ -77,7 +77,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     seurat <- FindClusters(object = seurat)
     seurat <- RunTSNE(object = seurat)
     seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
-    saveRDS(seurat, file = {qcd_seurat})"""
+    saveRDS(seurat, file = '{qcd_seurat}')"""
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
