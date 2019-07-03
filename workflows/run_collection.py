@@ -40,9 +40,8 @@ def RunExtract(sample_to_path, rdata_path):
 
 def RunCellAssign(sce, annot_sce):
     sampleid = sce.split("/")[-2]
-    print("sample",sampleid)
-    CellAssign.run(sampleid, config.rho_matrix, sce)
-    filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
+    CellAssign.run(sce, "cellassign.tmp", "cellassign.complete")
+    filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     shutil.copyfile(filtered_sce, annot_sce)
 
 def RunConvert(sce, seurat):

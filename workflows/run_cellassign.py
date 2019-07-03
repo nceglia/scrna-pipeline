@@ -18,13 +18,13 @@ from utils.config import Configuration
 
 config = Configuration()
 
-def Run(sampleid, before, finished, use_corrected=False):
+def Run(sampleid, before, finished, use_corrected=False, cached=False):
     if use_corrected and os.path.exists(".cache/corrected/"):
         sce = ".cache/corrected/corrected_sce.rdata"
         if not os.path.exists(sce):
             utils = DropletUtils()
             utils.read10xCounts(".cache/corrected/",".cache/corrected/corrected_sce.rdata")
-    else:
+    elif not cached:
         tenx = TenxDataStorage(sampleid, version="v3")
         tenx.download()
         analysis_path = tenx.tenx_path
@@ -33,6 +33,8 @@ def Run(sampleid, before, finished, use_corrected=False):
         tenx_analysis.extract()
         qc = QualityControl(tenx_analysis, sampleid)
         sce = qc.sce
+    else:
+        sce = before
     if not os.path.exists(".cache/{}/celltypes.rdata".format(sampleid)):
         CellAssign.run(sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
     open(finished,"w").write("Completed")
