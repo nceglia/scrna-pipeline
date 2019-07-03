@@ -50,7 +50,7 @@ def RunConvert(sce, seurat):
     library(Seurat)
     library(SingleCellExperiment)
     sce <- readRDS('{sce}')
-    seurat <- Convert(from  =sce, to = "seurat")
+    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
     saveRDS(seurat,file='{seurat}')
     """
     path = os.path.split(sce)[0]
