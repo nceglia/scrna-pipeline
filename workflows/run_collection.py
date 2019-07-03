@@ -38,9 +38,9 @@ def RunExtract(sample_to_path, rdata_path):
         qc.run(mito=config.mito)
     shutil.copyfile(qc.sce, rdata_path)
 
-def RunCellAssign(sce, annot_sce):
+def RunCellAssign(sce, annot_sce, rho_csv, fit):
     sampleid = sce.split("/")[-2]
-    CellAssign.run(sce, "cellassign.tmp", "cellassign.complete")
+    CellAssign.run(sce, config.rho_matrix, fit)
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     shutil.copyfile(filtered_sce, annot_sce)
 
