@@ -74,7 +74,7 @@ def RunCollection(workflow):
         func = RunDownload,
         args = (
             all_samples,
-            pypeliner.managed.OutputFile("sample_path.json","sample")
+            pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )
     workflow.transform (
@@ -82,8 +82,8 @@ def RunCollection(workflow):
         func = RunExtract,
         axes = ('sample',),
         args = (
-            pypeliner.managed.InputFile("sample_path.json","sample"),
-            pypeliner.managed.OutputFile("sample.rdata","sample")
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempOutputFile("sample.rdata","sample")
         )
     )
 
@@ -92,7 +92,7 @@ def RunCollection(workflow):
         func = RunCellAssign,
         axes = ('sample',),
         args = (
-            pypeliner.managed.InputFile("sample.rdata","sample"),
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce.rdata","sample"),
         )
     )
