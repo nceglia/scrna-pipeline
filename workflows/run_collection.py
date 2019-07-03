@@ -51,6 +51,7 @@ def RunConvert(sce, seurat):
     library(Seurat)
     library(SingleCellExperiment)
     sce <- readRDS('{sce}')
+    rownames(sce) <- rowData(sce)$ensembl_gene_id
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
     saveRDS(seurat,file='{seurat}')
     """
