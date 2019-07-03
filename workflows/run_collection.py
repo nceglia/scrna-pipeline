@@ -55,8 +55,8 @@ def RunConvert(sce, seurat):
     """
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"convert.R")
-    output = open(convert_script.format(sce=sce,seurat=seurat),"w")
-    output.write(rcode)
+    output = open(convert_script,"w")
+    output.write(rcode.format(sce=sce,seurat=seurat))
     output.close()
     subprocess.call(["Rscript","{}".format(convert_script)])
 
