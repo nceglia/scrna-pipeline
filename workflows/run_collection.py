@@ -51,8 +51,9 @@ def RunConvert(sce, seurat):
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
+    library(scater)
     sce <- readRDS('{sce}')
-    rownames(sce) <- rowData(sce)$ensembl_gene_id
+    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
     saveRDS(seurat,file='{seurat}')
     """
@@ -86,27 +87,58 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
 
-def RunSeuratViz(seurat, tsne, umap):
+def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype):
     tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
     umap_plot = os.path.join(os.path.split(seurat)[0],"umap.png")
+    tsne_celltype_plot = os.path.join(os.path.split(seurat)[0],"tsne_celltype.png")
+    umap_celltype_plot = os.path.join(os.path.split(seurat)[0],"umap_celltype.png")
     rcode = """
     library(Seurat)
     library(ggplot2)
     seurat <- readRDS("{seurat}")
+
     png("{tsne}")
     DimPlot(object = seurat, reduction = "tsne")
     dev.off()
     png("{umap}")
     DimPlot(object = seurat, reduction = "umap")
-    dev.off()"""
+    dev.off()
+
+    png("{tsne_celltype}")
+    DimPlot(object = seurat, reduction = "tsne", group.by = "cell_type")
+    dev.off()
+    png("{umap_celltype}")
+    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
+    dev.off()
+    """
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"viz.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot))
+    output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot))
     output.close()
     subprocess.call(["Rscript","{}".format(qc_script)])
-    shutil.copyfile(tsne_plot, umap)
-    shutil.copyfile(umap, tsne)
+    shutil.copyfile(tsne_plot, tsne)
+    shutil.copyfile(umap_plot, umap)
+    shutil.copyfile(tsne_celltype_plot, tsne_celltype)
+    shutil.copyfile(umap_celltype_plot, umap_celltype)
+
+def RunMarkers(seurat,marker_table):
+    marker_csv_cached = os.path.join(os.path.split(seurat)[0],"marker_table.csv")
+    rcode = """
+    library(Seurat)
+    seurat <- readRDS("{seurat}")
+    markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+    marker_table <- markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC)
+    marker_table <- as.data.frame(marker_table)
+    write.csv(marker_table, file = "{marker_csv}")
+    """
+    path = os.path.split(seurat)[0]
+    marker_script = os.path.join(path,"markers.R")
+    output = open(marker_script,"w")
+    output.write(rcode.format(seurat=seurat, marker_csv=marker_csv_cached))
+    output.close()
+    subprocess.call(["Rscript","{}".format(marker_script)])
+    shutil.copyfile(marker_csv_cached, marker_table)
 
 def RunCollect(rdata, manifest):
     output = open(manifest,"w")
@@ -174,6 +206,18 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_tsne.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_tsne_celltype.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
+        )
+    )
+
+    workflow.transform (
+        name = "find_markers",
+        func = RunMarkers,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("markers.csv","sample"),
         )
     )
 
