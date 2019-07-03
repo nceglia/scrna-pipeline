@@ -58,7 +58,38 @@ def RunConvert(sce, seurat):
     output.write(rcode)
     output.close()
     result = subprocess.check_output("R {}".format(convert_script))
-    print("Converted: ",result)
+
+def RunSeuratWorkflow(seurat, qcd_seurat):
+    rcode = """
+    library(Seurat)
+    seurat <- NormalizeData(object = {seurat})
+    seurat <- FindVariableFeatures(object = seurat)
+    seurat <- ScaleData(object = seurat)
+    seurat <- RunPCA(object = seurat)
+    seurat <- FindNeighbors(object = seurat)
+    seurat <- FindClusters(object = seurat)
+    seurat <- RunTSNE(object = seurat)
+    seurat <- RunUMAP(object = seurat)
+    saveRDS(seurat, file = {qcd_seurat})"""
+    path = os.path.split(seurat)[0]
+    qc_script = os.path.join(path,"qc.R")
+    output = open(qc_script.format(seruat=seurat, qcd_seurat=qcd_seurat),"w")
+    output.write(rcode)
+    output.close()
+    result = subprocess.check_output("R {}".format(qc_script))
+
+def RunSeuratViz(seurat, qcd_seurat):
+    rcode = """
+    library(Seurat)
+    DimPlot(object = pbmc, reduction = "tsne")
+    DimPlot(object = pbmc, reduction = "pca")
+    saveRDS(seurat, file = {qcd_seurat})"""
+    path = os.path.split(seurat)[0]
+    qc_script = os.path.join(path,"qc.R")
+    output = open(qc_script.format(seruat=seurat, qcd_seurat=qcd_seurat),"w")
+    output.write(rcode)
+    output.close()
+    result = subprocess.check_output("R {}".format(qc_script))
 
 def RunCollect(rdata, manifest):
     output = open(manifest,"w")
@@ -103,10 +134,29 @@ def RunCollection(workflow):
     #     func = RunConvert,
     #     axes = ('sample',),
     #     args = (
-    #         pypeliner.managed.InputFile("sce.rdata","sample"),
-    #         pypeliner.managed.OutputFile("seurat.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("sce.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
     #     )
     # )
-
+    #
+    # workflow.transform (
+    #     name = "run_qc",
+    #     func = RunSeuratWorkflow,
+    #     axes = ('sample',),
+    #     args = (
+    #         pypeliner.managed.TempInputFile("seurat.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+    #     )
+    # )
+    #
+    # workflow.transform (
+    #     name = "visualize_sample",
+    #     func = RunSeuratViz,
+    #     axes = ('sample',),
+    #     args = (
+    #         pypeliner.managed.TempInputFile("seurat.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+    #     )
+    # )
 
     return workflow
