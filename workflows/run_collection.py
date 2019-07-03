@@ -81,7 +81,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     output = open(qc_script,"w")
     output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached))
     output.close()
-    subprocess.call(["R", "{}".format(qc_script)])
+    subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
 
 def RunSeuratViz(seurat, qcd_seurat):
@@ -102,7 +102,7 @@ def RunSeuratViz(seurat, qcd_seurat):
     output = open(qc_script.format(seruat=seurat, tsne=tsne_plot, umap=umap_plot),"w")
     output.write(rcode)
     output.close()
-    result = subprocess.check_output("R {}".format(qc_script))
+    result = subprocess.check_output(["R","{}".format(qc_script)])
 
 def RunCollect(rdata, manifest):
     output = open(manifest,"w")
