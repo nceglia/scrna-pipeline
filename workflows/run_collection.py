@@ -46,6 +46,7 @@ def RunCellAssign(sce, annot_sce, rho_csv, fit):
     shutil.copyfile(filtered_sce, annot_sce)
 
 def RunConvert(sce, seurat):
+    seurat_cached = os.path.join(os.path.split(sce)[0],"seurat.rdata")
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
@@ -56,9 +57,10 @@ def RunConvert(sce, seurat):
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"convert.R")
     output = open(convert_script,"w")
-    output.write(rcode.format(sce=sce,seurat=seurat))
+    output.write(rcode.format(sce=sce,seurat=seurat_cached))
     output.close()
     subprocess.call(["Rscript","{}".format(convert_script)])
+    shutil.copyfile(seurat_cached, seurat)
 
 def RunSeuratWorkflow(seurat, qcd_seurat):
     rcode = """
@@ -141,15 +143,15 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "run_qc",
-    #     func = RunSeuratWorkflow,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("seurat.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
-    #     )
-    # )
+    workflow.transform (
+        name = "run_qc",
+        func = RunSeuratWorkflow,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("seurat.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+        )
+    )
     #
     # workflow.transform (
     #     name = "visualize_sample",
