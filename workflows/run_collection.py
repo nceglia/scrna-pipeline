@@ -234,6 +234,7 @@ def RunCollection(workflow):
         func = RunReport,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample")
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
             pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
