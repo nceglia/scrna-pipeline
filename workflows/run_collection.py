@@ -47,6 +47,7 @@ def RunCellAssign(sce, annot_sce, rho_csv, fit):
 
 def RunConvert(sce, seurat):
     seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
+    sce_cached = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
@@ -58,7 +59,7 @@ def RunConvert(sce, seurat):
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"convert.R")
     output = open(convert_script,"w")
-    output.write(rcode.format(sce=sce,seurat=seurat_cached))
+    output.write(rcode.format(sce=sce_cached,seurat=seurat_cached))
     output.close()
     subprocess.call(["Rscript","{}".format(convert_script)])
     shutil.copyfile(seurat_cached, seurat)
