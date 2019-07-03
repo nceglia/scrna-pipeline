@@ -6,6 +6,7 @@ import sys
 import os
 import json
 import shutil
+import subprocess
 
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
