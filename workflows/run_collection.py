@@ -174,17 +174,17 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "run_cellassign",
-    #     func = RunCellAssign,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("sce.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("rho.csv","sample"),
-    #         pypeliner.managed.TempOutputFile("cellassignfit.rdata","sample"),
-    #     )
-    # )
+    workflow.transform (
+        name = "run_cellassign",
+        func = RunCellAssign,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("rho.csv","sample"),
+            pypeliner.managed.TempOutputFile("cellassignfit.rdata","sample"),
+        )
+    )
 
     workflow.transform (
         name = "run_convert",
@@ -234,7 +234,7 @@ def RunCollection(workflow):
         func = RunReport,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample")
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
             pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
