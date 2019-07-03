@@ -58,7 +58,7 @@ def RunConvert(sce, seurat):
     output = open(convert_script.format(sce=sce,seurat=seurat),"w")
     output.write(rcode)
     output.close()
-    result = subprocess.check_output(["Rscript","{}".format(convert_script)])
+    subprocess.call(["Rscript","{}".format(convert_script)])
 
 def RunSeuratWorkflow(seurat, qcd_seurat):
     rcode = """
