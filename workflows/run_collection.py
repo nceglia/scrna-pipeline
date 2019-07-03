@@ -93,7 +93,7 @@ def RunCollection(workflow):
         axes = ('sample',),
         args = (
             pypeliner.managed.InputFile("sample.rdata","sample"),
-            pypeliner.managed.OutputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
         )
     )
 
