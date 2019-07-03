@@ -229,4 +229,18 @@ def RunCollection(workflow):
         )
     )
 
+    workflow.transform (
+        name = "report",
+        func = RunReport,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
+            pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
+            pypeliner.managed.TempInputFile("seurat_tsne_celltype.png","sample"),
+            pypeliner.managed.TempInputFile("seurat_umap_celltype.png","sample"),
+            pypeliner.managed.TempInputFile("markers.csv","sample"),
+        )
+    )
+
     return workflow
