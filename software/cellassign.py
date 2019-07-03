@@ -75,6 +75,8 @@ rownames(rho) <- rho$X
 rho <- rho[,-1]
 
 sce <- readRDS("{sce}")
+colnames(sce) <- sce$Barcode
+sce_result <- sce
 
 print('qc')
 cells_to_keep <- sce$pct_counts_mito < 20
@@ -103,10 +105,11 @@ rho <- data.matrix(rho)
 s <- sizeFactors(sce)
 print('call')
 fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B=20, rel_tol_em = 0.1, shrinkage=TRUE)
-colData(sce)$cell_type <- fit_cellassign$cell_type
+sce_result <- sce_result[,colnames(sce)]
+colData(sce_result)$cell_type <- fit_cellassign$cell_type
 print('save')
 saveRDS(fit_cellassign, file = '{fname}')
-saveRDS(sce, file="{fsce}")
+saveRDS(sce_result, file="{fsce}")
 saveRDS(rho, file="{frho}")
 """
 
