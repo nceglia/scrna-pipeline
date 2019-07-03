@@ -101,8 +101,8 @@ def RunSeuratViz(seurat, tsne, umap):
     dev.off()"""
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"viz.R")
-    output = open(qc_script.format(seruat=seurat, tsne=tsne_plot, umap=umap_plot),"w")
-    output.write(rcode)
+    output = open(qc_script,"w")
+    output.write(rcode.format(seruat=seurat, tsne=tsne_plot, umap=umap_plot))
     output.close()
     subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(tsne_plot, umap)
