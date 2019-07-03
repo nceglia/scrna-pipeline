@@ -83,6 +83,7 @@ def RunSeuratViz(seurat, qcd_seurat):
     library(Seurat)
     DimPlot(object = pbmc, reduction = "tsne")
     DimPlot(object = pbmc, reduction = "pca")
+    DimPlot(object = pbmc, reduction = "umap")
     saveRDS(seurat, file = {qcd_seurat})"""
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
@@ -129,16 +130,16 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "run_convert",
-    #     func = RunConvert,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sce.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
-    #     )
-    # )
-    #
+    workflow.transform (
+        name = "run_convert",
+        func = RunConvert,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
+        )
+    )
+
     # workflow.transform (
     #     name = "run_qc",
     #     func = RunSeuratWorkflow,
