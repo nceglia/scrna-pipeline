@@ -79,7 +79,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seruat=seurat, qcd_seurat=seurat_cached))
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached))
     output.close()
     subprocess.call(["R", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
