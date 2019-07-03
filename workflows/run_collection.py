@@ -63,9 +63,11 @@ def RunConvert(sce, seurat):
     shutil.copyfile(seurat_cached, seurat)
 
 def RunSeuratWorkflow(seurat, qcd_seurat):
+    seurat_cached = os.path.join(os.path.split(sce)[0],"seurat.rdata")
     rcode = """
     library(Seurat)
-    seurat <- NormalizeData(object = {seurat})
+    seurat <- readRDS("{seurat}")
+    seurat <- NormalizeData(object = seurat)
     seurat <- FindVariableFeatures(object = seurat)
     seurat <- ScaleData(object = seurat)
     seurat <- RunPCA(object = seurat)
@@ -76,21 +78,28 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     saveRDS(seurat, file = {qcd_seurat})"""
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
-    output = open(qc_script.format(seruat=seurat, qcd_seurat=qcd_seurat),"w")
-    output.write(rcode)
+    output = open(qc_script,"w")
+    output.write(rcode.format(seruat=seurat, qcd_seurat=seurat_cached))
     output.close()
-    result = subprocess.check_output("R {}".format(qc_script))
+    subprocess.call(["R", "{}".format(qc_script)])
+    shutil.copyfile(seurat_cached, qcd_seurat)
 
 def RunSeuratViz(seurat, qcd_seurat):
+    seurat_cached = os.path.join(os.path.split(seurat)[0],"tsne.png")
+    seurat_cached = os.path.join(os.path.split(seurat)[0],"umap.png")
     rcode = """
     library(Seurat)
-    DimPlot(object = pbmc, reduction = "tsne")
-    DimPlot(object = pbmc, reduction = "pca")
-    DimPlot(object = pbmc, reduction = "umap")
-    saveRDS(seurat, file = {qcd_seurat})"""
+    library(ggplot2)
+    seurat <- readRDS("{seurat}")
+    png("{tsne}")
+    DimPlot(object = seurat, reduction = "tsne")
+    dev.off()
+    png("{umap}")
+    DimPlot(object = seurat, reduction = "umap")
+    dev.off()"""
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
-    output = open(qc_script.format(seruat=seurat, qcd_seurat=qcd_seurat),"w")
+    output = open(qc_script.format(seruat=seurat, tsne=tsne_plot, umap=umap_plot),"w")
     output.write(rcode)
     output.close()
     result = subprocess.check_output("R {}".format(qc_script))

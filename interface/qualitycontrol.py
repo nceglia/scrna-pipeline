@@ -109,10 +109,6 @@ args = commandArgs(trailingOnly=TRUE)
 
 sce <- read10xCounts(args[1])
 
-# Make sure colnames are unique
-colnames(sce) <- paste0(metadata(sce)$id, "_", sce$Barcode)
-
-
 saveRDS(sce, file=args[2])
 print("Complete!")
 """
@@ -172,8 +168,6 @@ sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
 print("Running UMAP")
 sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
 
-# Make sure colnames are unique
-colnames(sce) <- paste0(metadata(sce)$id, "_", sce$Barcode)
 
 saveRDS(sce, file=args[2])
 print("Finished SCE Build")
