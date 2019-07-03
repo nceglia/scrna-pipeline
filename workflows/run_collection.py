@@ -145,7 +145,7 @@ def RunReport(samples, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, mark
     for id, rdata in seurats.items():
         sample_name = samples[id].keys()[0]
         dir = "report_{}".format(sample_name)
-        if not os.path.exists(dir)
+        if not os.path.exists(dir):
             os.makedirs(dir)
         shutil.copyfile(rdata, os.path.join(dir,"{}.rds".format(sample_name)))
         shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
@@ -153,7 +153,7 @@ def RunReport(samples, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, mark
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
         shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_umap_celltype.png".format(sample_name)))
         shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
-        
+
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
     workflow.transform (
