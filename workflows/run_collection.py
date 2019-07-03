@@ -51,8 +51,9 @@ def RunConvert(sce, seurat):
     seurat <- Convert(from  =sce, to = "seurat")
     saveRDS(seurat,file='{seurat}')
     """
-    convert_script = ".cache/{}/convert.R".format(sampleid)
-    output = open(convert_script,"w")
+    path = os.path.split(sce)[0]
+    convert_script = os.path.join(path,"convert.R")
+    output = open(convert_script.format(sce=sce,seurat=seurat),"w")
     output.write(rcode)
     output.close()
     result = subprocess.check_output("R {}".format(convert_script))
