@@ -100,11 +100,11 @@ def RunSeuratViz(seurat, tsne, umap):
     DimPlot(object = seurat, reduction = "umap")
     dev.off()"""
     path = os.path.split(seurat)[0]
-    qc_script = os.path.join(path,"qc.R")
+    qc_script = os.path.join(path,"viz.R")
     output = open(qc_script.format(seruat=seurat, tsne=tsne_plot, umap=umap_plot),"w")
     output.write(rcode)
     output.close()
-    subprocess.call(["R","{}".format(qc_script)])
+    subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(tsne_plot, umap)
     shutil.copyfile(umap, tsne)
 
