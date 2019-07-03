@@ -84,9 +84,9 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
 
-def RunSeuratViz(seurat, qcd_seurat):
-    seurat_cached = os.path.join(os.path.split(seurat)[0],"tsne.png")
-    seurat_cached = os.path.join(os.path.split(seurat)[0],"umap.png")
+def RunSeuratViz(seurat, tsne, umap):
+    tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
+    umap_plot = os.path.join(os.path.split(seurat)[0],"umap.png")
     rcode = """
     library(Seurat)
     library(ggplot2)
@@ -102,7 +102,9 @@ def RunSeuratViz(seurat, qcd_seurat):
     output = open(qc_script.format(seruat=seurat, tsne=tsne_plot, umap=umap_plot),"w")
     output.write(rcode)
     output.close()
-    result = subprocess.check_output(["R","{}".format(qc_script)])
+    subprocess.call(["R","{}".format(qc_script)])
+    shutil.copyfile(tsne_plot, umap)
+    shutil.copyfile(umap, tsne)
 
 def RunCollect(rdata, manifest):
     output = open(manifest,"w")
@@ -167,8 +169,9 @@ def RunCollection(workflow):
         func = RunSeuratViz,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("seurat.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_tsne.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
         )
     )
 
