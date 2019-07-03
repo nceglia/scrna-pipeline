@@ -11,6 +11,10 @@ from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
 from interface.qualitycontrol import QualityControl
 from utils.cloud import SampleCollection
+from interface.qualitycontrol import QualityControl
+from interface.genemarkermatrix import GeneMarkerMatrix
+from utils.plotting import celltypes, tsne_by_cell_type, umap_by_cell_type
+from software.cellassign import CellAssign
 
 from utils.config import Configuration, write_config
 
@@ -29,11 +33,30 @@ def RunExtract(sample_to_path, rdata_path):
     tenx_analysis = TenxAnalysis(path)
     tenx_analysis.load()
     tenx_analysis.extract()
-    qc = QualityControl(tenx_analysis,sampleid)
+    qc = QualityControl(tenx_analysis, sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
     shutil.copyfile(qc.sce, rdata_path)
 
+def RunCellAssign(sce, annot_sce):
+    CellAssign.run(sce, config.rho_matrix, sce)
+    filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
+    shutil.copyfile(filtered_sce, annot_sce)
+
+def RunConvert(sce, seurat):
+    rcode = """
+    library(Seurat)
+    library(SingleCellExperiment)
+    sce <- readRDS('{sce}')
+    seurat <- Convert(from  =sce, to = "seurat")
+    saveRDS(seurat,file='{seurat}')
+    """
+    convert_script = ".cache/{}/convert.R".format(sampleid)
+    output = open(convert_script,"w")
+    output.write(rcode)
+    output.close()
+    result = subprocess.check_output("R {}".format(convert_script))
+    print("Converted: ",result)
 
 def RunCollect(rdata, manifest):
     output = open(manifest,"w")
@@ -43,13 +66,12 @@ def RunCollect(rdata, manifest):
 
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
-    print (all_samples)
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
         args = (
             all_samples,
-            pypeliner.managed.TempOutputFile("sample_path.json","sample")
+            pypeliner.managed.OutputFile("sample_path.json","sample")
         )
     )
     workflow.transform (
@@ -57,18 +79,30 @@ def RunCollection(workflow):
         func = RunExtract,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempOutputFile("sample.rdata","sample")
+            pypeliner.managed.InputFile("sample_path.json","sample"),
+            pypeliner.managed.OutputFile("sample.rdata","sample")
         )
     )
 
     workflow.transform (
-        name = "create_manifest",
-        func = RunCollect,
+        name = "run_cellassign",
+        func = RunCellAssign,
+        axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sample.rdata","sample"),
-            pypeliner.managed.OutputFile("manifest.txt")
+            pypeliner.managed.InputFile("sample.rdata","sample"),
+            pypeliner.managed.OutputFile("sce.rdata","sample"),
         )
     )
+
+    workflow.transform (
+        name = "run_convert",
+        func = RunConvert,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.InputFile("sce.rdata","sample"),
+            pypeliner.managed.OutputFile("seurat.rdata","sample"),
+        )
+    )
+
 
     return workflow

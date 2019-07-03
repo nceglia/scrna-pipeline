@@ -107,11 +107,11 @@ rho <- data.matrix(rho)
 s <- sizeFactors(sce)
 print('call')
 fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B=20, shrinkage=TRUE)
+colData(sce)$cell_type <- fit_cellassign$cell_type
 print('save')
 saveRDS(fit_cellassign, file = '{fname}')
 saveRDS(sce, file="{fsce}")
-saveRDS(sce, file="{frho}")
-
+saveRDS(rho, file="{frho}")
 """
 
 
