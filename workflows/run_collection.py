@@ -126,9 +126,10 @@ def RunMarkers(seurat,marker_table):
     marker_csv_cached = os.path.join(os.path.split(seurat)[0],"marker_table.csv")
     rcode = """
     library(Seurat)
+    library(dplyr)
     seurat <- readRDS("{seurat}")
     markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-    marker_table <- markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC)
+    marker_table <- markers %>% group_by(cluster) %>% top_n(n = 20, wt = avg_logFC)
     marker_table <- as.data.frame(marker_table)
     write.csv(marker_table, file = "{marker_csv}")
     """
@@ -140,12 +141,19 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunCollect(rdata, manifest):
-    output = open(manifest,"w")
-    for id, rdata in rdata.items():
-        output.write(id +"\t" + rdata+"\n")
-    output.close()
-
+def RunReport(samples, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, markers):
+    for id, rdata in seurats.items():
+        sample_name = samples[id].keys()[0]
+        dir = "report_{}".format(sample_name)
+        if not os.path.exists(dir)
+            os.makedirs(dir)
+        shutil.copyfile(rdata, os.path.join(dir,"{}.rds".format(sample_name)))
+        shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
+        shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
+        shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
+        shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_umap_celltype.png".format(sample_name)))
+        shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
+        
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
     workflow.transform (
