@@ -85,6 +85,23 @@ class TenxDataStorage(object):
         print ("Uploading {} to {} in {}".format(container,local,container))
         self.block_blob_service.create_blob_from_path(container, blob, local)
 
+
+class RdataStorage(object):
+
+    def __init__(self, cache=".cache/sces"):
+        if not os.path.exists(cache):
+            os.makedirs(cache)
+        self.cache = cache
+        self.storage_account = "scrnadata"
+        self.container = "rdata"
+        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+
+    def get_sce(self,  sampleid):
+        rdata = ".rdata".format(sampleid)
+        local = os.path.join(self.cache,rdata)
+        self.block_blob_service.get_blob_to_path(self.container, rdata, local)
+        assert os.path.exists(local), "Download didn't work."
+
 class ReportStorage(object):
 
     def __init__(self, results):
