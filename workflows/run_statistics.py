@@ -24,7 +24,7 @@ config = Configuration()
 def RunDownload(sampleids, finished):
     rdatafac = RdataStorage()
     for i, sample in enumerate(sampleids):
-        rdatafac.get_rdata(sample)
+        rdatafac.get_sce(sample)
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
