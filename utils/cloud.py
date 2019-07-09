@@ -101,6 +101,7 @@ class RdataStorage(object):
         local = os.path.join(self.cache,rdata)
         self.block_blob_service.get_blob_to_path(self.container, rdata, local)
         assert os.path.exists(local), "Download didn't work."
+        return local
 
 class ReportStorage(object):
 
