@@ -28,9 +28,6 @@ def RunDownload(sampleids, finished):
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
-def RunPull(sample_to_path, rdata_path):
-
-
 def RunStatistics(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
     workflow.transform (
