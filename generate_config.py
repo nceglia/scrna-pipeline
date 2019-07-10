@@ -33,9 +33,9 @@ integration_args = subparsers.add_parser("pipeline")
 integration_args.add_argument('--prefix', type=str, help='Analysis prefix')
 integration_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.", default="samples.txt")
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
-cellranger_args.add_argument("--datapath", type=str, help="Path to directory holding fastqs.", default ="/data")
-cellranger_args.add_argument("--referencepath", type=str, help="Path to reference directory with reference in dir labelled by build.", default="/reference")
-cellranger_args.add_argument("--cellranger", type=str, help="Path to cellranger bin.", default="/codebase/cellranger-3.0.2/cellranger-cs/3.0.2/bin/")
+integration_args.add_argument("--datapath", type=str, help="Path to directory holding fastqs.", default ="/data")
+integration_args.add_argument("--referencepath", type=str, help="Path to reference directory with reference in dir labelled by build.", default="/reference")
+integration_args.add_argument("--cellranger", type=str, help="Path to cellranger bin.", default="/codebase/cellranger-3.0.2/cellranger-cs/3.0.2/bin/")
 
 args = parser.parse_args()
 
