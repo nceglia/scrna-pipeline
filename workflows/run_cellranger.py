@@ -33,7 +33,7 @@ def RunCellranger(sampleid, workflow, full=False):
         func = RunCellranger,
         args = (
             sampleid,
-            pypeliner.mananed.OutputFile("cellranger.complete"),
+            pypeliner.managed.OutputFile("cellranger.complete"),
             full
         )
     )
