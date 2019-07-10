@@ -115,12 +115,12 @@ def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs)
     DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
     dev.off()
 
-    png("{ridge}",width=600,heigh=1500)
+    png("{ridge}",width=600,heigh=4000)
     RidgePlot(object = seurat, features = ({markers}), ncol = 2)
     dev.off()
 
-    png("{exprs}",width=600,heigh=1500)
-    FeaturePlot(object = seurat, features = ({markers}))
+    png("{exprs}",width=600,heigh=4000)
+    FeaturePlot(object = seurat, features = ({markers}), ncol= 2)
     dev.off()
 
     """
@@ -267,19 +267,5 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "html",
-    #     func = RunHTML,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample_path.json","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_tsne_celltype.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_umap_celltype.png","sample"),
-    #         pypeliner.managed.TempInputFile("markers.csv","sample"),
-    #     )
-    # )
 
     return workflow

@@ -15,12 +15,12 @@ config = Configuration()
 
 def RunKallisto(sampleid, finished):
     fastqs = [FastQDirectory(sampleid, config.prefix, config.jobpath, config.datapath)]
+    krunner = Kallisto(fastq_directory, tenx_analysis)
 
-
-def RunCellranger(sampleid, workflow, full=False):
+def RunPseudo(sampleid, workflow, full=False):
     workflow.transform (
         name = "kallisto",
-        func = RunUpload,
+        func = RunKallisto,
         args = (
             sampleid,
             pypeliner.managed.OutputFile("kallisto.complete"),

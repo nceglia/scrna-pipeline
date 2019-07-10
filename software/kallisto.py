@@ -23,13 +23,12 @@ from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
 
-    def __init__(self, fastqs, tenx, chem="v2"):
-        self.tenx = tenx
+    def __init__(self, fastqs, output, chem="v2"):
+        self.output = output
         self.fastqs = fastqs
         self.chem = chem
         self.binary = "kallisto"
         self.index = None
-        self.output = os.path.join(self.tenx.directory, "kallisto")
         if not os.path.exists(self.output):
             os.makedirs(self.output)
         self.nthreads = 64
