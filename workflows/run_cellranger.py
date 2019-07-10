@@ -28,22 +28,22 @@ def RunUpload(sampleid, run, finished):
 
 
 def RunCellranger(sampleid, workflow, full=False):
-    print(workflow)
-    workflow.transform (
-        name = "cellranger_counts",
-        func = RunCellranger,
-        args = (
-            sampleid,
-            pypeliner.managed.OutputFile("cellranger.complete"),
-            full
-        )
-    )
+    # print(workflow)
+    # workflow.transform (
+    #     name = "cellranger_counts",
+    #     func = RunCellranger,
+    #     args = (
+    #         sampleid,
+    #         pypeliner.managed.OutputFile("cellranger.complete"),
+    #         full
+    #     )
+    # )
     workflow.transform (
         name = "cellranger_upload",
         func = RunUpload,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("cellranger.complete"),
+            # pypeliner.managed.InputFile("cellranger.complete"),
             pypeliner.managed.OutputFile("upload.complete"),
         )
     )
