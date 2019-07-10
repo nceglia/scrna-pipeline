@@ -87,11 +87,15 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
 
-def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype):
+def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs):
+    marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
+    markers = ["'" + marker + "'" for markers in marker_list.genes]
     tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
     umap_plot = os.path.join(os.path.split(seurat)[0],"umap.png")
     tsne_celltype_plot = os.path.join(os.path.split(seurat)[0],"tsne_celltype.png")
     umap_celltype_plot = os.path.join(os.path.split(seurat)[0],"umap_celltype.png")
+    ridge_plot = os.path.join(os.path.split(seurat)[0],"ridge.png")
+    exprs_plot = os.path.join(os.path.split(seurat)[0],"features.png")
     rcode = """
     library(Seurat)
     library(ggplot2)
@@ -110,17 +114,28 @@ def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype):
     png("{umap_celltype}")
     DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
     dev.off()
+
+    png("{ridge}",width=600,heigh=1500)
+    RidgePlot(object = seurat, features = ({markers}), ncol = 2)
+    dev.off()
+
+    png("{exprs}",width=600,heigh=1500)
+    FeaturePlot(object = seurat, features = ({markers}))
+    dev.off()
+
     """
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"viz.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot))
+    output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot))
     output.close()
     subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(tsne_plot, tsne)
     shutil.copyfile(umap_plot, umap)
     shutil.copyfile(tsne_celltype_plot, tsne_celltype)
     shutil.copyfile(umap_celltype_plot, umap_celltype)
+    shutil.copyfile(ridge_plot, ridge)
+    shutil.copyfile(exprs_plot, exprs)
 
 def RunMarkers(seurat,marker_table):
     marker_csv_cached = os.path.join(os.path.split(seurat)[0],"marker_table.csv")
@@ -141,7 +156,7 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, markers):
+def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers):
     for id, rdata in seurats.items():
         print("SAMP",sample_name)
         sample_name = samples[id]
@@ -154,6 +169,8 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
         shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_umap_celltype.png".format(sample_name)))
+        shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
+        shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_features.png".format(sample_name)))
         shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
 
 def RunCollection(workflow):
@@ -218,6 +235,8 @@ def RunCollection(workflow):
             pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_tsne_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_ridge.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_features.png","sample"),
         )
     )
 
@@ -242,6 +261,8 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
             pypeliner.managed.TempInputFile("seurat_tsne_celltype.png","sample"),
             pypeliner.managed.TempInputFile("seurat_umap_celltype.png","sample"),
+            pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
+            pypeliner.managed.TempInputFile("seurat_features.png","sample"),
             pypeliner.managed.TempInputFile("markers.csv","sample"),
         )
     )
