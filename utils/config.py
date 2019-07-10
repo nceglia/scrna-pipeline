@@ -68,7 +68,7 @@ def write_config(args):
         markers = args.markers
     elif subcommand == "pipeline":
         sample_file = args.samples
-        prefix = args.prefix
+        prefix = args.sampelid
         markers = args.markers
         datapath = args.datapath
         referencepath = os.path.join(args.datapath, args.sampleid)
