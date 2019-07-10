@@ -160,7 +160,7 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
         sample_json = json.loads(open(sample_json_path,"r").read())
-        sample_name = sample_json.keys()[0]
+        sample_name = list(sample_json.keys())[0]
         dir = "results"
         if not os.path.exists(dir):
             os.makedirs(dir)
