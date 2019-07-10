@@ -26,6 +26,13 @@ def Run(sampleid, finished):
         qc.run(mito=config.mito)
         print ("Uploading")
         qc.upload_raw()
+        qc.upload()
+    plots = qc.plots
+
+    umi = os.path.join(plots,"umi.png")
+    mito = os.path.join(plots,"mito.png")
+    ribo = os.path.join(plots, "ribo.png")
+
     open(finished,"w").write("Completed")
 
 def RunQC(tenx, workflow, prefix=None):

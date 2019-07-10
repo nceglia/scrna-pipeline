@@ -13,7 +13,12 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def Run(sampleid, finished):
+def RunCellranger(sampleid, finished, full):
+    if full:
+        CellRanger.count([sampleid])
+    open(finished,"w").write("Completed")
+
+def RunUpload(sampleid, run, finished):
     tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
     tenx = TenxAnalysis(tenx_output)
     tenx.finalize()
@@ -22,13 +27,23 @@ def Run(sampleid, finished):
     open(finished,"w").write("Completed")
 
 
-def RunCellranger(sampleid, workflow):
+def RunCellranger(sampleid, workflow, full=False):
     workflow.transform (
         name = "cellranger_counts",
-        func = Run,
+        func = RunCellranger,
         args = (
             sampleid,
-            pypeliner.managed.OutputFile("cellranger.complete"),
+            pypeliner.mananed.OutputFile("cellranger.complete"),
+            full
+        )
+    )
+    workflow.transform (
+        name = "cellranger_upload",
+        func = RunUpload,
+        args = (
+            sampleid,
+            pypeliner.managed.InputFile("cellranger.complete")
+            pypeliner.managed.OutputFile("upload.complete"),
         )
     )
     return workflow

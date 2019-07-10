@@ -89,7 +89,8 @@ class CellRanger(object):
             args["chemistry"] = config.chemistry
         cmd = CellRanger.cmd("count",args)
         print("Running ", " ".join(cmd))
-        subprocess.call(cmd)
+        result = subprocess.check_output(cmd)
+        print("Cellranger exit: {}".format(result))
 
     @staticmethod
     def reanalyze(tenx_object):
