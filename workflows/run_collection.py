@@ -89,7 +89,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
 
 def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs):
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
-    markers = ["'" + marker + "'" for markers in marker_list.genes]
+    markers = ["'" + marker + "'" for marker in marker_list.genes]
     tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
     umap_plot = os.path.join(os.path.split(seurat)[0],"umap.png")
     tsne_celltype_plot = os.path.join(os.path.split(seurat)[0],"tsne_celltype.png")
