@@ -158,9 +158,10 @@ def RunMarkers(seurat,marker_table):
 
 def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers):
     for id, rdata in seurats.items():
-        sample_name = samples[id]
-        print("SAMP",sample_name)
-        dir = "report_{}".format(sample_name)
+        sample_json_path = samples[id]
+        sample_json = json.loads(open(sample_json_path,"r").read())
+        sample_name = sample_json.keys()[0]
+        dir = "results"
         if not os.path.exists(dir):
             os.makedirs(dir)
         shutil.copyfile(rdata, os.path.join(dir,"{}.rds".format(sample_name)))

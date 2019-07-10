@@ -13,9 +13,9 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunCellranger(sampleid, finished, full):
+def RunCellranger(sampleid, finished, ref_override, full):
     if full:
-        CellRanger.count([sampleid])
+        CellRanger.count([sampleid],ref_override=ref_override)
     open(finished,"w").write("Completed")
 
 def RunUpload(sampleid, finished):
@@ -28,13 +28,23 @@ def RunUpload(sampleid, finished):
 
 
 def RunCellranger(sampleid, workflow, full=False):
-    print(workflow)
     workflow.transform (
         name = "cellranger_counts",
         func = RunCellranger,
         args = (
             sampleid,
             pypeliner.managed.OutputFile("cellranger.complete"),
+            False,
+            full
+        )
+    )
+    workflow.transform (
+        name = "cellranger_counts_mixed_ref",
+        func = RunCellranger,
+        args = (
+            sampleid,
+            pypeliner.managed.OutputFile("cellranger_mixed_ref.complete"),
+            True,
             full
         )
     )
@@ -43,7 +53,8 @@ def RunCellranger(sampleid, workflow, full=False):
         func = RunUpload,
         args = (
             sampleid,
-            # pypeliner.managed.InputFile("cellranger.complete"),
+            pypeliner.managed.InputFile("cellranger.complete"),
+            pypeliner.managed.InputFile("cellranger_counts_mixed_ref.complete"),
             pypeliner.managed.OutputFile("upload.complete"),
         )
     )

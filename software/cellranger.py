@@ -72,7 +72,7 @@ class CellRanger(object):
         subprocess.call(cmd)
 
     @staticmethod
-    def count(fastqs, reference_override=None):
+    def count(fastqs, reference_override=False):
         print("Running Cellranger")
         fastqs = [FastQDirectory(fastq, config.prefix, config.jobpath, config.datapath) for fastq in fastqs]
         args = dict()
@@ -85,6 +85,8 @@ class CellRanger(object):
         except Exception as e:
             pass
         args["transcriptome"] = config.reference
+        if reference_override:
+            args["transcriptome"] = "/reference/"
         if config.chemistry is not None:
             args["chemistry"] = config.chemistry
         cmd = CellRanger.cmd("count",args)
