@@ -15,6 +15,9 @@ from workflows.run_qc import RunQC
 from workflows.run_cellassign import RunCellAssign
 from workflows.run_collection import RunCollection
 
+import warnings
+warnings.filterwarnings("ignore")
+
 config = Configuration()
 
 def create_workflow():
@@ -22,6 +25,7 @@ def create_workflow():
     workflow = pypeliner.workflow.Workflow()
 
     prefix = config.prefix
+    print("\n\n\n")
     print("***** Run: {} ******".format(prefix))
     # workflow = RunCellranger(prefix,workflow,full=False)
     workflow = RunQC(prefix, workflow)
