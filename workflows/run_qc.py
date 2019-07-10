@@ -44,8 +44,7 @@ def Run(sampleid, finished):
     shutil.copyfile(mito, os.path.join(results,"mito.png"))
     shutil.copyfile(ribo, os.path.join(results,"ribo.png"))
     shutil.copyfile(counts, os.path.join(results,"counts.png"))
-    shutil.copyfile(cvf, os.path.join(results,"total_counts_v_features_by_counts.png"))
-
+    
     open(finished,"w").write("Completed")
 
 def RunQC(tenx, workflow, prefix=None):
