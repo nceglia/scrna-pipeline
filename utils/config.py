@@ -66,6 +66,12 @@ def write_config(args):
         sample_file = args.samples
         prefix = args.prefix
         markers = args.markers
+    elif subcommand == "pipeline":
+        sample_file = args.samples
+        prefix = args.prefix
+        markers = args.markers
+        datapath = args.datapath
+        referencepath = os.path.join(args.datapath, args.sampleid)
 
     output.write(basic_yaml.format(run_command=subcommand,
                                    prefix=prefix,
