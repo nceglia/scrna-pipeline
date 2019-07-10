@@ -18,7 +18,7 @@ def RunCellranger(sampleid, finished, full):
         CellRanger.count([sampleid])
     open(finished,"w").write("Completed")
 
-def RunUpload(sampleid, run, finished):
+def RunUpload(sampleid, finished):
     tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
     tenx = TenxAnalysis(tenx_output)
     tenx.finalize()
