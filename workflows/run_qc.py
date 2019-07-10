@@ -4,6 +4,7 @@ import pypeliner.managed
 
 import sys
 import os
+import shutil
 
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
@@ -32,6 +33,18 @@ def Run(sampleid, finished):
     umi = os.path.join(plots,"umi.png")
     mito = os.path.join(plots,"mito.png")
     ribo = os.path.join(plots, "ribo.png")
+    counts = os.path.join(plots, "counts.png")
+    cvf = os.path.join(plots, "total_counts_v_features.png")
+
+    results = os.path.join(config.jobpath, "results")
+    if not os.path.exists(results):
+        os.makedirs(results)
+
+    shutil.copyfile(umi, os.path.join(results,"umi.png"))
+    shutil.copyfile(mito, os.path.join(results,"mito.png"))
+    shutil.copyfile(ribo, os.path.join(results,"ribo.png"))
+    shutil.copyfile(counts, os.path.join(results,"counts.png"))
+    shutil.copyfile(cvf, os.path.join(results,"total_counts_v_features.png"))
 
     open(finished,"w").write("Completed")
 

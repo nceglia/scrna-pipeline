@@ -142,7 +142,6 @@ def RunMarkers(seurat,marker_table):
     shutil.copyfile(marker_csv_cached, marker_table)
 
 def RunReport(samples, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, markers):
-    print("SEURAT",seurats)
     for id, rdata in seurats.items():
         sample_name = samples[id].keys()[0]
         dir = "report_{}".format(sample_name)
@@ -233,9 +232,9 @@ def RunCollection(workflow):
     workflow.transform (
         name = "report",
         func = RunReport,
-        axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sce.rdata","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
             pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
