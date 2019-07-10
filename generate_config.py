@@ -30,7 +30,7 @@ integration_args.add_argument("--samples", type=str, help="txt file with valid s
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 integration_args = subparsers.add_parser("pipeline")
-integration_args.add_argument('--prefix', type=str, help='Analysis prefix')
+integration_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
 integration_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.", default="samples.txt")
 integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 integration_args.add_argument("--datapath", type=str, help="Path to directory holding fastqs.", default ="/data")
@@ -41,7 +41,7 @@ args = parser.parse_args()
 
 if not os.path.exists(args.samples):
     output = open(args.samples, "w")
-    output.write(args.prefix)
+    output.write(args.sampleid)
     output.close()
 
 write_config(args)
