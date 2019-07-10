@@ -158,8 +158,8 @@ def RunMarkers(seurat,marker_table):
 
 def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers):
     for id, rdata in seurats.items():
-        print("SAMP",sample_name)
         sample_name = samples[id]
+        print("SAMP",sample_name)
         dir = "report_{}".format(sample_name)
         if not os.path.exists(dir):
             os.makedirs(dir)
