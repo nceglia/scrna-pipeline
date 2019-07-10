@@ -179,6 +179,7 @@ class SingleCellExperiment(RS4):
 
     @assays.setter
     def assays(self, rs4_assays):
+        pandas2ri.activate()
         list_vector = pandas2ri.ri2py(rs4_assays.slots["listData"])
         self._assays = dict()
         for assay, label in zip(list_vector, list_vector.names):
