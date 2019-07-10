@@ -72,7 +72,7 @@ class CellRanger(object):
         subprocess.call(cmd)
 
     @staticmethod
-    def count(fastqs):
+    def count(fastqs, reference_override=None):
         print("Running Cellranger")
         fastqs = [FastQDirectory(fastq, config.prefix, config.jobpath, config.datapath) for fastq in fastqs]
         args = dict()
@@ -88,7 +88,9 @@ class CellRanger(object):
         if config.chemistry is not None:
             args["chemistry"] = config.chemistry
         cmd = CellRanger.cmd("count",args)
-        print("Running ", " ".join(cmd))
+        print("Saving command to submission script ", " ".join(cmd))
+        output = open("cellranger.sh","w")
+        output.write()
         result = subprocess.check_output(cmd)
         print("Cellranger exit: {}".format(result))
 

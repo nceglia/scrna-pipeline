@@ -5,7 +5,7 @@ import pypeliner.managed
 import sys
 import os
 
-from software.cellranger import CellRanger
+from software.kallisto import Kallisto
 from interface.fastqdirectory import FastQDirectory
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
@@ -13,10 +13,9 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunCellranger(sampleid, finished, full):
-    if full:
-        CellRanger.count([sampleid])
-    open(finished,"w").write("Completed")
+def RunKallisto(sampleid, finished):
+    fastqs = [FastQDirectory(sampleid, config.prefix, config.jobpath, config.datapath)]
+
 
 def RunUpload(sampleid, finished):
     tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
@@ -28,16 +27,16 @@ def RunUpload(sampleid, finished):
 
 
 def RunCellranger(sampleid, workflow, full=False):
-    print(workflow)
-    workflow.transform (
-        name = "cellranger_counts",
-        func = RunCellranger,
-        args = (
-            sampleid,
-            pypeliner.managed.OutputFile("cellranger.complete"),
-            full
-        )
-    )
+    # print(workflow)
+    # workflow.transform (
+    #     name = "cellranger_counts",
+    #     func = RunCellranger,
+    #     args = (
+    #         sampleid,
+    #         pypeliner.managed.OutputFile("cellranger.complete"),
+    #         full
+    #     )
+    # )
     workflow.transform (
         name = "cellranger_upload",
         func = RunUpload,

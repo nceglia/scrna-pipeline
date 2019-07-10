@@ -11,7 +11,7 @@ import pypeliner.managed
 from utils.config import Configuration
 from utils.cloud import SampleCollection
 
-from workflows.run_cellranger import RunCellranger
+from workflows.run_kallist import RunKallisto
 from workflows.run_qc import RunQC
 from workflows.run_report import RunReport
 from workflows.run_cellassign import RunCellAssign
