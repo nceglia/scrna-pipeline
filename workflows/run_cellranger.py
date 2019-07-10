@@ -28,6 +28,7 @@ def RunUpload(sampleid, run, finished):
 
 
 def RunCellranger(sampleid, workflow, full=False):
+    print(workflow)
     workflow.transform (
         name = "cellranger_counts",
         func = RunCellranger,
