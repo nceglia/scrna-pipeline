@@ -116,11 +116,11 @@ def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs)
     dev.off()
 
     png("{ridge}",width=600,heigh=4000)
-    RidgePlot(object = seurat, features = ({markers}), ncol = 2)
+    RidgePlot(object = seurat, features = c({markers}), ncol = 2)
     dev.off()
 
     png("{exprs}",width=600,heigh=4000)
-    FeaturePlot(object = seurat, features = ({markers}), ncol= 2)
+    FeaturePlot(object = seurat, features = c({markers}), ncol= 2)
     dev.off()
 
     """
