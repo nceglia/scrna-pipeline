@@ -141,13 +141,14 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunReport(samples, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, markers):
+def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, markers):
     for id, rdata in seurats.items():
         sample_name = samples[id].keys()[0]
         dir = "report_{}".format(sample_name)
         if not os.path.exists(dir):
             os.makedirs(dir)
         shutil.copyfile(rdata, os.path.join(dir,"{}.rds".format(sample_name)))
+        shutil.copyfile(sces[i], os.path.join(dir,"{}.rds".format(sample_name)))
         shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
         shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
