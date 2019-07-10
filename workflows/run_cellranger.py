@@ -42,7 +42,7 @@ def RunCellranger(sampleid, workflow, full=False):
         func = RunUpload,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("cellranger.complete")
+            pypeliner.managed.InputFile("cellranger.complete"),
             pypeliner.managed.OutputFile("upload.complete"),
         )
     )
