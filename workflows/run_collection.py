@@ -142,6 +142,7 @@ def RunMarkers(seurat,marker_table):
     shutil.copyfile(marker_csv_cached, marker_table)
 
 def RunReport(samples, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, markers):
+    print(seurats)
     for id, rdata in seurats.items():
         sample_name = samples[id].keys()[0]
         dir = "report_{}".format(sample_name)
