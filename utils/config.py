@@ -38,6 +38,7 @@ qc_type: "standard"
 scviz_embedding: None
 copy_number_data: None
 mito: 20
+mouse_reference: mm10
 """
 
 
@@ -90,7 +91,7 @@ class Configuration(object):
         if overrides != None:
             for attr, value in overrides.items():
                 setattr(self, attr, value)
-        if self.run_command == "cellranger":
+        if self.run_command == "cellranger" or self.run_command == "pipeline":
             refobj = ReferenceDataStorage(self.build, self.referencepath)
             if not hasattr(self, "reference"):
                 self.reference = refobj.download()
