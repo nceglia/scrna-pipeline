@@ -108,8 +108,7 @@ class CellRanger(object):
         output.write("source /codebase/cellranger-3.0.2/sourceme.bash\n")
         output.write(" ".join(cmd)+"\n")
         output.close()
-        # result = subprocess.check_output(["bash",script])
-        result = 0
+        result = subprocess.check_output(["bash",script])
         print("Cellranger exit: {}".format(result))
 
     @staticmethod
