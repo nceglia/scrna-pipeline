@@ -171,7 +171,7 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         inventory["sce"] = os.path.join(dir,"{}_sce.rds".format(sample_name))
         inventory["tsne"] = os.path.join(dir,"{}_tsne.png".format(sample_name))
         inventory["umap"] =  os.path.join(dir,"{}_umap.png".format(sample_name))
-        inventory["ridge"] = ros.path.join(dir,"{}_ridge.png".format(sample_name))
+        inventory["ridge"] = os.path.join(dir,"{}_ridge.png".format(sample_name))
         inventory["features"] = os.path.join(dir,"{}_features.png".format(sample_name))
         inventory["markers"] = os.path.join(dir,"{}_markers.csv".format(sample_name))
         inventory["umi"] =  os.path.join(dir,"{}_umi.png".format(sample_name))
