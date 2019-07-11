@@ -165,7 +165,7 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         if not os.path.exists(dir):
             os.makedirs(dir)
         shutil.copyfile(rdata, os.path.join(dir,"{}.rds".format(sample_name)))
-        shutil.copyfile(sces[i], os.path.join(dir,"{}.rds".format(sample_name)))
+        shutil.copyfile(sces[id], os.path.join(dir,"{}.rds".format(sample_name)))
         shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
         shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
