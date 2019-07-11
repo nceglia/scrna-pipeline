@@ -91,13 +91,16 @@ class CellRanger(object):
         if reference_override:
             args["transcriptome"] = reference_override
             if "mm10" in args["transcriptome"]:
-                output = open("cellranger_mouse.sh","w")
+                script = "cellranger_mouse.sh"
+                output = open(script,"w")
                 args["id"] += "_mouse"
             else:
-                output = open("cellranger_human.sh","w")
+                script = "cellranger_human.sh"
+                output = open(script,"w")
         else:
             args["transcriptome"] = config.reference
-            output = open("cellranger_human.sh","w")
+            script = "cellranger_human.sh"
+            output = open(script,"w")
         if config.chemistry is not None:
             args["chemistry"] = config.chemistry
         cmd = CellRanger.cmd("count",args)
@@ -105,7 +108,7 @@ class CellRanger(object):
         output.write("source /codebase/cellranger-3.0.2/sourceme.bash\n")
         output.write(" ".join(cmd)+"\n")
         output.close()
-        result = subprocess.check_output(cmd)
+        result = subprocess.check_output(["bash",script])
         print("Cellranger exit: {}".format(result))
 
     @staticmethod
