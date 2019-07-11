@@ -57,7 +57,7 @@ def RunQC(sampleid, workflow, species=None):
         mito = "mito.png"
         ribo = "ribo.png"
         counts = "counts.png"
-        sce = "raw_sce.rdata"`
+        sce = "raw_sce.rdata"
     workflow.transform (
         name = "quality_control_{}".format(species),
         func = Run,
