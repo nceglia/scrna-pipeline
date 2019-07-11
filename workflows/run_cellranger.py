@@ -57,7 +57,7 @@ def RunCellranger(sampleid, workflow):
         name = "cellranger_upload_mouse",
         func = RunUpload,
         args = (
-            sampleid,
+            sampleid + "_mouse",
             pypeliner.managed.TempInputFile("cellranger_mouse.complete"),
             pypeliner.managed.TempOutputFile("mouse_upload.complete"),
         )

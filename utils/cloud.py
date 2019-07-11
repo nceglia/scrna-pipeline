@@ -33,12 +33,16 @@ class SampleCollection(object):
 
 class TenxDataStorage(object):
 
-    def __init__(self, sampleid, version="v3"):
+    def __init__(self, sampleid, version="v3", species="human"):
         self.version = version
         self.sampleid = sampleid.replace(".tar.gz","")
         self.storage_account = "scrnadata"
-        self.container = "cellranger{}".format(version)
-        self.rdatacontainer = "rawrdata{}".format(version)
+        if species != "human":
+            self.container = "cellranger{}{}".format(species,version)
+            self.rdatacontainer = "rawrdata{}{}".format(species,version)
+        else:
+            self.container = "cellranger{}".format(version)
+            self.rdatacontainer = "rawrdata{}".format(version)
         self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
         self.tenx_path = None
         self.cache = ".cache"
