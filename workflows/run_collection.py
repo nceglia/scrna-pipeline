@@ -37,7 +37,7 @@ def RunExtract(sample_to_path, rdata_path, summmary_path):
     qc = QualityControl(tenx_analysis, sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
-    shutil.copyfile(tenx_analysis.summary(), summary_path)
+    shutil.copyfile(tenx_analysis.summary, summary_path)
     shutil.copyfile(qc.sce, rdata_path)
 
 def RunCellAssign(sce, annot_sce, rho_csv, fit):
