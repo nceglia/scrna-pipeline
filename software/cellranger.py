@@ -99,7 +99,7 @@ class CellRanger(object):
             args["chemistry"] = config.chemistry
         cmd = CellRanger.cmd("count",args)
         print("Saving command to submission script ", " ".join(cmd))
-        output.write(cmd)
+        output.write(" ".join(cmd))
         output.close()
         #result = subprocess.check_output(cmd)
         result = 1
