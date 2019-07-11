@@ -26,7 +26,7 @@ def RunUpload(sampleid,  finished):
     open(finished,"w").write("Completed")
 
 
-def RunCellranger(sampleid, workflow, full=False):
+def RunCellranger(workflow, sampleid, full=False):
     workflow.transform (
         name = "cellranger_counts_human",
         func = RunCellranger,
