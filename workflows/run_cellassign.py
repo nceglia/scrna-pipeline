@@ -25,7 +25,7 @@ def Run(sampleid, raw_sce, sce_cas):
     shutil.copyfile(".cache/{}/sce_cas.rdata".format(sampleid), sce_cas)
 
 def Analysis(sampleid, sce_cas, celltypes, tsne, umap):
-    filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
+    filtered_sce = sce_cas
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
     if not os.path.exists(cellassign_analysis):
         os.makedirs(cellassign_analysis)
