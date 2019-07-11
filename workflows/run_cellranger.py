@@ -17,7 +17,7 @@ def Counts(sampleid, finished, reference):
     CellRanger.count([sampleid],reference_override=reference)
     open(finished,"w").write("Completed")
 
-def RunUpload(sampleid,  finished):
+def RunUpload(sampleid, before, finished):
     tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
     tenx = TenxAnalysis(tenx_output)
     tenx.finalize()
@@ -31,7 +31,7 @@ def RunCellranger(sampleid, workflow):
         func = Counts,
         args = (
             sampleid,
-            pypeliner.managed.OutputFile("cellranger_human.complete"),
+            pypeliner.managed.TempOutputFile("cellranger_human.complete"),
             config.reference
         )
     )
@@ -40,7 +40,7 @@ def RunCellranger(sampleid, workflow):
         func = Counts,
         args = (
             sampleid,
-            pypeliner.managed.OutputFile("cellranger_mouse.complete"),
+            pypeliner.managed.TempOutputFile("cellranger_mouse.complete"),
             config.mouse_reference
         )
     )
@@ -49,8 +49,8 @@ def RunCellranger(sampleid, workflow):
         func = RunUpload,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("cellranger_human.complete"),
-            pypeliner.managed.OutputFile("human_upload.complete"),
+            pypeliner.managed.TempInputFile("cellranger_human.complete"),
+            pypeliner.managed.TempOutputFile("human_upload.complete"),
         )
     )
     workflow.transform (
@@ -58,8 +58,8 @@ def RunCellranger(sampleid, workflow):
         func = RunUpload,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("cellranger_mouse.complete"),
-            pypeliner.managed.OutputFile("mouse_upload.complete"),
+            pypeliner.managed.TempInputFile("cellranger_mouse.complete"),
+            pypeliner.managed.TempOutputFile("mouse_upload.complete"),
         )
     )
     return workflow
