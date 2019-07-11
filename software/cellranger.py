@@ -19,6 +19,9 @@ class CellRanger(object):
         # if config.lsf:
         #     cmd.append("--jobmode=lsf")
         #     cmd.append("--maxjobs=200")
+        cmd.append("--disable-ui")
+        cmd.append("--localcores 32")
+        cmd.append("--localmem 128")
         return cmd
 
     @staticmethod
@@ -102,8 +105,7 @@ class CellRanger(object):
         output.write("source /codebase/cellranger-3.0.2/sourceme.bash\n")
         output.write(" ".join(cmd)+"\n")
         output.close()
-        #result = subprocess.check_output(cmd)
-        result = 1
+        result = subprocess.check_output(cmd)
         print("Cellranger exit: {}".format(result))
 
     @staticmethod
