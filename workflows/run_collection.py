@@ -28,7 +28,7 @@ def RunDownload(sampleids, finished):
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
-def RunExtract(sample_to_path, rdata_path):
+def RunExtract(sample_to_path, rdata_path, summmary_path):
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
@@ -37,6 +37,7 @@ def RunExtract(sample_to_path, rdata_path):
     qc = QualityControl(tenx_analysis, sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
+    shutil.copyfile(tenx_analysis.summary(), summary_path)
     shutil.copyfile(qc.sce, rdata_path)
 
 def RunCellAssign(sce, annot_sce, rho_csv, fit):
@@ -156,7 +157,7 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces):
+def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces, summary_path):
 
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
@@ -165,8 +166,8 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         dir = "results"
         if not os.path.exists(dir):
             os.makedirs(dir)
-        shutil.copyfile(rdata, os.path.join(dir,"{}.rds".format(sample_name)))
-        shutil.copyfile(sces[id], os.path.join(dir,"{}.rds".format(sample_name)))
+        shutil.copyfile(rdata, os.path.join(dir,"{}_seurat.rds".format(sample_name)))
+        shutil.copyfile(sces[id], os.path.join(dir,"{}_sce.rds".format(sample_name)))
         shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
         shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
@@ -174,10 +175,17 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
         shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_features.png".format(sample_name)))
         shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
+        print(umi[id])
         shutil.copyfile(umi[id], os.path.join(dir,"{}_umi.png".format(sample_name)))
         shutil.copyfile(ribo[id], os.path.join(dir,"{}_ribo.png".format(sample_name)))
         shutil.copyfile(mito[id], os.path.join(dir,"{}_mito.png".format(sample_name)))
         shutil.copyfile(raw_sces[id], os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
+        shutil.copyfile(summary_path[id], os.path.join(dir,"{}_cellranger.html".format(sample_name)))
+
+        report = ReportStorage(dir)
+        report.upload(os.path.dirname(os.path.realpath(__file__)), sample_name)
+
+
 
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
@@ -195,7 +203,8 @@ def RunCollection(workflow):
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempOutputFile("sample.rdata","sample")
+            pypeliner.managed.TempOutputFile("sample.rdata","sample"),
+            pypeliner.managed.TempOutputFile("summary_path.json","sample")
         )
     )
 
@@ -275,6 +284,7 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("ribo.png"),
             pypeliner.managed.TempInputFile("counts.png"),
             pypeliner.managed.TempInputFile("raw_sce.rdata"),
+            pypeliner.managed.TempInputFile("summary_path.html","sample")
         )
     )
 

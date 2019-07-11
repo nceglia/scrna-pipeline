@@ -105,17 +105,16 @@ class RdataStorage(object):
 
 class ReportStorage(object):
 
-    def __init__(self, results):
-        self.results = results
+    def __init__(self, results_path):
+        self.results_path = results_path
         self.storage_account = "scrnadata"
         self.container = "reports"
         self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token=aztok)
 
     def upload(self, path, sampleid):
-        reportdir = self.results.report_dir
         reporttarball = os.path.join(path, "{}.tar.gz".format(sampleid))
         with tarfile.open(reporttarball, "w:gz") as tar:
-            tar.add(reportdir, arcname=os.path.basename(reporttarball))
+            tar.add(self.results_path, arcname=os.path.basename(reporttarball))
         blobtarball = os.path.split(reporttarball)[1]
         self.block_blob_service.create_blob_from_path(self.container, blobtarball, reporttarball)
 
