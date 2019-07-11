@@ -21,7 +21,7 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunDownload(sampleids, cellranger_human, finished):
+def RunDownload(sampleids, finished):
     for i, sample in enumerate(sampleids):
         tenx = TenxDataStorage(sample)
         path = tenx.download()
@@ -219,7 +219,7 @@ def RunCollection(workflow):
         func = RunDownload,
         args = (
             all_samples,
-            pypeliner.managed.TempInputFile("human_upload.complete"),
+            # pypeliner.managed.TempInputFile("human_upload.complete"),
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )
