@@ -48,7 +48,7 @@ def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce)
 
 def RunQC(sampleid, workflow, species=None):
     workflow.transform (
-        name = "quality_control",
+        name = "quality_control_{}".format(species),
         func = Run,
         args = (
             sampleid,
