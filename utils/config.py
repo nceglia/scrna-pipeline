@@ -56,7 +56,7 @@ def write_config(args):
 
     if subcommand == "cellranger":
         datapath = args.datapath
-        referencepath = os.path.join(args.datapath, args.sampleid)
+        referencepath = os.path.join(args.referencepath, args.sampleid)
         cellranger = args.cellranger
         prefix     = args.sampleid
         datapath = args.datapath
@@ -72,7 +72,7 @@ def write_config(args):
         prefix = args.sampleid
         markers = args.markers
         datapath = args.datapath
-        referencepath = os.path.join(args.datapath, args.sampleid)
+        referencepath = os.path.join(args.referencepath, args.sampleid)
 
     output.write(basic_yaml.format(run_command=subcommand,
                                    prefix=prefix,
