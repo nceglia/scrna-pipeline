@@ -25,8 +25,7 @@ def RunUpload(sampleid,  finished):
     tenxds.upload_cellranger(tenx)
     open(finished,"w").write("Completed")
 
-
-def RunCellranger(workflow, sampleid, full=False):
+def RunCellranger(sampleid, workflow, full=False):
     workflow.transform (
         name = "cellranger_counts_human",
         func = RunCellranger,
