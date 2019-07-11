@@ -320,7 +320,7 @@ def generateHTML(report, sampleid, inventory):
     html = os.path.join(report, "report.html")
     output = open(html,"w")
     output.write(template_header)
-    res = template.format(sampleid = inventory["sampleid"],
+    res = template.format(sampleid = sampleid,
                             raw_sce = inventory["raw_sce"],
                             sce = inventory["sce"],
                             seurat = inventory["seurat"],
