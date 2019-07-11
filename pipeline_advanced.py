@@ -28,7 +28,7 @@ def create_workflow():
     prefix = config.prefix
     print("\n\n\n")
     print("***** Run: {} ******".format(prefix))
-    # workflow = RunCellranger(prefix,workflow,full=False)
+    workflow = RunCellranger(prefix,workflow)
     workflow = RunQC(prefix, workflow)
     workflow = RunCellAssign(prefix, workflow)
     workflow = RunCollection(workflow)
