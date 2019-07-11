@@ -14,9 +14,9 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def Run(sampleid, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
+def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
     print("Running QC.")
-    tenx = TenxDataStorage(sampleid, version="v3")
+    tenx = TenxDataStorage(sampleid, version="v3", species=species)
     tenx.download()
     tenx_analysis = TenxAnalysis(tenx.tenx_path)
     tenx_analysis.load()
@@ -46,12 +46,13 @@ def Run(sampleid, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
     shutil.copyfile(counts, counts_plot)
     shutil.copyfile(qc.sce, raw_sce)
 
-def RunQC(sampleid, workflow, prefix=None):
+def RunQC(sampleid, workflow, species=None):
     workflow.transform (
         name = "quality_control",
         func = Run,
         args = (
             sampleid,
+            species,
             pypeliner.managed.TempOutputFile("umi.png"),
             pypeliner.managed.TempOutputFile("mito.png"),
             pypeliner.managed.TempOutputFile("ribo.png"),
