@@ -29,11 +29,11 @@ def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce)
         qc.upload_raw()
         qc.upload()
     plots = qc.plots
-    umi = os.path.join(plots,"{}_umi.png".format(species))
-    mito = os.path.join(plots,"{}_mito.png".format(species))
-    ribo = os.path.join(plots, "{}_ribo.png".format(species))
-    counts = os.path.join(plots, "{}_counts.png".format(species))
-    cvf = os.path.join(plots, "{}_total_counts_v_features.png".format(species))
+    umi = os.path.join(plots,"umi.png")
+    mito = os.path.join(plots,"mito.png")
+    ribo = os.path.join(plots, "ribo.png")
+    counts = os.path.join(plots, "counts.png")
+    cvf = os.path.join(plots, "total_counts_v_features.png")
 
     results = os.path.join(config.jobpath, "results")
     if not os.path.exists(results):
