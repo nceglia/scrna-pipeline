@@ -314,6 +314,7 @@ template = """
             <tr><td>Raw SCE:</td><td>{raw_sce}</td></tr>
             <tr><td>SCE (cellassign):</td><td>{sce}</td></tr>
             <tr><td>Seurat (cellassign):</td><td>{seurat}</td></tr>
+            <tr><td>Markers by Cluster:</td><td>{markers}</td></tr>
             <tr><td>Cellranger Summary:</td><td>{summary}</td></tr>
         </table>
         <br>

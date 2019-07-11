@@ -46,8 +46,6 @@ def Run(sampleid, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
     shutil.copyfile(counts, counts_plot)
     shutil.copyfile(qc.sce, raw_sce)
 
-    open(finished,"w").write("Completed")
-
 def RunQC(sampleid, workflow, prefix=None):
     workflow.transform (
         name = "quality_control",
