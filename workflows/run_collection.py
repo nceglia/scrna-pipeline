@@ -236,8 +236,6 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce.rdata","sample"),
-            pypeliner.managed.TempOutputFile("rho.csv","sample"),
-            pypeliner.managed.TempOutputFile("cellassignfit.rdata","sample"),
         )
     )
 
