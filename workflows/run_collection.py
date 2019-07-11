@@ -203,7 +203,7 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(tsne_basic, inventory["umap_basic"])
         shutil.copyfile(tsne_basic, inventory["celltypes"])
 
-        generateHTML(dir, inventory)
+        generateHTML(dir, sample_name, inventory)
 
         # report = ReportStorage(dir)
         # report.upload(os.path.dirname(os.path.realpath(__file__)), sample_name)
