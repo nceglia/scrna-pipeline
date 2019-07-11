@@ -42,7 +42,7 @@ def RunCellranger(sampleid, workflow, full=False):
         args = (
             sampleid,
             pypeliner.managed.OutputFile("cellranger_mouse.complete"),
-            config.reference_mouse
+            config.mouse_reference
         )
     )
     workflow.transform (
