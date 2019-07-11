@@ -20,10 +20,10 @@ class CellAssign(object):
         CellAssign.script(rdata, rho_csv, results)
         env = os.environ.copy()
         submit = ["Rscript",".cache/run_cellassign.R"]
-        # subprocess.call(submit, env=env)
+        subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         submit = ["Rscript",".cache/match.R"]
-        #subprocess.call(submit, env=env)
+        subprocess.call(submit, env=env)
 
     @staticmethod
     def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv", lsf=True):
