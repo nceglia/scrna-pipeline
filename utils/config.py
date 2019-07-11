@@ -38,7 +38,7 @@ qc_type: "standard"
 scviz_embedding: None
 copy_number_data: None
 mito: 20
-mouse_reference: mm10
+mouse_reference: /reference/mm10
 """
 
 
@@ -73,6 +73,7 @@ def write_config(args):
         markers = args.markers
         datapath = args.datapath
         referencepath = args.referencepath
+        cellranger = args.cellranger
 
     output.write(basic_yaml.format(run_command=subcommand,
                                    prefix=prefix,
