@@ -11,7 +11,7 @@ class CellRanger(object):
 
     @staticmethod
     def cmd(command, args):
-        cmd = [os.path.join(config.cellranger,"cellranger"), command]
+        cmd = ["cellranger", command]
         for flag, value in args.items():
             cmd.append("--{}".format(flag)
             )
@@ -99,7 +99,8 @@ class CellRanger(object):
             args["chemistry"] = config.chemistry
         cmd = CellRanger.cmd("count",args)
         print("Saving command to submission script ", " ".join(cmd))
-        output.write(" ".join(cmd))
+        output.write("source /codebase/cellranger-3.0.2/sourceme.bash\n")
+        output.write(" ".join(cmd)+"\n")
         output.close()
         #result = subprocess.check_output(cmd)
         result = 1
