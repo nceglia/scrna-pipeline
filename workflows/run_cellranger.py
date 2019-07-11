@@ -13,7 +13,7 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunCellranger(sampleid, finished, reference):
+def Counts(sampleid, finished, reference):
     CellRanger.count([sampleid],reference_override=reference)
     open(finished,"w").write("Completed")
 
@@ -27,18 +27,18 @@ def RunUpload(sampleid,  finished):
 
 def RunCellranger(sampleid, workflow):
     print(type(workflow))
-    # workflow.transform (
-    #     name = "cellranger_counts_human",
-    #     func = RunCellranger,
-    #     args = (
-    #         sampleid,
-    #         pypeliner.managed.OutputFile("cellranger_human.complete"),
-    #         config.reference
-    #     )
-    # )
+    workflow.transform (
+        name = "cellranger_counts_human",
+        func = Counts,
+        args = (
+            sampleid,
+            pypeliner.managed.OutputFile("cellranger_human.complete"),
+            config.reference
+        )
+    )
     workflow.transform (
         name = "cellranger_counts_mouse",
-        func = RunCellranger,
+        func = Counts,
         args = (
             sampleid,
             pypeliner.managed.OutputFile("cellranger_mouse.complete"),
