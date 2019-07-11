@@ -5,6 +5,7 @@ import pypeliner.managed
 import sys
 import os
 import pickle
+import shutil
 
 from interface.tenxanalysis import TenxAnalysis
 from software.cellassign import CellAssign
