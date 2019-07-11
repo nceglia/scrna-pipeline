@@ -64,7 +64,6 @@ def Run(sampleid, before, finished):
     exportUpload(results)
     open(finished,"w").write("Completed")
 
-
 def RunHTML(workflow):
     pass
 

@@ -14,6 +14,7 @@ from workflows.run_cellranger import RunCellranger
 from workflows.run_qc import RunQC
 from workflows.run_cellassign import RunCellAssign
 from workflows.run_collection import RunCollection
+from workflows.run_report import RunReport
 
 import warnings
 warnings.filterwarnings("ignore")

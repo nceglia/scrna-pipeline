@@ -165,14 +165,29 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         dir = "results"
         if not os.path.exists(dir):
             os.makedirs(dir)
+
+        inventory = dict()
+        inventory["seurat"] = os.path.join(dir,"{}_seurat.rds".format(sample_name))
+        inventory["sce"] = os.path.join(dir,"{}_sce.rds".format(sample_name))
+        inventory["tsne"] = os.path.join(dir,"{}_tsne.png".format(sample_name))
+        inventory["umap"] =  os.path.join(dir,"{}_umap.png".format(sample_name))
+        inventory["ridge"] = ros.path.join(dir,"{}_ridge.png".format(sample_name))
+        inventory["features"] = os.path.join(dir,"{}_features.png".format(sample_name))
+        inventory["markers"] = os.path.join(dir,"{}_markers.csv".format(sample_name))
+        inventory["umi"] =  os.path.join(dir,"{}_umi.png".format(sample_name))
+        inventory["ribo"] = os.path.join(dir,"{}_ribo.png".format(sample_name))
+        inventory["mito"] = os.path.join(dir,"{}_mito.png".format(sample_name))
+        inventory["raw_sce"] = os.path.join(dir,"{}_raw_sce.rdata".format(sample_name))
+        inventory["summary"] = os.path.join(dir,"{}_cellranger.html".format(sample_name))
+
         shutil.copyfile(rdata, os.path.join(dir,"{}_seurat.rds".format(sample_name)))
         shutil.copyfile(sces[id], os.path.join(dir,"{}_sce.rds".format(sample_name)))
         shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
         shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
         shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_umap_celltype.png".format(sample_name)))
-        shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
-        shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_features.png".format(sample_name)))
+        shutil.copyfile(ridge[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
+        shutil.copyfile(features[id], os.path.join(dir,"{}_features.png".format(sample_name)))
         shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
         shutil.copyfile(umi, os.path.join(dir,"{}_umi.png".format(sample_name)))
         shutil.copyfile(ribo, os.path.join(dir,"{}_ribo.png".format(sample_name)))
@@ -180,8 +195,10 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(raw_sces, os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
         shutil.copyfile(summary_path[id], os.path.join(dir,"{}_cellranger.html".format(sample_name)))
 
-        report = ReportStorage(dir)
-        report.upload(os.path.dirname(os.path.realpath(__file__)), sample_name)
+        generateHTML(dir, inventory)
+
+        # report = ReportStorage(dir)
+        # report.upload(os.path.dirname(os.path.realpath(__file__)), sample_name)
 
 
 
@@ -290,6 +307,31 @@ def RunCollection(workflow):
     return workflow
 
 
+def generateHTML(report, sampleid, inventory):
+    html = os.path.join(report, "report.html")
+    output = open(html,"w")
+    output.write(template_header)
+    res = template.format(sampleid = inventory["sampleid"],
+                            raw_sce = inventory["raw_sce"],
+                            sce = inventory["sce"],
+                            seurat = inventory["seurat"],
+                            markers = inventory["markers"],
+                            summary = inventory["summary"],
+                            umi = inventory["umi"],
+                            mito = inventory["mito"],
+                            ribo = inventory["ribo"],
+                            counts = inventory["counts"],
+                            tsne = inventory["tsne"],
+                            umap = inventory["umap"],
+                            tsne_celltype_seurat = inventory["seurat"],
+                            umap_celltype_seurat = inventory["umap_celltype_seurat"],
+                            ridge = inventory["ridge"],
+                            features = inventory["features"]
+                            )
+    output.write(res)
+    output.write(template_footer)
+    output.close()
+
 
 template_header = """
 <!DOCTYPE html>
@@ -318,7 +360,6 @@ template = """
         <h3>Summary</h3>
         <br>
         <table>
-            <tr><td>Cells:</td><td>{cells}</td></tr>
             <tr><td>Raw SCE:</td><td>{raw_sce}</td></tr>
             <tr><td>SCE (cellassign):</td><td>{sce}</td></tr>
             <tr><td>Seurat (cellassign):</td><td>{seurat}</td></tr>
@@ -326,29 +367,29 @@ template = """
             <tr><td>Cellranger Summary:</td><td>{summary}</td></tr>
         </table>
         <br>
-        <table>
-            <tr><td>Cells:</td><td>{cells}</td></tr>
-            <tr><td>Raw SCE:</td><td>{raw_sce}</td></tr>
-            <tr><td>SCE (cellassign):</td><td>{sce}</td></tr>
-            <tr><td>Seurat (cellassign):</td><td>{seurat}</td></tr>
-            <tr><td>Cellranger Summary:</td><td>{summary}</td></tr>
+        <h3>QC</h3>
+        <table width="80%">
+            <tr><td>UMI</td><td>Mito</td><td>Ribo</td><td>Counts</td></tr>
+            <tr><td><img src="{umi}"></td><td><img src="{mito}"></td><td><img src="{ribo}"></td><td><img src="{counts}"></td></tr>
         </table>
         <br>
+        <h3>Analysis</h3>
         <table width="80%">
-          <tr><td>UMAP CellType</td><td>TSNE Celltype</td></tr>
-          <tr><td><img src="umap_celltype.png"></td><td><img src="tsne_celltype.png"></td></tr>
           <tr><td>UMAP</td><td>TSNE</td></tr>
-          <tr><td><img src="umap.png"></td><td><img src="tsne.png"></td></tr>
+          <tr><td><img src="{umap}"></td><td><img src="{tsne}"></td></tr>
+
+          <tr><td>UMAP CellType (Seurat)</td><td>TSNE Celltype (Seurat)</td></tr>
+          <tr><td><img src="{seurat_umap_celltype}"></td><td><img src="{seurat_tsne_celltype}"></td></tr>
+
           <tr><td>Markers in Clusters</td><td>Markers Embedding</td></tr>
-          <tr><td><img src="ridge_markers.png"></td><td><img src="feature_markers.png"></td></tr>
+          <tr><td><img src="{ridge}"></td><td><img src="{features}"></td></tr>
         </table>
-"""
-template_footer = """
         <br><br><br>
         <script type="text/javascript"charset="utf-8">
-            d3.text("marker_table.csv", function(data) {
+            d3.text("{markers}", function(data) {
                 var parsedCSV = d3.csv.parseRows(data);
-
+"""
+template_footer = """
                 var container = d3.select("body")
                     .append("table").attr("width","100%")
 
