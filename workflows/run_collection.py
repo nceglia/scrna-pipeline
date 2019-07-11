@@ -158,7 +158,6 @@ def RunMarkers(seurat,marker_table):
     shutil.copyfile(marker_csv_cached, marker_table)
 
 def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces, summary_path):
-
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
         sample_json = json.loads(open(sample_json_path,"r").read())
@@ -175,11 +174,10 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
         shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_features.png".format(sample_name)))
         shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
-        print(umi[id])
-        shutil.copyfile(umi[id], os.path.join(dir,"{}_umi.png".format(sample_name)))
-        shutil.copyfile(ribo[id], os.path.join(dir,"{}_ribo.png".format(sample_name)))
-        shutil.copyfile(mito[id], os.path.join(dir,"{}_mito.png".format(sample_name)))
-        shutil.copyfile(raw_sces[id], os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
+        shutil.copyfile(umi, os.path.join(dir,"{}_umi.png".format(sample_name)))
+        shutil.copyfile(ribo, os.path.join(dir,"{}_ribo.png".format(sample_name)))
+        shutil.copyfile(mito, os.path.join(dir,"{}_mito.png".format(sample_name)))
+        shutil.copyfile(raw_sces, os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
         shutil.copyfile(summary_path[id], os.path.join(dir,"{}_cellranger.html".format(sample_name)))
 
         report = ReportStorage(dir)
@@ -279,11 +277,11 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
             pypeliner.managed.TempInputFile("seurat_features.png","sample"),
             pypeliner.managed.TempInputFile("markers.csv","sample"),
-            pypeliner.managed.TempInputFile("umi.png","sample"),
-            pypeliner.managed.TempInputFile("mito.png","sample"),
-            pypeliner.managed.TempInputFile("ribo.png","sample"),
-            pypeliner.managed.TempInputFile("counts.png","sample"),
-            pypeliner.managed.TempInputFile("raw_sce.rdata","sample"),
+            pypeliner.managed.TempInputFile("umi.png"),
+            pypeliner.managed.TempInputFile("mito.png"),
+            pypeliner.managed.TempInputFile("ribo.png"),
+            pypeliner.managed.TempInputFile("counts.png"),
+            pypeliner.managed.TempInputFile("raw_sce.rdata"),
             pypeliner.managed.TempInputFile("summary_path.html","sample")
         )
     )
