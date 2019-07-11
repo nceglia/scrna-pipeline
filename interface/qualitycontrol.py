@@ -10,6 +10,8 @@ import os
 import shutil
 import uuid
 
+aztok = open(".sas_token","r").read().strip()
+
 class QualityControl(object):
 
     def __init__(self, tenx, sampleid, mouse=False):
@@ -53,7 +55,7 @@ class QualityControl(object):
                 version = "v3"
         self.container = "rdata{}".format(version)
         self.rawcontainer = "rdataraw{}".format(version)
-        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
 
     def filter(self, mito=10):
         assert os.path.exists(self.sce), "SCE needs to be built before filtered."

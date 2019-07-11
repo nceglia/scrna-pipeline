@@ -156,7 +156,8 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers):
+def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces):
+
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
         sample_json = json.loads(open(sample_json_path,"r").read())
@@ -173,6 +174,10 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
         shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_features.png".format(sample_name)))
         shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
+        shutil.copyfile(umi[id], os.path.join(dir,"{}_umi.png".format(sample_name)))
+        shutil.copyfile(ribo[id], os.path.join(dir,"{}_ribo.png".format(sample_name)))
+        shutil.copyfile(mito[id], os.path.join(dir,"{}_mito.png".format(sample_name)))
+        shutil.copyfile(raw_sces[id], os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
 
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
@@ -265,8 +270,90 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
             pypeliner.managed.TempInputFile("seurat_features.png","sample"),
             pypeliner.managed.TempInputFile("markers.csv","sample"),
+            pypeliner.managed.TempInputFile("umi.png"),
+            pypeliner.managed.TempInputFile("mito.png"),
+            pypeliner.managed.TempInputFile("ribo.png"),
+            pypeliner.managed.TempInputFile("counts.png"),
+            pypeliner.managed.TempInputFile("raw_sce.rdata"),
         )
     )
 
 
     return workflow
+
+
+
+template_header = """
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <style>
+            table {
+                border-collapse: collapse;
+                border: 2px black solid;
+                font: 12px sans-serif;
+            }
+
+            td {
+                border: 1px black solid;
+                padding: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+        <!-- <script src="d3.min.js?v=3.2.8"></script> -->
+        <center>"""
+template = """
+        <h1><font face="helvetica" color="#1F1F1F">{sampleid}</font></h1><br><br>
+        <h3>Summary</h3>
+        <br>
+        <table>
+            <tr><td>Cells:</td><td>{cells}</td></tr>
+            <tr><td>Raw SCE:</td><td>{raw_sce}</td></tr>
+            <tr><td>SCE (cellassign):</td><td>{sce}</td></tr>
+            <tr><td>Seurat (cellassign):</td><td>{seurat}</td></tr>
+            <tr><td>Cellranger Summary:</td><td>{summary}</td></tr>
+        </table>
+        <br>
+        <table>
+            <tr><td>Cells:</td><td>{cells}</td></tr>
+            <tr><td>Raw SCE:</td><td>{raw_sce}</td></tr>
+            <tr><td>SCE (cellassign):</td><td>{sce}</td></tr>
+            <tr><td>Seurat (cellassign):</td><td>{seurat}</td></tr>
+            <tr><td>Cellranger Summary:</td><td>{summary}</td></tr>
+        </table>
+        <br>
+        <table width="80%">
+          <tr><td>UMAP CellType</td><td>TSNE Celltype</td></tr>
+          <tr><td><img src="umap_celltype.png"></td><td><img src="tsne_celltype.png"></td></tr>
+          <tr><td>UMAP</td><td>TSNE</td></tr>
+          <tr><td><img src="umap.png"></td><td><img src="tsne.png"></td></tr>
+          <tr><td>Markers in Clusters</td><td>Markers Embedding</td></tr>
+          <tr><td><img src="ridge_markers.png"></td><td><img src="feature_markers.png"></td></tr>
+        </table>
+"""
+template_footer = """
+        <br><br><br>
+        <script type="text/javascript"charset="utf-8">
+            d3.text("marker_table.csv", function(data) {
+                var parsedCSV = d3.csv.parseRows(data);
+
+                var container = d3.select("body")
+                    .append("table").attr("width","100%")
+
+                    .selectAll("tr")
+                        .data(parsedCSV).enter()
+                        .append("tr")
+
+                    .selectAll("td")
+                        .data(function(d) { return d; }).enter()
+                        .append("td")
+                        .text(function(d) { return d; });
+            });
+        </script>
+        </center>
+    </body>
+</html>
+"""

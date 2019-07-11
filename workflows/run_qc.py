@@ -14,7 +14,7 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def Run(sampleid, finished):
+def Run(sampleid, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
     print("Running QC.")
     tenx = TenxDataStorage(sampleid, version="v3")
     tenx.download()
@@ -40,24 +40,25 @@ def Run(sampleid, finished):
     if not os.path.exists(results):
         os.makedirs(results)
 
-    shutil.copyfile(umi, os.path.join(results,"umi.png"))
-    shutil.copyfile(mito, os.path.join(results,"mito.png"))
-    shutil.copyfile(ribo, os.path.join(results,"ribo.png"))
-    shutil.copyfile(counts, os.path.join(results,"counts.png"))
-    
+    shutil.copyfile(umi, umi_plot)
+    shutil.copyfile(mito, mito_plot)
+    shutil.copyfile(ribo, ribo_plot)
+    shutil.copyfile(counts, counts_plot)
+    shutil.copyfile(qc.sce, raw_sce)
+
     open(finished,"w").write("Completed")
 
-def RunQC(tenx, workflow, prefix=None):
-    if prefix != None:
-        qc_complete = "{}_qc.complete".format(prefix)
-    else:
-        qc_complete = "qc.complete"
+def RunQC(sampleid, workflow, prefix=None):
     workflow.transform (
         name = "quality_control",
         func = Run,
         args = (
-            tenx,
-            pypeliner.managed.OutputFile(qc_complete)
+            sampleid,
+            pypeliner.managed.TempOutputFile("umi.png"),
+            pypeliner.managed.TempOutputFile("mito.png"),
+            pypeliner.managed.TempOutputFile("ribo.png"),
+            pypeliner.managed.TempOutputFile("counts.png"),
+            pypeliner.managed.TempOutputFile("raw_sce.rdata"),
         )
     )
     return workflow

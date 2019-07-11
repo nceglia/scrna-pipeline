@@ -65,6 +65,10 @@ def Run(sampleid, before, finished):
     open(finished,"w").write("Completed")
 
 
+def RunHTML(workflow):
+    pass
+
+
 def RunReport(sampleid, workflow):
     workflow.transform (
         name = "report",

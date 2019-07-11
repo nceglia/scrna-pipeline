@@ -94,7 +94,7 @@ class RdataStorage(object):
         self.cache = cache
         self.storage_account = "scrnadata"
         self.container = "rdatarawv3"
-        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token=aztok)
 
     def get_sce(self,  sampleid):
         rdata = "{}.rdata".format(sampleid)
@@ -109,7 +109,7 @@ class ReportStorage(object):
         self.results = results
         self.storage_account = "scrnadata"
         self.container = "reports"
-        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token=aztok)
 
     def upload(self, path, sampleid):
         reportdir = self.results.report_dir
@@ -125,7 +125,7 @@ class FastqDataStorage(object):
         self.sampleid = sampleid
         self.storage_account = "scrnadata"
         self.container = "rnaseq"
-        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+        self.block_blob_service = BlockBlobService(account_name=self.storage_account, sas_token=aztok)
 
     def set_data_path(self, path):
         self.datapath = path
@@ -151,7 +151,7 @@ class ReferenceDataStorage(object):
         self.sampleid = build
         self.storage_account = "scrnadata"
         self.container = "reference"
-        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token='?sv=2018-03-28&ss=bfqt&srt=sco&sp=rwdlacup&se=2021-03-19T02:52:48Z&st=2019-02-22T19:52:48Z&spr=https&sig=4oAGvIyqi9LPY89t21iWWp4XbbIgpmaldgcwWUOuf14%3D')
+        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
         self.reference = os.path.join(referencepath, build)
         self.build = build
         self.referencepath = referencepath
