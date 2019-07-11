@@ -31,7 +31,7 @@ def create_workflow():
 
     workflow = RunCellranger(prefix, workflow)
     workflow = RunQC(prefix, workflow, species="human")
-    workflow = RunQC(prefix, workflow, species="mouse")
+    # workflow = RunQC(prefix, workflow, species="mouse")
     workflow = RunCellAssign(prefix, workflow)
     workflow = RunCollection(workflow)
 
