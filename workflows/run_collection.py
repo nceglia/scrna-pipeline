@@ -40,9 +40,11 @@ def RunExtract(sample_to_path, rdata_path, summary_path):
     shutil.copyfile(tenx_analysis.summary, summary_path)
     shutil.copyfile(qc.sce, rdata_path)
 
-def RunCellAssign(sce, annot_sce, rho_csv, fit):
+def RunCellAssign(sce, annot_sce):
+    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
+    _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     sampleid = sce.split("/")[-2]
-    CellAssign.run(sce, config.rho_matrix, fit, rho_csv=rho_csv)
+    CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     shutil.copyfile(filtered_sce, annot_sce)
 
@@ -157,7 +159,7 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces, summary_path, celltypes, tsne_basic, umap_basic):
+def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, features, markers, umi, ribo, mito, counts, raw_sces, summary_path, celltypes, tsne_basic, umap_basic):
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
         sample_json = json.loads(open(sample_json_path,"r").read())
