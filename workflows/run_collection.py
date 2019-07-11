@@ -204,7 +204,7 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempOutputFile("sample.rdata","sample"),
-            pypeliner.managed.TempOutputFile("summary_path.json","sample")
+            pypeliner.managed.TempOutputFile("summary_path.html","sample")
         )
     )
 
