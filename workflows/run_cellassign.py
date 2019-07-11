@@ -24,7 +24,7 @@ def Run(sampleid, raw_sce, sce_cas):
         CellAssign.run(raw_sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
     shutil.copyfile(".cache/{}/sce_cas.rdata".format(sampleid), sce_cas)
 
-def Analysis(sampleid, sce_cas, celltypes, tsne, umap):
+def Analysis(sampleid, sce_cas, celltype_plot, tsne, umap):
     filtered_sce = sce_cas
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
     if not os.path.exists(cellassign_analysis):
@@ -41,7 +41,7 @@ def Analysis(sampleid, sce_cas, celltypes, tsne, umap):
     _celltypes = os.path.join(cellassign_analysis, "cell_types.png")
     _tsne = os.path.join(cellassign_analysis, "tsne_by_cell_type.png")
     _umap = os.path.join(cellassign_analysis, "umap_by_cell_type.png")
-    shutil.copyfile(_celltypes, celltypes)
+    shutil.copyfile(_celltypes, celltype_plot)
     shutil.copyfile(_umap, umap)
     shutil.copyfile(_tsne, tsne)
 
