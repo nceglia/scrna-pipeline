@@ -18,41 +18,13 @@ from utils.config import Configuration
 
 config = Configuration()
 
-def Run(sampleid, before, finished, use_corrected=False):
-    if use_corrected and os.path.exists(".cache/corrected/"):
-        sce = ".cache/corrected/corrected_sce.rdata"
-        if not os.path.exists(sce):
-            utils = DropletUtils()
-            utils.read10xCounts(".cache/corrected/",".cache/corrected/corrected_sce.rdata")
-    else:
-        tenx = TenxDataStorage(sampleid, version="v3")
-        tenx.download()
-        analysis_path = tenx.tenx_path
-        tenx_analysis = TenxAnalysis(analysis_path)
-        tenx_analysis.load()
-        tenx_analysis.extract()
-        qc = QualityControl(tenx_analysis, sampleid)
-        sce = qc.sce
+def Run(sampleid, raw_sce, sce_cas):
     if not os.path.exists(".cache/{}/celltypes.rdata".format(sampleid)):
-        CellAssign.run(sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
-    open(finished,"w").write("Completed")
+        CellAssign.run(raw_sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
+    shutil.copyfile(".cache/{}/sce_cas.rdata".format(sampleid), sce_cas)
 
-def Analysis(sampleid, before, finished, use_corrected=False):
-    if use_corrected and os.path.exists(".cache/corrected"):
-        sce = ".cache/corrected/corrected_sce.rdata"
-        if not os.path.exists(sce):
-            utils = DropletUtils()
-            utils.read10xCounts(".cache/corrected/",".cache/corrected/corrected_sce.rdata")
-        filtered_sce = sce
-    else:
-        tenx = TenxDataStorage(sampleid, version="v3")
-        tenx.download()
-        analysis_path = tenx.tenx_path
-        tenx_analysis = TenxAnalysis(analysis_path)
-        tenx_analysis.load()
-        tenx_analysis.extract()
-        qc = QualityControl(tenx_analysis, sampleid)
-        filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
+def Analysis(sampleid, sce_cas, celltypes, tsne, umap):
+    filtered_sce = os.path.join(os.path.split(qc.sce)[0],"sce_cas.rdata")
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
     if not os.path.exists(cellassign_analysis):
         os.makedirs(cellassign_analysis)
@@ -63,10 +35,14 @@ def Analysis(sampleid, before, finished, use_corrected=False):
     cell_types = marker_list.celltypes()
     if "B cell" not in cell_types: cell_types.append("B cell")
     celltypes(pyfit, sampleid, cellassign_analysis, known_types=cell_types)
-
     tsne_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
     umap_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
-    open(finished,"w").write("Completed")
+    _celltypes = os.path.join(cellassign_analysis, "cell_types.png")
+    _tsne = os.path.join(cellassign_analysis, "tsne_by_cell_type.png")
+    _umap = os.path.join(cellassign_analysis, "umap_by_cell_type.png")
+    shutil.copyfile(_celltypes, celltypes)
+    shutil.copyfile(_umap, umap)
+    shutil.copyfile(_tsne, tsne)
 
 def RunCellAssign(sampleid, workflow):
     workflow.transform (
@@ -74,8 +50,8 @@ def RunCellAssign(sampleid, workflow):
         func = Run,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("qc.complete"),
-            pypeliner.managed.OutputFile("cellassign.complete")
+            pypeliner.managed.TempInputFile("raw_sce.rdata"),
+            pypeliner.managed.TempOutputFile("sce_cas.rdata")
         )
     )
     workflow.transform (
@@ -83,8 +59,10 @@ def RunCellAssign(sampleid, workflow):
         func = Analysis,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("cellassign.complete"),
-            pypeliner.managed.OutputFile("cellassignanalysis.complete")
+            pypeliner.managed.TempInputFile("sce_cas.rdata"),
+            pypeliner.managed.TempOutputFile("celltypes.png"),
+            pypeliner.managed.TempOutputFile("tsne_by_celltype.png"),
+            pypeliner.managed.TempOutputFile("umap_by_celltype.png"),
         )
     )
     return workflow

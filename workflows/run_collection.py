@@ -157,7 +157,7 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces, summary_path):
+def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, exprs, markers, umi, ribo, mito, counts, raw_sces, summary_path, celltypes, tsne_basic, umap_basic):
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
         sample_json = json.loads(open(sample_json_path,"r").read())
@@ -179,6 +179,9 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         inventory["mito"] = os.path.join(dir,"{}_mito.png".format(sample_name))
         inventory["raw_sce"] = os.path.join(dir,"{}_raw_sce.rdata".format(sample_name))
         inventory["summary"] = os.path.join(dir,"{}_cellranger.html".format(sample_name))
+        inventory["tsne_basic"] = os.path.join(dir,"{}_tsne_basic.png".format(sample_name))
+        inventory["umap_basic"] = os.path.join(dir,"{}_umap_basic.png".format(sample_name))
+        inventory["celltypes"] = os.path.join(dir,"{}_umap_basic.png".format(sample_name))
 
         shutil.copyfile(rdata, os.path.join(dir,"{}_seurat.rds".format(sample_name)))
         shutil.copyfile(sces[id], os.path.join(dir,"{}_sce.rds".format(sample_name)))
@@ -194,6 +197,9 @@ def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes
         shutil.copyfile(mito, os.path.join(dir,"{}_mito.png".format(sample_name)))
         shutil.copyfile(raw_sces, os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
         shutil.copyfile(summary_path[id], os.path.join(dir,"{}_cellranger.html".format(sample_name)))
+        shutil.copyfile(tsne_basic, inventory["tsne_basic"])
+        shutil.copyfile(tsne_basic, inventory["umap_basic"])
+        shutil.copyfile(tsne_basic, inventory["celltypes"])
 
         generateHTML(dir, inventory)
 
@@ -299,7 +305,10 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("ribo.png"),
             pypeliner.managed.TempInputFile("counts.png"),
             pypeliner.managed.TempInputFile("raw_sce.rdata"),
-            pypeliner.managed.TempInputFile("summary_path.html","sample")
+            pypeliner.managed.TempInputFile("summary_path.html","sample"),
+            pypeliner.managed.TempInputFile("celltypes.png"),
+            pypeliner.managed.TempInputFile("tsne_by_celltype.png"),
+            pypeliner.managed.TempInputFile("umap_by_celltype.png"),
         )
     )
 
@@ -323,8 +332,11 @@ def generateHTML(report, sampleid, inventory):
                             counts = inventory["counts"],
                             tsne = inventory["tsne"],
                             umap = inventory["umap"],
-                            tsne_celltype_seurat = inventory["seurat"],
+                            tsne_celltype_seurat = inventory["tsne_celltype_seurat"],
                             umap_celltype_seurat = inventory["umap_celltype_seurat"],
+                            tsne_basic = inventory["tsne_basic"],
+                            umap_basic = inventory["umap_basic"],
+                            celltypes = inventory["celltypes"],
                             ridge = inventory["ridge"],
                             features = inventory["features"]
                             )
@@ -375,8 +387,11 @@ template = """
         <br>
         <h3>Analysis</h3>
         <table width="80%">
+          <tr><td>Cell Types</td></tr>
+          <tr><td><img src="{celltypes}"></td></tr>
+
           <tr><td>UMAP</td><td>TSNE</td></tr>
-          <tr><td><img src="{umap}"></td><td><img src="{tsne}"></td></tr>
+          <tr><td><img src="{umap_basic}"></td><td><img src="{tsne_basic}"></td></tr>
 
           <tr><td>UMAP CellType (Seurat)</td><td>TSNE Celltype (Seurat)</td></tr>
           <tr><td><img src="{seurat_umap_celltype}"></td><td><img src="{seurat_tsne_celltype}"></td></tr>
