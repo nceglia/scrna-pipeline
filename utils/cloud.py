@@ -1,6 +1,13 @@
 from azure.common.client_factory import get_client_from_cli_profile
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.network import NetworkManagementClient
+from azure.common.credentials import ServicePrincipalCredentials
+from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.compute.models import DiskCreateOption
+
+from msrestazure.azure_exceptions import CloudError
+
+
 import os, uuid, sys
 from azure.storage.blob import BlockBlobService, PublicAccess
 import subprocess
@@ -180,21 +187,120 @@ class ReferenceDataStorage(object):
 class VirtualMachine(object):
 
     def __init__(self):
-        compute_client = get_client_from_cli_profile(ComputeManagementClient)
-        network_client = get_client_from_cli_profile(NetworkManagementClient)
-        nic = network_client.network_interfaces.get(GROUP_NAME, NIC_NAME)
+        self.LOCATION = 'canadacentral'
+        self.GROUP_NAME = 'nick'
+        self.VNET_NAME = 'nick-vnet'
+        self.NIC_NAME = 'nickvm405'
+        self.VM_NAME = 'scrna-pipeline3'
+        self.USERNAME = 'scrna-user'
+        self.PASSWORD = 'Password123!'
+        self.IP_ADDRESS_NAME='nickvm-ip'
+        self.VM_REFERENCE = {
+            'linux': {
+                'publisher': 'Canonical',
+                'offer': 'UbuntuServer',
+                'sku': '16.04.0-LTS',
+                'version': 'latest'
+            },
+        }
+        self.compute_client = get_client_from_cli_profile(ComputeManagementClient)
+        self.network_client = get_client_from_cli_profile(NetworkManagementClient)
+        self.nic = self.network_client.network_interfaces.get(self.GROUP_NAME, self.NIC_NAME)
         print('\nCreating Linux Virtual Machine')
-        vm_parameters = create_vm_parameters(nic.id, VM_REFERENCE['linux'])
-        print(vm_parameters)
-        async_vm_creation = compute_client.virtual_machines.create_or_update(GROUP_NAME, VM_NAME, vm_parameters)
+        vm_parameters = self.create_vm_parameters()
+        async_vm_creation = self.compute_client.virtual_machines.create_or_update(self.GROUP_NAME, self.VM_NAME, vm_parameters)
+        print("\nSpinning up FTL.")
         async_vm_creation.wait()
 
-    def run_job(self):
-        pass
+
+    def create_vm_parameters(self):
+        vm_reference = self.VM_REFERENCE["linux"]
+        return {
+            'location': self.LOCATION,
+            'os_profile': {
+                'computer_name': self.VM_NAME,
+                'admin_username': self.USERNAME,
+                'admin_password': self.PASSWORD
+            },
+            'hardware_profile': {
+                'vm_size': 'Standard_DS1_v2'
+            },
+            'storage_profile': {
+                'image_reference': {
+                    'publisher': vm_reference['publisher'],
+                    'offer': vm_reference['offer'],
+                    'sku': vm_reference['sku'],
+                    'version': vm_reference['version']
+                },
+            },
+            'network_profile': {
+                'network_interfaces': [{
+                    'id': self.nic.id,
+                }]
+            },
+        }
+
+    def start(self):
+        print("Warming up...")
+        async_vm_start = self.compute_client.virtual_machines.start(self.GROUP_NAME, self.VM_NAME)
+        async_vm_start.wait()
+
+    def deallocate(self):
+        print("Cooling down...")
+        async_vm_deallocate = self.compute_client.virtual_machines.deallocate(self.GROUP_NAME, self.VM_NAME)
+        async_vm_deallocate.wait()
+
+    def stop(self):
+        print("Stopping engine.")
+        async_vm_stop = self.compute_client.virtual_machines.power_off(self.GROUP_NAME, self.VM_NAME)
+        async_vm_stop.wait()
+
+    def update_disk(self, increment=128):
+        print("Expanding OS disk.")
+        virtual_machine = self.compute_client.virtual_machines.get(self.GROUP_NAME,self.VM_NAME)
+        os_disk_name = virtual_machine.storage_profile.os_disk.name
+        os_disk = self.compute_client.disks.get(self.GROUP_NAME, os_disk_name)
+        os_disk.disk_size_gb += increment
+        async_disk_update = self.compute_client.disks.create_or_update(self.GROUP_NAME, os_disk.name, os_disk)
+        async_disk_update.wait()
+
+    def setup_docker(self):
+        print("Loading toolkit.")
+        run_command_parameters = {
+          'command_id': 'RunShellScript', # For linux, don't change it
+          'script': [
+              'sudo apt install docker.io'
+          ]
+        }
+        poller = self.compute_client.virtual_machines.run_command(
+            self.GROUP_NAME,
+            self.VM_NAME,
+            run_command_parameters
+        )
+        result = poller.result()
+        print(result.value[0].message)
 
     def check_status(self):
         pass
 
+    def delete(self):
+        print("Terminating.")
+        async_vm_delete = self.compute_client.virtual_machines.delete(self.GROUP_NAME, self.VM_NAME)
+        async_vm_delete.wait()
+
+    def get_credentials(self):
+        subscription_id = os.environ['AZURE_SUBSCRIPTION_ID']
+        credentials = ServicePrincipalCredentials(
+            client_id=os.environ['AZURE_CLIENT_ID'],
+            secret=os.environ['AZURE_CLIENT_SECRET'],
+            tenant=os.environ['AZURE_TENANT_ID']
+        )
+        return credentials, subscription_id
+
 if __name__ == '__main__':
-    test_fastqs = FastqDataStorage("test-fastqs")
-    test_fastqs.download_fastqs()
+    new_vm = VirtualMachine()
+    new_vm.deallocate()
+    new_vm.update_disk()
+    new_vm.start()
+    new_vm.setup_docker()
+    new_vm.delete()

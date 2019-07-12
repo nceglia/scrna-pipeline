@@ -4,9 +4,8 @@ import os
 import sys
 import pickle
 import shutil
-"""
-SINGULARITYENV_NPY_MKL_FORCE_INTEL=GNU SINGULARITYENV_PATH=$PATH:/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/ SINGULARITYENV_R_HOME=/usr/local/lib/R/ SINGULARITYENV_LD_LIBRARY_PATH=/usr/local/lib/R/lib"""
 
+"""SINGULARITYENV_NPY_MKL_FORCE_INTEL=GNU SINGULARITYENV_PATH=$PATH:/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/ SINGULARITYENV_R_HOME=/usr/local/lib/R/ SINGULARITYENV_LD_LIBRARY_PATH=/usr/local/lib/R/lib"""
 
 from interface.genemarkermatrix import GeneMarkerMatrix
 

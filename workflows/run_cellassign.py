@@ -22,8 +22,7 @@ config = Configuration()
 def Run(sampleid, raw_sce, sce_cas):
     if not os.path.exists(".cache/{}/celltypes.rdata".format(sampleid)):
         CellAssign.run(raw_sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
-    shutil.copyfile(".cache/{}/sce_cas.rdata".format(sampleid), sce_cas)
-
+    
 def Analysis(sampleid, sce_cas, celltype_plot, tsne, umap):
     filtered_sce = sce_cas
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
