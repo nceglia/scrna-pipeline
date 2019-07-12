@@ -47,7 +47,7 @@ def RunCellranger(sampleid, workflow):
         func = Counts,
         args = (
             sampleid,
-            pypeliner.managed.TempOutputFile("download_fastqs.complete"),
+            pypeliner.managed.TempInputFile("download_fastqs.complete"),
             pypeliner.managed.TempOutputFile("cellranger_human.complete"),
             config.reference
         )
@@ -57,7 +57,7 @@ def RunCellranger(sampleid, workflow):
         func = Counts,
         args = (
             sampleid,
-            pypeliner.managed.TempOutputFile("download_fastqs.complete"),
+            pypeliner.managed.TempInputFile("download_fastqs.complete"),
             pypeliner.managed.TempOutputFile("cellranger_mouse.complete"),
             config.mouse_reference
         )
