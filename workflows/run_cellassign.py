@@ -30,7 +30,7 @@ def Analysis(sampleid, sce_cas, celltype_plot, tsne, umap):
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
     if not os.path.exists(cellassign_analysis):
         os.makedirs(cellassign_analysis)
-    pyfit = os.path.join(".cache/{}/cell_types.pkl".format(sampleid))
+    pyfit = os.path.join(os.path.split(sce_cas)[0],"cell_types.pkl")
     assert os.path.exists(pyfit), "No Pyfit Found."
     pyfit = pickle.load(open(pyfit,"rb"))
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
