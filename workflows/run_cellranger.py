@@ -35,7 +35,7 @@ def RunUpload(sampleid, before, finished, species):
 def RunCellranger(sampleid, workflow):
     workflow.transform (
         name = "download_fastqs",
-        func = Counts,
+        func = DownloadFastqs,
         args = (
             sampleid,
             pypeliner.managed.TempOutputFile("download_fastqs.complete"),
