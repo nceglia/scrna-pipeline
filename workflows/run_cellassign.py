@@ -20,9 +20,11 @@ from utils.config import Configuration
 config = Configuration()
 
 def Run(sampleid, raw_sce, sce_cas):
+    output = os.path.join(os.path.split(raw_sce)[0],"sce_cas.rdata")
     if not os.path.exists(".cache/{}/celltypes.rdata".format(sampleid)):
         CellAssign.run(raw_sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
-    
+    shutil.copyfile(output, sce_cas)
+
 def Analysis(sampleid, sce_cas, celltype_plot, tsne, umap):
     filtered_sce = sce_cas
     cellassign_analysis = ".cache/{}/cellassignanalysis/".format(sampleid)
