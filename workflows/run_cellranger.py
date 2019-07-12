@@ -13,6 +13,13 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
+def DownloadFastqs(sampleid, finished):
+    fastqs = [FastQDirectory(fastq, config.prefix, config.jobpath, config.datapath) for fastq in [sampleid]]
+    fastqs = glob.glob(os.path.join(config.datapath,"*.fastq.gz"))
+    assert len(fastqs) > 0, "No Fastqs Download or Found."
+    open(finished,"w").write("Completed")
+
+
 def Counts(sampleid, finished, reference):
     CellRanger.count([sampleid],reference_override=reference)
     open(finished,"w").write("Completed")
@@ -26,6 +33,14 @@ def RunUpload(sampleid, before, finished, species):
     open(finished,"w").write("Completed")
 
 def RunCellranger(sampleid, workflow):
+    workflow.transform (
+        name = "download_fastqs",
+        func = Counts,
+        args = (
+            sampleid,
+            pypeliner.managed.TempOutputFile("download_fastqs.complete"),
+        )
+    )
     workflow.transform (
         name = "cellranger_counts_human",
         func = Counts,
