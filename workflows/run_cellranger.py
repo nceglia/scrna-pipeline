@@ -4,6 +4,7 @@ import pypeliner.managed
 
 import sys
 import os
+import glob
 
 from software.cellranger import CellRanger
 from interface.fastqdirectory import FastQDirectory
