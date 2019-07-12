@@ -32,6 +32,8 @@ class CellAssign(object):
         print ("CellAssign finished.")
         matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
         pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")
+        print(pkl_fit)
+        print(matched_results)
         lines = open(matched_results,"r").read().splitlines()
         header = lines.pop(0)
         barcodes = []
