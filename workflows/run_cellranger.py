@@ -21,7 +21,7 @@ def DownloadFastqs(sampleid, finished):
     open(finished,"w").write("Completed")
 
 
-def Counts(sampleid, finished, reference):
+def Counts(sampleid, fastqs_downloaded, finished, reference):
     CellRanger.count([sampleid],reference_override=reference)
     open(finished,"w").write("Completed")
 
@@ -47,6 +47,7 @@ def RunCellranger(sampleid, workflow):
         func = Counts,
         args = (
             sampleid,
+            pypeliner.managed.TempOutputFile("download_fastqs.complete"),
             pypeliner.managed.TempOutputFile("cellranger_human.complete"),
             config.reference
         )
@@ -56,6 +57,7 @@ def RunCellranger(sampleid, workflow):
         func = Counts,
         args = (
             sampleid,
+            pypeliner.managed.TempOutputFile("download_fastqs.complete"),
             pypeliner.managed.TempOutputFile("cellranger_mouse.complete"),
             config.mouse_reference
         )
