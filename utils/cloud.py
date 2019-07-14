@@ -79,8 +79,9 @@ class TenxDataStorage(object):
             if outs_tarball_name in blodef.name:
                 uploaded = True
         if not uploaded:
-            self.upload(self.bams, bam_tarball_name, bam_tarball)
-            self.upload(self.container, outs_tarball_name, outs_tarball)
+            pass
+            # self.upload(self.bams, bam_tarball_name, bam_tarball)
+            # self.upload(self.container, outs_tarball_name, outs_tarball)
 
 
     def unpack(self, path):
