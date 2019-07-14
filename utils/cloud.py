@@ -75,13 +75,8 @@ class TenxDataStorage(object):
         bam_tarball_name = os.path.split(bam_tarball)[-1]
         outs_tarball = tenx.outs_tarball()
         outs_tarball_name = os.path.split(outs_tarball)[-1]
-        for blobdef in self.block_blob_service.list_blobs(self.container):
-            if outs_tarball_name in blodef.name:
-                uploaded = True
-        if not uploaded:
-            pass
-            # self.upload(self.bams, bam_tarball_name, bam_tarball)
-            # self.upload(self.container, outs_tarball_name, outs_tarball)
+        # self.upload(self.bams, bam_tarball_name, bam_tarball)
+        # self.upload(self.container, outs_tarball_name, outs_tarball)
 
 
     def unpack(self, path):
