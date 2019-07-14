@@ -99,7 +99,12 @@ class TenxDataStorage(object):
 
     def upload(self,container, blob, local):
         print ("Uploading {} to {} in {}".format(container,local,container))
-        self.block_blob_service.create_blob_from_path(container, blob, local)
+        uploaded = False
+        for blobdef in self.block_blob_service.list_blobs(self.container):
+            if blob in blodef.name:
+                uploaded = True
+        if not uploaded:
+            self.block_blob_service.create_blob_from_path(container, blob, local)
 
 
 class RdataStorage(object):
