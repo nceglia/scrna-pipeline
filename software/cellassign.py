@@ -28,7 +28,7 @@ class CellAssign(object):
         marker_list = GeneMarkerMatrix.read_yaml(rho_yaml)
         marker_list.write_matrix(rho_csv)
         assert os.path.exists(rho_csv)
-        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf)
+        CellAssign.cmd(rdata, rho_csv, results)
         print ("CellAssign finished.")
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         pkl_fit = os.path.join(os.path.split(results)[0],"cell_types.pkl")
