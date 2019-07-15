@@ -26,12 +26,11 @@ def Counts(sampleid, fastqs_downloaded, finished, reference):
     open(finished,"w").write("Completed")
 
 def RunUpload(sampleid, finished, species):
-    if not os.path.exists(finished):
-        tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
-        tenx = TenxAnalysis(tenx_output)
-        tenx.finalize()
-        tenxds = TenxDataStorage(sampleid, species=species)
-        tenxds.upload_cellranger(tenx)
+    tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
+    tenx = TenxAnalysis(tenx_output)
+    tenx.finalize()
+    tenxds = TenxDataStorage(sampleid, species=species)
+    tenxds.upload_cellranger(tenx)
     open(finished,"w").write("Completed")
 
 def RunCellranger(sampleid, workflow):
