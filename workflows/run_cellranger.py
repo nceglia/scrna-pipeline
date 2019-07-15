@@ -64,16 +64,15 @@ def RunCellranger(sampleid, workflow):
     #         config.mouse_reference
     #     )
     # )
-    # workflow.transform (
-    #     name = "cellranger_upload_human",
-    #     func = RunUpload,
-    #     args = (
-    #         sampleid,
-    #         pypeliner.managed.TempInputFile("cellranger_human.complete"),
-    #         pypeliner.managed.TempOutputFile("human_upload.complete"),
-    #         "human"
-    #     )
-    # )
+    workflow.transform (
+        name = "cellranger_upload_human",
+        func = RunUpload,
+        args = (
+            sampleid,
+            pypeliner.managed.TempOutputFile("human_upload.complete"),
+            "human"
+        )
+    )
     workflow.transform (
         name = "cellranger_upload_mouse",
         func = RunUpload,
