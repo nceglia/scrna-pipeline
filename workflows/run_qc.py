@@ -14,7 +14,7 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def Run(sampleid, species, cellranger_complete, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
+def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
     print("Running QC.")
     tenx = TenxDataStorage(sampleid, version="v3", species=species)
     tenx.download()
@@ -64,7 +64,6 @@ def RunQC(sampleid, workflow, species=None):
         args = (
             sampleid,
             species,
-            pypeliner.managed.TempInputFile("{}_upload.complete".format(species)),
             pypeliner.managed.TempOutputFile(umi),
             pypeliner.managed.TempOutputFile(mito),
             pypeliner.managed.TempOutputFile(ribo),
