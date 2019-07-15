@@ -50,11 +50,11 @@ class TenxDataStorage(object):
         if species != "human":
             self.container = "cellranger{}{}".format(species,version)
             self.bams = "{}bams".format(species)
-            self.rdatacontainer = "rawrdata{}{}".format(species,version)
+            self.rdatacontainer = "rdataraw{}{}".format(species,version)
         else:
             self.container = "cellranger{}".format(version)
             self.bams = "bams"
-            self.rdatacontainer = "rawrdata{}".format(version)
+            self.rdatacontainer = "rdataraw{}".format(version)
         self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
         self.tenx_path = None
         self.cache = ".cache"
