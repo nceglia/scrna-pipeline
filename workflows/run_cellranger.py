@@ -31,7 +31,7 @@ def RunUpload(sampleid, finished, species):
         tenx = TenxAnalysis(tenx_output)
         tenx.finalize()
         tenxds = TenxDataStorage(sampleid, species=species)
-        # tenxds.upload_cellranger(tenx)
+        tenxds.upload_cellranger(tenx)
     open(finished,"w").write("Completed")
 
 def RunCellranger(sampleid, workflow):
