@@ -96,11 +96,11 @@ class QualityControl(object):
         return SingleCellExperiment.fromRData(self.sce)
 
     def upload(self):
-        print ("Uploading QCD ", self.qcdsce)
+        print ("Uploading QCD ", self.qcdsce, self.container)
         self.block_blob_service.create_blob_from_path(self.container, "{}.rdata".format(self.sampleid), self.qcdsce)
 
     def upload_raw(self):
-        print ("Uploading Raw")
+        print ("Uploading RAW ", self.sce, self.container)
         self.block_blob_service.create_blob_from_path(self.rawcontainer, "{}.rdata".format(self.sampleid), self.sce)
 
 

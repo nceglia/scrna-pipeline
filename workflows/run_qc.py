@@ -23,7 +23,6 @@ def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce)
     tenx_analysis.extract()
     print("Extracted.")
     qc = QualityControl(tenx_analysis,sampleid)
-    #if not os.path.exists(qc.sce):
     qc.run(mito=config.mito)
     print ("Uploading")
     qc.upload_raw()
