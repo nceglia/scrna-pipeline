@@ -25,7 +25,7 @@ def Counts(sampleid, fastqs_downloaded, finished, reference):
     CellRanger.count([sampleid],reference_override=reference)
     open(finished,"w").write("Completed")
 
-def RunUpload(sampleid, before, finished, species):
+def RunUpload(sampleid, finished, species):
     if not os.path.exists(finished):
         tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
         tenx = TenxAnalysis(tenx_output)
@@ -78,7 +78,6 @@ def RunCellranger(sampleid, workflow):
         func = RunUpload,
         args = (
             sampleid + "_mouse",
-            pypeliner.managed.TempInputFile("cellranger_mouse.complete"),
             pypeliner.managed.TempOutputFile("mouse_upload.complete"),
             "mouse"
         )

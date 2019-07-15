@@ -29,7 +29,7 @@ def create_workflow():
     print("\n\n\n")
     print("***** Run: {} ******".format(prefix))
 
-    # workflow = RunCellranger(prefix, workflow)
+    workflow = RunCellranger(prefix, workflow)
     workflow = RunQC(prefix, workflow, species="human")
     workflow = RunQC(prefix, workflow, species="mouse")
     workflow = RunCellAssign(prefix, workflow)
