@@ -26,10 +26,12 @@ def Counts(sampleid, fastqs_downloaded, finished, reference):
     open(finished,"w").write("Completed")
 
 def RunUpload(sampleid, finished, species):
+    print("Uploading ",species, sampleid)
     tenx_output = os.path.join(config.jobpath,"{}/outs/".format(sampleid))
     tenx = TenxAnalysis(tenx_output)
     tenx.finalize()
     tenxds = TenxDataStorage(sampleid, species=species)
+    print("Running upload")
     tenxds.upload_cellranger(tenx)
     open(finished,"w").write("Completed")
 

@@ -71,6 +71,7 @@ class TenxDataStorage(object):
         return local
 
     def upload_cellranger(self, tenx):
+        print("wrapping it up")
         bam_tarball = tenx.bam_tarball()
         bam_tarball_name = os.path.split(bam_tarball)[-1]
         outs_tarball = tenx.outs_tarball()
