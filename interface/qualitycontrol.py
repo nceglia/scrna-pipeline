@@ -46,13 +46,10 @@ class QualityControl(object):
         if not os.path.exists(self.plots):
             os.makedirs(self.plots)
         self.storage_account = "scrnadata"
-        if mouse:
-            version = "mouse{}".format(self.tenx.detected_version)
-        else:
-            try:
-                version = self.tenx.detected_version
-            except Exception as e:
-                version = "v3"
+        try:
+            version = self.tenx.detected_version
+        except Exception as e:
+            version = "v3"
         if mouse:
             self.container = "rdatamouse{}".format(version)
             self.rawcontainer = "rdatarawmouse{}".format(version)

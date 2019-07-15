@@ -22,7 +22,10 @@ def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce)
     tenx_analysis.load()
     tenx_analysis.extract()
     print("Extracted.")
-    qc = QualityControl(tenx_analysis,sampleid)
+    if species == "mouse":
+        qc = QualityControl(tenx_analysis,sampleid,mouse=True)
+    else:
+        qc = QualityControl(tenx_analysis,sampleid)
     qc.run(mito=config.mito)
     print ("Uploading")
     qc.upload_raw()
