@@ -219,7 +219,7 @@ def RunCollection(workflow):
         func = RunDownload,
         args = (
             all_samples,
-            pypeliner.managed.TempOutputFile("umi.png"),
+            pypeliner.managed.TempInputFile("umi.png"),
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )
