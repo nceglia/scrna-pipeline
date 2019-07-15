@@ -66,7 +66,7 @@ def RunQC(sampleid, workflow, species=None):
         args = (
             sampleid,
             species,
-            pypeliner.managed.TempOutputFile("{}_upload.complete".format(species)),
+            pypeliner.managed.TempInputFile("{}_upload.complete".format(species)),
             pypeliner.managed.TempOutputFile(umi),
             pypeliner.managed.TempOutputFile(mito),
             pypeliner.managed.TempOutputFile(ribo),
