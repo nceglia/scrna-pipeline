@@ -91,6 +91,7 @@ class TenxDataStorage(object):
         local = ".cache/{}.tar.gz".format(self.sampleid)
         local_unzipped = ".cache/{}".format(self.sampleid)
         gzipped = "{}.tar.gz".format(self.sampleid)
+        print(gzipped, local)
         if not os.path.exists(local_unzipped):
             self.block_blob_service.get_blob_to_path(self.container, gzipped, local)
             self.unpack(local)
