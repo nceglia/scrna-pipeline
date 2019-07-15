@@ -53,8 +53,12 @@ class QualityControl(object):
                 version = self.tenx.detected_version
             except Exception as e:
                 version = "v3"
-        self.container = "rdata{}".format(version)
-        self.rawcontainer = "rdataraw{}".format(version)
+        if mouse:
+            self.container = "rdatamouse{}".format(version)
+            self.rawcontainer = "rdatarawmouse{}".format(version)
+        else:
+            self.container = "rdata{}".format(version)
+            self.rawcontainer = "rdataraw{}".format(version)
         self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
 
     def filter(self, mito=10):
