@@ -75,8 +75,8 @@ class TenxDataStorage(object):
         bam_tarball_name = os.path.split(bam_tarball)[-1]
         outs_tarball = tenx.outs_tarball()
         outs_tarball_name = os.path.split(outs_tarball)[-1]
-        # self.upload(self.bams, bam_tarball_name, bam_tarball)
-        # self.upload(self.container, outs_tarball_name, outs_tarball)
+        self.upload(self.bams, bam_tarball_name.replace("_mouse",""), bam_tarball)
+        self.upload(self.container, outs_tarball_name.replace("_mouse",""), outs_tarball)
 
 
     def unpack(self, path):
@@ -100,12 +100,7 @@ class TenxDataStorage(object):
 
     def upload(self,container, blob, local):
         print ("Uploading {} to {} in {}".format(container,local,container))
-        uploaded = False
-        for blobdef in self.block_blob_service.list_blobs(self.container):
-            if blob in blodef.name:
-                uploaded = True
-        if not uploaded:
-            self.block_blob_service.create_blob_from_path(container, blob, local)
+        self.block_blob_service.create_blob_from_path(container, blob, local)
 
 
 class RdataStorage(object):
