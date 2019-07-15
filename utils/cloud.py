@@ -76,6 +76,7 @@ class TenxDataStorage(object):
         outs_tarball = tenx.outs_tarball()
         outs_tarball_name = os.path.split(outs_tarball)[-1]
         self.upload(self.bams, bam_tarball_name.replace("_mouse",""), bam_tarball)
+        print(self.container, outs_tarball_name, outs_tarball)
         self.upload(self.container, outs_tarball_name.replace("_mouse",""), outs_tarball)
 
 
