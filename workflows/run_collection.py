@@ -180,9 +180,8 @@ def RunIntegration(seurats, integrated_seurat):
     integrated <- IntegrateData(anchorset = anchors, dims = 1:30)
     saveRDS(integrated, file = "{rdata}")
     """
-    path = os.path.split(seurats.values()[0])[0]
-    integrate_script = os.path.join(path,"integration.R")
-    output = open(marker_script,"w")
+    integrate_script = os.path.join(".cache/integration.R")
+    output = open(integrate_script,"w")
     output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata))
     output.close()
     subprocess.call(["Rscript","{}".format(integrate_script)])
