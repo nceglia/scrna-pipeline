@@ -328,32 +328,32 @@ def RunCollection(workflow):
         )
     )
 
-    workflow.transform (
-        name = "report",
-        func = RunReport,
-        args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempInputFile("sce.rdata","sample"),
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
-            pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
-            pypeliner.managed.TempInputFile("seurat_tsne_celltype.png","sample"),
-            pypeliner.managed.TempInputFile("seurat_umap_celltype.png","sample"),
-            pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
-            pypeliner.managed.TempInputFile("seurat_features.png","sample"),
-            pypeliner.managed.TempInputFile("markers.csv","sample"),
-            pypeliner.managed.TempInputFile("seurat_integrated.rdata"),
-            # pypeliner.managed.TempInputFile("umi.png"),
-            # pypeliner.managed.TempInputFile("mito.png"),
-            # pypeliner.managed.TempInputFile("ribo.png"),
-            # pypeliner.managed.TempInputFile("counts.png"),
-            # pypeliner.managed.TempInputFile("raw_sce.rdata"),
-            pypeliner.managed.TempInputFile("summary_path.html","sample"),
-            # pypeliner.managed.TempInputFile("celltypes.png"),
-            pypeliner.managed.TempInputFile("tsne_by_celltype.png"),
-            pypeliner.managed.TempInputFile("umap_by_celltype.png"),
-        )
-    )
+    # workflow.transform (
+    #     name = "report",
+    #     func = RunReport,
+    #     args = (
+    #         pypeliner.managed.TempInputFile("sample_path.json","sample"),
+    #         pypeliner.managed.TempInputFile("sce.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_tsne_celltype.png","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_umap_celltype.png","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_features.png","sample"),
+    #         pypeliner.managed.TempInputFile("markers.csv","sample"),
+    #         pypeliner.managed.TempInputFile("seurat_integrated.rdata"),
+    #         # pypeliner.managed.TempInputFile("umi.png"),
+    #         # pypeliner.managed.TempInputFile("mito.png"),
+    #         # pypeliner.managed.TempInputFile("ribo.png"),
+    #         # pypeliner.managed.TempInputFile("counts.png"),
+    #         # pypeliner.managed.TempInputFile("raw_sce.rdata"),
+    #         pypeliner.managed.TempInputFile("summary_path.html","sample"),
+    #         # pypeliner.managed.TempInputFile("celltypes.png"),
+    #         pypeliner.managed.TempInputFile("tsne_by_celltype.png"),
+    #         pypeliner.managed.TempInputFile("umap_by_celltype.png"),
+    #     )
+    # )
 
 
     return workflow
