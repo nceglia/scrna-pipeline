@@ -321,7 +321,6 @@ def RunCollection(workflow):
     workflow.transform (
         name = "integrate",
         func = RunIntegration,
-        axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_integrated.rdata")
