@@ -166,7 +166,7 @@ def RunIntegration(seurats, integrated_seurat):
     library(Seurat)
     library(future)
     """
-    for idx, object in object_list.items():
+    for idx, object in seurats.items():
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
