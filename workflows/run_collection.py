@@ -342,6 +342,7 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
             pypeliner.managed.TempInputFile("seurat_features.png","sample"),
             pypeliner.managed.TempInputFile("markers.csv","sample"),
+            pypeliner.managed.TempInputFile("seurat_integrated.rdata"),
             pypeliner.managed.TempInputFile("umi.png"),
             pypeliner.managed.TempInputFile("mito.png"),
             pypeliner.managed.TempInputFile("ribo.png"),
