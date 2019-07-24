@@ -183,7 +183,7 @@ def RunIntegration(seurats, integrated_seurat):
     path = os.path.split(seurat)[0]
     integrate_script = os.path.join(path,"integration.R")
     output = open(marker_script,"w")
-    output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata)
+    output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata))
     output.close()
     subprocess.call(["Rscript","{}".format(integrate_script)])
     shutil.copyfile(rdata, integrated_seurat)
