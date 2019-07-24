@@ -21,7 +21,7 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunDownload(sampleids, cellranger_human, finished):
+def RunDownload(sampleids, finished):
     for i, sample in enumerate(sampleids):
         tenx = TenxDataStorage(sample)
         path = tenx.download()
