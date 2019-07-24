@@ -159,6 +159,35 @@ def RunMarkers(seurat,marker_table):
     subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
+def RunIntegration(seurats, integrated_seurat):
+    rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached.rdata")
+    object_list = []
+    rcode = """
+    library(Seurat)
+    library(future)
+    """
+    for idx, object in object_list.items():
+        seurat_obj = "seurat{}".format(idx)
+        object_list.append(seurat_obj)
+        load = """
+    seurat{id} <- readRDS("{object}")
+        """.format(id=idx,object=object)
+        rcode += load
+    rcode += """
+    object_list <- c({object_list})
+    plan("multiprocess", workers = 64)
+    anchors <- FindIntegrationAnchors(object.list = c({object_list}), dims = 1:30)
+    integrated <- IntegrateData(anchorset = anchors, dims = 1:30)
+    saveRDS(integrated, file = "{rdata}")
+    """
+    path = os.path.split(seurat)[0]
+    integrate_script = os.path.join(path,"integration.R")
+    output = open(marker_script,"w")
+    output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata)
+    output.close()
+    subprocess.call(["Rscript","{}".format(integrate_script)])
+    shutil.copyfile(rdata, integrated_seurat)
+
 def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, features, markers, umi, ribo, mito, counts, raw_sces, summary_path, celltypes, tsne_basic, umap_basic):
     for id, rdata in seurats.items():
         sample_json_path = samples[id]
@@ -286,6 +315,16 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("markers.csv","sample"),
+        )
+    )
+
+    workflow.transform (
+        name = "integrate",
+        func = RunIntegration,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_integrated.rdata")
         )
     )
 
