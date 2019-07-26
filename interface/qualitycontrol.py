@@ -139,7 +139,6 @@ rowData(sce)$ensembl_gene_id <- rownames(sce)
 
 ## KRC very temporary edits here - works only for human - change at somepoint!
 
-devtools::install_github("stephenturner/annotables")
 library(annotables)
 
 # at <- annotables::grcm38 # If mouse
