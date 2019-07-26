@@ -137,10 +137,26 @@ rowData(sce)$Symbol <- gsub("hg19_", "", rowData(sce)$Symbol)
 
 rowData(sce)$ensembl_gene_id <- rownames(sce)
 
-sce <- getBMFeatureAnnos(sce, filters = "ensembl_gene_id",
-attributes = c("ensembl_gene_id", "hgnc_symbol", "entrezgene",
-"start_position", "end_position", "chromosome_name"),
-dataset = "hsapiens_gene_ensembl")
+## KRC very temporary edits here - works only for human - change at somepoint!
+
+devtools::install_github("stephenturner/annotables")
+library(annotables)
+
+# at <- annotables::grcm38 # If mouse
+# at <- annotables::grch37 # If GRCh37
+at <- annotables::grch38 # If GRCh38 (I think this is default?)
+
+at <- at[!duplicated(at$ensgene),]
+
+rd <- as.data.frame(rowData(sce))
+
+rd$ensgene <- rd$ID
+
+rd <- dplyr::left_join(rd, at, by = "ensgene")
+
+rowData(sce) <- rd
+
+## KRC edit finish
 
 
 print("Calculating Size Factors")
@@ -159,7 +175,7 @@ sce <- normalize(sce)
 
 
 # Get Mitochondrial genes for QC:
-mt_genes <- which(rowData(sce)$chromosome_name == "MT")
+mt_genes <- which(rowData(sce)$chr == "MT")
 ribo_genes <- grepl("^RP[LS]", rowData(sce)$Symbol)
 feature_ctrls <- list(mito = rownames(sce)[mt_genes],
                       ribo = rownames(sce)[ribo_genes])
