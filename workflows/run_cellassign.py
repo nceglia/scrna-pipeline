@@ -18,7 +18,7 @@ from utils.config import Configuration
 
 config = Configuration()
 
-def Run(sampleid, before, finished, use_corrected=True):
+def Run(sampleid, before, finished, use_corrected=False):
     if use_corrected and os.path.exists(".cache/corrected/"):
         sce = ".cache/corrected/corrected_sce.rdata"
         if not os.path.exists(sce):
@@ -33,10 +33,11 @@ def Run(sampleid, before, finished, use_corrected=True):
         tenx_analysis.extract()
         qc = QualityControl(tenx_analysis, sampleid)
         sce = qc.sce
-    CellAssign.run(sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
+    if not os.path.exists(".cache/{}/celltypes.rdata".format(sampleid)):
+        CellAssign.run(sce, config.rho_matrix, ".cache/{}/celltypes.rdata".format(sampleid))
     open(finished,"w").write("Completed")
 
-def Analysis(sampleid, before, finished, use_corrected=True):
+def Analysis(sampleid, before, finished, use_corrected=False):
     if use_corrected and os.path.exists(".cache/corrected"):
         sce = ".cache/corrected/corrected_sce.rdata"
         if not os.path.exists(sce):

@@ -221,6 +221,11 @@ class TenxAnalysis(object):
 
     def filtered_matrices(self):
         if self.detected_version == "v3":
+            _base = self.filtered_gene_bc_matrices
+            _features = os.path.join(_base, "features.tsv")
+            _genes = os.path.join(_base,"genes.tsv")
+            if os.path.exists(_features) and not os.path.exists(_genes):
+                shutil.copyfile(_features,_genes)
             return self.filtered_gene_bc_matrices
         else:
             build_filtered = os.path.join(self.filtered_gene_bc_matrices, config.build + "/")
