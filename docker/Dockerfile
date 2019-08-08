@@ -28,6 +28,7 @@ RUN python3 -m pip install azure
 RUN python3 -m pip install scanorama
 RUN python3 -m pip install scanpy
 RUN python3 -m pip install tzlocal
+RUN python3 -m pip install --user scipy==1.2.1
 
 RUN apt-get install -y git
 RUN git clone https://github.com/shahcompbio/scvis.git /codebase/scvis/

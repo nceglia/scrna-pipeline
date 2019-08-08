@@ -17,9 +17,9 @@ from multiprocessing import Pool
 import pickle
 
 
-from utils.cloud import TenxDataStorage
-from interface.tenxanalysis import TenxAnalysis
-from interface.fastqdirectory import FastQDirectory
+# from utils.cloud import TenxDataStorage
+# from interface.tenxanalysis import TenxAnalysis
+# from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
 
