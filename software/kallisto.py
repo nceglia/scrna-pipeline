@@ -98,7 +98,7 @@ class Kallisto(object):
     def barcodes(self):
         shutil.move(self.barcodes_tsv, os.path.join(self.tenx_path,"barcodes.tsv"))
 
-    def genes():
+    def genes(self):
         output = open(os.path.join(self.tenx_path,"genes.tsv"),"w")
         rows = open(self.genes_tsv,"r").read().splitlines()
         transcripts = transcript_map()
