@@ -21,7 +21,7 @@ from interface.fastqdirectory import FastQDirectory
 class Kallisto(object):
 
     def __init__(self, fastqs, chem="v3"):
-        self.output = "./cache/kallisto"
+        self.output = ".cache/kallisto"
         self.fastqs = fastqs
         self.chem = chem
         self.binary = "kallisto"
@@ -42,6 +42,8 @@ class Kallisto(object):
         self.bustools = "bustools"
         self.transcripts = os.path.join(self.tcc_output, "transcripts.txt")
         self.tenx_path = os.path.join(self.output, "filtered_feature_bc_matrix")
+        if not os.path.exists(self.tenx_path):
+            os.makedirs(self.tenx_path)
         self.whitelist = "/reference/10xv3_whitelist.txt"
         self.genes_tsv = os.path.join(self.tenx_path,"genes.genes.txt")
         self.barcodes_tsv = os.path.join(self.tenx_path,"genes.barcodes.txt")
@@ -59,7 +61,7 @@ class Kallisto(object):
     def run_bus(self):
         cmd = [self.bustools, "correct", "-w", self.whitelist, self.bus_output,"-o",self.corrected_bus]
         subprocess.call(cmd)
-        cmd = [self.bustools, "sort","-T","tmp","-t","64","-m","64","corrected.bus","-o",self.sorted_bus]
+        cmd = [self.bustools, "sort","-T","tmp","-t","64","-m","64",self.corrected_bus,"-o",self.sorted_bus]
         subprocess.call(cmd)
         cmd = [self.bustools, "count","-o",self.tenx_path + "/genes","-g",self.transcript_to_gene,"-e",self.matrix_ec,"-t",self.transcripts,"--genecounts",self.sorted_bus]
         subprocess.call(cmd)
@@ -120,7 +122,7 @@ class Kallisto(object):
 
 def main():
     sample = "TENX065"
-    fastq = "/data/TENX065/"
+    fastq = "/data/AHT52JBGXB/"
     output = "./"
     fastq_directory = FastQDirectory(fastq, sample, output)
 
