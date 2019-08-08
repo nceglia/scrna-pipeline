@@ -143,15 +143,10 @@ class Kallisto(object):
 
 def main():
     sample = "TENX065"
+    fastq = "/data/TENX065/"
+    # fastq_directory = FastQDirectory("/igo_large/scratch/allen/bams/xfastqs2/McGilvery_Sonya__TLH_MissingLibrary_1_CB8R9ANXX/", sample, output)
 
-    tenx = TenxDataStorage(sample,version="v3")
-    tenx.download()
-    tenx_analysis = TenxAnalysis(tenx.tenx_path)
-    tenx_analysis.load()
-    output = "/igo_large/scratch/test_kallisto"
-    fastq_directory = FastQDirectory("/igo_large/scratch/allen/bams/xfastqs2/McGilvery_Sonya__TLH_MissingLibrary_1_CB8R9ANXX/", sample, output)
-
-    krunner = Kallisto(fastq_directory, tenx_analysis)
+    krunner = Kallisto(fastq, sample)
     krunner.run_pseudo()
 
 if __name__ == '__main__':
