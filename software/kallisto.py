@@ -101,7 +101,7 @@ class Kallisto(object):
     def genes(self):
         output = open(os.path.join(self.tenx_path,"genes.tsv"),"w")
         rows = open(self.genes_tsv,"r").read().splitlines()
-        transcripts = transcript_map()
+        transcripts = self.transcript_map()
         for row in rows:
             gene = transcripts[row.strip()]
             row = "{}\t{}".format(row.rstrip(".1"), gene)
