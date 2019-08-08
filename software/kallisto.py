@@ -23,8 +23,8 @@ from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
 
-    def __init__(self, fastqs, output, chem="v2"):
-        self.output = output
+    def __init__(self, fastqs, chem="v2"):
+        self.output = "./cache/kallisto"
         self.fastqs = fastqs
         self.chem = chem
         self.binary = "kallisto"
@@ -142,9 +142,9 @@ class Kallisto(object):
 
 
 def main():
-    sample = "patient2"
+    sample = "TENX065"
 
-    tenx = TenxDataStorage(sample,version="v2")
+    tenx = TenxDataStorage(sample,version="v3")
     tenx.download()
     tenx_analysis = TenxAnalysis(tenx.tenx_path)
     tenx_analysis.load()
@@ -152,7 +152,7 @@ def main():
     fastq_directory = FastQDirectory("/igo_large/scratch/allen/bams/xfastqs2/McGilvery_Sonya__TLH_MissingLibrary_1_CB8R9ANXX/", sample, output)
 
     krunner = Kallisto(fastq_directory, tenx_analysis)
-    krunner.de()
+    krunner.run_pseudo()
 
 if __name__ == '__main__':
     main()

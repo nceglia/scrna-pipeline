@@ -125,7 +125,6 @@ def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs)
     png("{exprs}",width=600,heigh=5000)
     FeaturePlot(object = seurat, features = c({markers}), ncol= 2)
     dev.off()
-
     """
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"viz.R")
