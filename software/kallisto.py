@@ -16,9 +16,6 @@ import gc
 from multiprocessing import Pool
 import pickle
 
-
-# from utils.cloud import TenxDataStorage
-# from interface.tenxanalysis import TenxAnalysis
 from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
@@ -36,20 +33,19 @@ class Kallisto(object):
         if not os.path.exists(self.tcc_output):
             os.makedirs(self.tcc_output)
         self.matrix_ec = os.path.join(self.tcc_output, "matrix.ec")
-        self.matrix_tsv = os.path.join(self.tcc_output, "matrix.tsv")
         self.index = "/reference/Homo_sapiens.GRCh38.cdna.all.release-94_k31.idx"
-        self.transcript_to_gene = "/igo_large/reference/t2g.txt"
-        self.sorted_bus_text = os.path.join(self.tcc_output, "output.tsv")
-        self.matrix_dat = os.path.join(self.tcc_output,"tcc_matrix.dat")
+        self.transcript_to_gene = "/reference/t2g.txt"
         self.bus_output = os.path.join(self.tcc_output,"output.bus")
         self.sorted_bus = os.path.join(self.tcc_output,"sorted.bus")
+        self.corrected_bus = os.path.join(self.tcc_output,"corrected.bus")
         self.bus_matrix = os.path.join(self.tcc_output,"matrix.tsv")
         self.bustools = "bustools"
-        self.transcript_to_ec = collections.defaultdict(set)
-        self.gene_to_transcript = collections.defaultdict(set)
-        self.gene_to_ec = collections.defaultdict(set)
         self.transcripts = os.path.join(self.tcc_output, "transcripts.txt")
-        self.matrix = os.path.join(self.tcc_output,"design_matrix.dat")
+        self.tenx_path = os.path.join(self.output, "filtered_feature_bc_matrix")
+        self.whitelist = "/reference/10xv3_whitelist.txt"
+        self.genes_tsv = os.path.join(self.tenx_path,"genes.genes.txt")
+        self.barcodes_tsv = os.path.join(self.tenx_path,"genes.barcodes.txt")
+        self.matrix = os.path.join(self.tenx_path,"genes.mtx")
 
     def run_pseudo(self):
         if not os.path.exists(self.bus_output):
@@ -61,83 +57,65 @@ class Kallisto(object):
         assert os.path.exists(self.bus_output)
 
     def run_bus(self):
-        if not os.path.exists(self.bus_matrix):
-            cmd = [self.bustools, "sort", self.bus_output, "-o", self.sorted_bus]
-            subprocess.call(cmd)
-            assert os.path.exists(self.sorted_bus)
-            cmd = [self.bustools,"text","-o",self.bus_matrix,self.sorted_bus]
-            subprocess.call(cmd)
-            assert os.path.exists(self.bus_matrix)
+        cmd = [self.bustools, "correct", "-w", self.whitelist, self.bus_output,"-o",self.corrected_bus]
+        subprocess.call(cmd)
+        cmd = [self.bustools, "sort","-T","tmp","-t","64","-m","64","corrected.bus","-o",self.sorted_bus]
+        subprocess.call(cmd)
+        cmd = [self.bustools, "count","-o",self.tenx_path + "/genes","-g",self.transcript_to_gene,"-e",self.matrix_ec,"-t",self.transcripts,"--genecounts",self.sorted_bus]
+        subprocess.call(cmd)
+        assert os.path.exists(self.genes_tsv) and os.path.exists(self.barcodes_tsv) and os.path.exists(self.matrix)
 
-
-    def tcc_matrix(self):
-        if not os.path.exists(self.matrix_dat):
-            assert os.path.exists(self.matrix_ec), "No EC file found."
-            assert os.path.exists(self.matrix_tsv), "No bus text file found."
-            COOinput = np.loadtxt( self.matrix_tsv, delimiter='\t', dtype=int)
-            rows,cols,data = COOinput.T
-            nonzero_ec = np.unique(rows)
-            map_rows = { val:ind for ind,val in enumerate( nonzero_ec ) }
-            map_cols = { val:ind for ind,val in enumerate( np.unique(cols) ) }
-            TCCmatrix = coo_matrix( (data.astype(int),( [map_rows[r] for r in rows], [map_cols[c] for c in cols]) ) )
-            NUM_OF_CELLS = TCCmatrix.shape[1]
-            print("NUM_OF_CELLS =", NUM_OF_CELLS)
-            T = TCCmatrix.tocsr()
-            pickle.dump(T,open(self.matrix_dat,"wb"))
-        else:
-            T = pickle.load(open(self.matrix_dat,"rb"))
-        return T
-
-    def setup_mapping(self):
-        transcript_ids = dict()
-        transcripts = open(self.transcripts,"r").read().splitlines()
-        for i, transcript in enumerate(transcripts):
-            transcript_ids[str(i)] = transcript
-        ecs = open(self.matrix_ec,"r").read().splitlines()
-        self.ecs = []
-        for ec in ecs:
-            ecid, transcripts = ec.split()
-            self.ecs.append(ecid)
-            transcripts = transcripts.split(",")
-            for transcript in transcripts:
-                self.transcript_to_ec[transcript_ids[transcript]].add(ecid)
+    def transcript_map(self):
+        gene_to_transcript = dict()
         genes = open(self.transcript_to_gene,"r").read().splitlines()
         for gene in genes:
             t1, t2, symbol = gene.split()
-            self.gene_to_transcript[symbol].add(t1)
-            self.gene_to_transcript[symbol].add(t2)
-        for symbol, transcripts in self.gene_to_transcript.items():
-            for transcript in transcripts:
-                for ec in self.transcript_to_ec[transcript]:
-                    self.gene_to_ec[symbol].add(ec)
-        self.ecs = set(self.ecs)
+            gene_to_transcript[t1] = symbol
+            gene_to_transcript[t2] = symbol
+            gene_to_transcript[t1.rstrip(".1")] = symbol
+        return gene_to_transcript
 
-    def design_matrix(self):
-        import tqdm
-        assert os.path.exists(self.bus_matrix)
-        self.setup_mapping()
-        print("Setup complete")
-        barcodes = list()
-        tccs = list()
-        counts = list()
-        tcc_by_cell = open(self.bus_matrix,"r")
-        valid_barcodes = set(self.tenx.filtered_barcodes())
-        for tcc in tcc_by_cell:
-            barcode, umi, tccid, count = tcc.split("\t")
-            if barcode+"-1" in valid_barcodes:
-                barcodes.append(barcode)
-                counts.append(count)
-                tccs.append(tccid)
+    def matrix(self):
+        output = open(os.path.join(self.tenx_path,"matrix.mtx"),"w")
+        rows = open(self.matrix,"r").read().splitlines()
+        for row in rows:
+            line = row.split()
+            if len(line) == 3:
+                new_line = " ".join([line[1],line[0],line[2]])
+                output.write(new_line+"\n")
+            else:
+                output.write(row+"\n")
+        output.close()
 
-        ec_counts_by_cell = collections.defaultdict(dict)
-        for ec, cell, count in zip(tccs,barcodes,counts):
-            ec_counts_by_cell[ec][cell] = int(count)
+    def barcodes(self):
+        shutil.move(self.barcodes_tsv, os.path.join(self.tenx_path,"barcodes.tsv"))
 
-        design_matrix = collections.defaultdict(lambda : collections.defaultdict(dict))
-        for gene, ecs in tqdm.tqdm(self.gene_to_ec.items()):
-            for ec in ecs:
-                design_matrix[gene][ec] = ec_counts_by_cell[ec]
-        return design_matrix
+    def genes():
+        output = open(os.path.join(self.tenx_path,"genes.tsv"),"w")
+        rows = open(self.genes_tsv,"r").read().splitlines()
+        transcripts = transcript_map()
+        for row in rows:
+            gene = transcripts[row.strip()]
+            row = "{}\t{}".format(row.rstrip(".1"), gene)
+            output.write(row+"\n")
+        output.close()
+
+    def output(self):
+        print("Reordering matrix.")
+        self.matrix()
+        print("Mapping transcripts.")
+        self.genes()
+        print("Copy valid barcodes.")
+        self.barcodes()
+
+    def count(self):
+        print("Running Kallisto.")
+        self.run_pseudo()
+        print("Running BUStools.")
+        self.run_bus()
+        print("Setting up Matrix.")
+        self.output()
+        return self.tenx_path
 
 
 def main():
@@ -147,9 +125,8 @@ def main():
     fastq_directory = FastQDirectory(fastq, sample, output)
 
     krunner = Kallisto(fastq_directory)
-    #krunner.run_pseudo()
-    krunner.run_bus()
-    krunner.tcc_matrix()
+    tenx_path = krunner.count()
+    print(tenx_path)
 
 if __name__ == '__main__':
     main()
