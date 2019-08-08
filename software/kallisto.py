@@ -147,7 +147,7 @@ def main():
     fastq_directory = FastQDirectory(fastq, sample, output)
 
     krunner = Kallisto(fastq_directory)
-    krunner.run_pseudo()
+    #krunner.run_pseudo()
     krunner.run_bus()
     krunner.tcc_matrix()
 
