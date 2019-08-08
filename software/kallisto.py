@@ -1,20 +1,13 @@
-import h5py
 import os
 import glob
 import subprocess
 import numpy as np
-import time
-from scipy.sparse import coo_matrix
-from sklearn.preprocessing import normalize
 import sys
 import collections
 from subprocess import call
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
-import gc
-from multiprocessing import Pool
 import pickle
+import shutil
 
 from interface.fastqdirectory import FastQDirectory
 
