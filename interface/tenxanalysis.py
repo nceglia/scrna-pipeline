@@ -161,6 +161,13 @@ class TenxAnalysis(object):
         assert len(header) == len(stats), "{} - {}".format(len(header),len(stats))
         return dict(zip(header,stats))
 
+    def bus_finalize(self):
+        base = "/".join(self.path.split("/")[:-2])
+        sample = self.path.split("/")[-2] + ".tar.gz"
+        self.outstarball = os.path.join(base, sample)
+        with tarfile.open(self.outstarball, "w:gz") as tar:
+            tar.add(self.path, arcname=os.path.basename(self.path))
+
     def finalize(self):
         base = "/".join(self.path.split("/")[:-2])
         print("Outs: ", base)

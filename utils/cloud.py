@@ -40,7 +40,7 @@ class SampleCollection(object):
 
 class TenxDataStorage(object):
 
-    def __init__(self, sampleid, version="v3", species="human"):
+    def __init__(self, sampleid, version="v3", software="cellranger", species="human"):
         self.species = species
         self.version = version
         self.sampleid = sampleid.replace(".tar.gz","")
@@ -50,11 +50,11 @@ class TenxDataStorage(object):
         if species != "human":
             self.container = "cellranger{}{}".format(species,version)
             self.bams = "{}bams".format(species)
-            self.rdatacontainer = "rdataraw{}{}".format(species,version)
+            self.bus_container = "kallisto{}".format(species)
         else:
             self.container = "cellranger{}".format(version)
             self.bams = "bams"
-            self.rdatacontainer = "rdataraw{}".format(version)
+            self.bus_container = "kallisto"
         self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
         self.tenx_path = None
         self.cache = ".cache"
@@ -63,15 +63,7 @@ class TenxDataStorage(object):
         except Exception as e:
             pass
 
-    def rdata(self):
-        local = ".cache/{}.rdata".format(self.sampleid)
-        raw = "{}.rdata".format(self.sampleid)
-        if not os.path.exists(local):
-            self.block_blob_service.get_blob_to_path(self.rdatacontainer, raw, local)
-        return local
-
     def upload_cellranger(self, tenx):
-        print("wrapping it up")
         bam_tarball = tenx.bam_tarball()
         bam_tarball_name = os.path.split(bam_tarball)[-1]
         outs_tarball = tenx.outs_tarball()
@@ -80,6 +72,10 @@ class TenxDataStorage(object):
         print(self.container, outs_tarball_name, outs_tarball)
         self.upload(self.container, outs_tarball_name.replace("_mouse",""), outs_tarball)
 
+    def upload_kallisto(self, tenx):
+        bus_tarball = tenx.bus_tarball()
+        bus_tarball_name = os.path.split(bus_tarball)[-1]
+        self.upload(self.bus_container, bus_tarball_name.replace("_mouse",""), bus_tarball)
 
     def unpack(self, path):
         tar = tarfile.open(path)
@@ -87,7 +83,6 @@ class TenxDataStorage(object):
         tar.close()
         if os.path.exists(".cache/outs"):
             os.rename(".cache/outs",os.path.join(self.cache,self.sampleid))
-
 
     def download(self):
         local = ".cache/{}.tar.gz".format(self.sampleid)

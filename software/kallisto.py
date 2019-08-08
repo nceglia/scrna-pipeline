@@ -13,8 +13,9 @@ from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
 
-    def __init__(self, fastqs, chem="v3"):
-        self.output = ".cache/kallisto"
+    def __init__(self, fastqs, sampleid, chem="v3"):
+        self.sampleid = sampleid
+        self.output = ".cache/{}/kallisto".format(self.sampleid)
         self.fastqs = fastqs
         self.chem = chem
         self.binary = "kallisto"
