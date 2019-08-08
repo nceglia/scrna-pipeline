@@ -12,6 +12,7 @@ from utils.config import Configuration
 
 from workflows.run_cellranger import RunCellranger
 from workflows.run_qc import RunQC
+from workflows.run_kallisto import RunPseudo
 from workflows.run_cellassign import RunCellAssign
 from workflows.run_collection import RunCollection
 from workflows.run_report import RunReport
@@ -29,7 +30,7 @@ def create_workflow():
     print("\n\n\n")
     print("***** Run: {} ******".format(prefix))
 
-    # workflow = RunCellranger(prefix, workflow)
+    workflow = RunPseudo(prefix, workflow)
     workflow = RunQC(prefix, workflow, species="human")
     workflow = RunQC(prefix, workflow, species="mouse")
     workflow = RunCellAssign(prefix, workflow)

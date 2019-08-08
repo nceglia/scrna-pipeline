@@ -102,21 +102,17 @@ class Kallisto(object):
             output.write(row+"\n")
         output.close()
 
-    def output(self):
-        print("Reordering matrix.")
-        self.matrix()
-        print("Mapping transcripts.")
-        self.genes()
-        print("Copy valid barcodes.")
-        self.barcodes()
-
     def count(self):
         print("Running Kallisto.")
         self.run_pseudo()
         print("Running BUStools.")
         self.run_bus()
         print("Setting up Matrix.")
-        self.output()
+        self.matrix()
+        print("Mapping transcripts.")
+        self.genes()
+        print("Copy valid barcodes.")
+        self.barcodes()
         return self.tenx_path
 
 

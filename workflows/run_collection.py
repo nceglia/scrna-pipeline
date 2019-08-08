@@ -163,7 +163,6 @@ def RunIntegration(seurats, integrated_seurat):
     object_list = []
     rcode = """
     library(Seurat)
-    library(future)
     """
     for idx, object in seurats.items():
         seurat_obj = "seurat{}".format(idx)
@@ -174,10 +173,14 @@ def RunIntegration(seurats, integrated_seurat):
         rcode += load
     rcode += """
     object_list <- c({object_list})
-    plan("multiprocess", workers = 64)
-    anchors <- FindIntegrationAnchors(object.list = c({object_list}), dims = 1:30)
-    integrated <- IntegrateData(anchorset = anchors, dims = 1:30)
+    features <- SelectIntegrationFeatures(object.list = c({object_list}), nfeatures = 3000)
+    prepped <- PrepSCTIntegration(object.list = c({object_list}), anchor.features = features)
+    anchors <- FindIntegrationAnchors(object.list = prepped, normalization.method="SCT", anchor.features=features)
+    integrated <- IntegrateData(anchorset = anchors, normalization="SCT")
     saveRDS(integrated, file = "{rdata}")
+    integrated <- RunPCA(integrated, verbose = FALSE)
+    integrated <- RunUMAP(integrated, dims = 1:30)
+    saveRDS(integrated, file ="{rdata}")
     """
     integrate_script = os.path.join(".cache/integration.R")
     output = open(integrate_script,"w")
@@ -356,33 +359,33 @@ def RunCollection(workflow):
     return workflow
 
 
-def generateHTML(report, sampleid, inventory):
-    html = os.path.join(report, "report.html")
-    output = open(html,"w")
-    output.write(template_header)
-    res = template.format(sampleid = sampleid,
-                            raw_sce = inventory["raw_sce"],
-                            sce = inventory["sce"],
-                            seurat = inventory["seurat"],
-                            markers = inventory["markers"],
-                            summary = inventory["summary"],
-                            umi = inventory["umi"],
-                            mito = inventory["mito"],
-                            ribo = inventory["ribo"],
-                            counts = inventory["counts"],
-                            tsne = inventory["tsne"],
-                            umap = inventory["umap"],
-                            tsne_celltype_seurat = inventory["tsne_celltype_seurat"],
-                            umap_celltype_seurat = inventory["umap_celltype_seurat"],
-                            tsne_basic = inventory["tsne_basic"],
-                            umap_basic = inventory["umap_basic"],
-                            celltypes = inventory["celltypes"],
-                            ridge = inventory["ridge"],
-                            features = inventory["features"]
-                            )
-    output.write(res)
-    output.write(template_footer)
-    output.close()
+# def generateHTML(report, sampleid, inventory):
+#     html = os.path.join(report, "report.html")
+#     output = open(html,"w")
+#     output.write(template_header)
+#     res = template.format(sampleid = sampleid,
+#                             raw_sce = inventory["raw_sce"],
+#                             sce = inventory["sce"],
+#                             seurat = inventory["seurat"],
+#                             markers = inventory["markers"],
+#                             summary = inventory["summary"],
+#                             umi = inventory["umi"],
+#                             mito = inventory["mito"],
+#                             ribo = inventory["ribo"],
+#                             counts = inventory["counts"],
+#                             tsne = inventory["tsne"],
+#                             umap = inventory["umap"],
+#                             tsne_celltype_seurat = inventory["tsne_celltype_seurat"],
+#                             umap_celltype_seurat = inventory["umap_celltype_seurat"],
+#                             tsne_basic = inventory["tsne_basic"],
+#                             umap_basic = inventory["umap_basic"],
+#                             celltypes = inventory["celltypes"],
+#                             ridge = inventory["ridge"],
+#                             features = inventory["features"]
+#                             )
+#     output.write(res)
+#     output.write(template_footer)
+#     output.close()
 
 
 template_header = """
