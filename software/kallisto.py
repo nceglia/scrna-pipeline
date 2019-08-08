@@ -148,6 +148,8 @@ def main():
 
     krunner = Kallisto(fastq_directory)
     krunner.run_pseudo()
+    krunner.run_bus()
+    krunner.tcc_matrix()
 
 if __name__ == '__main__':
     main()
