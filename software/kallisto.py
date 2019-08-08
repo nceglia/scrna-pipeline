@@ -23,7 +23,7 @@ from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
 
-    def __init__(self, fastqs, chem="v2"):
+    def __init__(self, fastqs, chem="v3"):
         self.output = "./cache/kallisto"
         self.fastqs = fastqs
         self.chem = chem
@@ -146,7 +146,7 @@ def main():
     output = "./"
     fastq_directory = FastQDirectory(fastq, sample, output)
 
-    krunner = Kallisto(fastq_directory, sample)
+    krunner = Kallisto(fastq_directory)
     krunner.run_pseudo()
 
 if __name__ == '__main__':
