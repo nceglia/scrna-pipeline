@@ -59,12 +59,18 @@ class Kallisto(object):
         assert os.path.exists(self.bus_output)
 
     def run_bus(self):
-        cmd = [self.bustools, "correct", "-w", self.whitelist, self.bus_output,"-o",self.corrected_bus]
-        subprocess.call(cmd)
-        cmd = [self.bustools, "sort","-T","tmp","-t","64","-m","64",self.corrected_bus,"-o",self.sorted_bus]
-        subprocess.call(cmd)
-        cmd = [self.bustools, "count","-o",self.tenx_path + "/genes","-g",self.transcript_to_gene,"-e",self.matrix_ec,"-t",self.transcripts,"--genecounts",self.sorted_bus]
-        subprocess.call(cmd)
+        if not os.path.exists(self.corrected_bus):
+            print("Running Barcode Correction.")
+            cmd = [self.bustools, "correct", "-w", self.whitelist, self.bus_output,"-o",self.corrected_bus]
+            subprocess.call(cmd)
+        if not os.path.exists(self.sorted_bus):
+            print("Sorting Corrected Bus.")
+            cmd = [self.bustools, "sort","-T","tmp","-t","64","-m","64G",self.corrected_bus,"-o",self.sorted_bus]
+            subprocess.call(cmd)
+        if not os.path.exists(self.genes_tsv) or not os.path.exists(self.barcodes_tsv) or not os.path.exists(self.matrix):
+            print("Running Transcript Count.")
+            cmd = [self.bustools, "count","-o",self.tenx_path + "/genes","-g",self.transcript_to_gene,"-e",self.matrix_ec,"-t",self.transcripts,"--genecounts",self.sorted_bus]
+            subprocess.call(cmd)
         assert os.path.exists(self.genes_tsv) and os.path.exists(self.barcodes_tsv) and os.path.exists(self.matrix)
 
     def transcript_map(self):
@@ -77,7 +83,7 @@ class Kallisto(object):
             gene_to_transcript[t1.rstrip(".1")] = symbol
         return gene_to_transcript
 
-    def matrix(self):
+    def count_matrix(self):
         output = open(os.path.join(self.tenx_path,"matrix.mtx"),"w")
         rows = open(self.matrix,"r").read().splitlines()
         for row in rows:
@@ -108,7 +114,7 @@ class Kallisto(object):
         print("Running BUStools.")
         self.run_bus()
         print("Setting up Matrix.")
-        self.matrix()
+        self.count_matrix()
         print("Mapping transcripts.")
         self.genes()
         print("Copy valid barcodes.")
