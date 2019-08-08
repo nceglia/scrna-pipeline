@@ -19,7 +19,7 @@ import pickle
 
 # from utils.cloud import TenxDataStorage
 # from interface.tenxanalysis import TenxAnalysis
-# from interface.fastqdirectory import FastQDirectory
+from interface.fastqdirectory import FastQDirectory
 
 class Kallisto(object):
 
@@ -144,9 +144,10 @@ class Kallisto(object):
 def main():
     sample = "TENX065"
     fastq = "/data/TENX065/"
-    # fastq_directory = FastQDirectory("/igo_large/scratch/allen/bams/xfastqs2/McGilvery_Sonya__TLH_MissingLibrary_1_CB8R9ANXX/", sample, output)
+    output = "./"
+    fastq_directory = FastQDirectory(fastq, sample, output)
 
-    krunner = Kallisto(fastq, sample)
+    krunner = Kallisto(fastq_directory, sample)
     krunner.run_pseudo()
 
 if __name__ == '__main__':
