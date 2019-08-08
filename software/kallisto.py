@@ -36,7 +36,7 @@ class Kallisto(object):
         if not os.path.exists(self.tcc_output):
             os.makedirs(self.tcc_output)
         self.matrix_ec = os.path.join(self.tcc_output, "matrix.ec")
-        self.matrix_tsv = os.path.join(self.tcc_output, "matrix.tcc")
+        self.matrix_tsv = os.path.join(self.tcc_output, "matrix.tsv")
         self.index = "/reference/Homo_sapiens.GRCh38.cdna.all.release-94_k31.idx"
         self.transcript_to_gene = "/igo_large/reference/t2g.txt"
         self.sorted_bus_text = os.path.join(self.tcc_output, "output.tsv")
