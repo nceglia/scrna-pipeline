@@ -37,7 +37,7 @@ class Kallisto(object):
             os.makedirs(self.tcc_output)
         self.matrix_ec = os.path.join(self.tcc_output, "matrix.ec")
         self.matrix_tsv = os.path.join(self.tcc_output, "matrix.tcc")
-        self.index = "/igo_large/reference/Homo_sapiens.GRCh38.cdna.all.release-94_k31.idx"
+        self.index = "/reference/Homo_sapiens.GRCh38.cdna.all.release-94_k31.idx"
         self.transcript_to_gene = "/igo_large/reference/t2g.txt"
         self.sorted_bus_text = os.path.join(self.tcc_output, "output.tsv")
         self.matrix_dat = os.path.join(self.tcc_output,"tcc_matrix.dat")
@@ -111,7 +111,6 @@ class Kallisto(object):
                 for ec in self.transcript_to_ec[transcript]:
                     self.gene_to_ec[symbol].add(ec)
         self.ecs = set(self.ecs)
-
 
     def design_matrix(self):
         import tqdm
