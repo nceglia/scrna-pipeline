@@ -23,7 +23,7 @@ os.environ["PATH"] = os.environ["PATH"] + ":" + config.kallisto + ":" + config.b
 
 def RunKallisto(sampleid, finished):
     fastqs = [FastQDirectory(sampleid, config.prefix, config.jobpath, config.datapath)]
-    krunner = Kallisto(fastq_directory, sample)
+    krunner = Kallisto(fastqs[0], sample)
     tenx_path = krunner.count()
 
 def RunBusUpload(sampleid, finished, species):
