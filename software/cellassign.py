@@ -76,15 +76,6 @@ sce <- readRDS("{sce}")
 colnames(sce) <- sce$Barcode
 sce_result <- sce
 
-print('qc')
-cells_to_keep <- sce$pct_counts_mito < 20
-table_cells_to_keep <- table(cells_to_keep)
-sce <- sce[,cells_to_keep]
-summ <- summary(sce$total_counts)
-thresh <- summ[[2]]
-keep <- sce$total_counts > thresh
-sce <- sce[,keep]
-
 print('filter')
 rownames(sce) <- rowData(sce)$Symbol
 rho <- as.matrix(rho)
@@ -93,8 +84,6 @@ sce <- sce[rowSums(counts(sce)) > 0,]
 common_genes <- intersect(rowData(sce)$Symbol,rownames(rho))
 sce <- sce[common_genes,]
 sce <- sce[,colSums(counts(sce))>0]
-sce <- sce[max(counts(sce)) > 1,]
-sce <- sce[rowSums(counts(sce)) > 1,]
 common_genes <- intersect(rowData(sce)$Symbol,rownames(rho))
 rho <- rho[common_genes,]
 

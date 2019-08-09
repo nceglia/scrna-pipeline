@@ -318,7 +318,7 @@ def RunPipeline(workflow):
         func = RunCellAssign,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sce.rdata","sample"),
+            pypeliner.managed.TempInputFile("filtered.rdata","sample"),
             pypeliner.managed.TempOutputFile("annot.rdata","sample"),
         )
     )
