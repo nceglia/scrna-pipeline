@@ -17,6 +17,7 @@ from utils.cloud import SampleCollection
 from interface.genemarkermatrix import GeneMarkerMatrix
 from utils.plotting import celltypes, tsne_by_cell_type, umap_by_cell_type
 from software.cellassign import CellAssign
+from software.kallisto import Kallisto
 
 from utils.config import Configuration, write_config
 
