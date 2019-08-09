@@ -61,8 +61,7 @@ def RunQC(bus_output, sce, filtered_sce):
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
     rownames(sce) <- rowData(sce)$Symbol
     sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
-    print(sce$pct_counts_mitochondrial)
-    print(sce$pct_counts_ribosomal)
+
     cells_to_keep <- sce$pct_counts_mitochondrial < 25 && sce$pct_counts_ribosomal < 65
     sce <- sce[,cells_to_keep]
     qclust <- quickCluster(sce, min.size = 100)
