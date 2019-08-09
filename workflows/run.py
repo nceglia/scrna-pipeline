@@ -48,43 +48,34 @@ def RunQC(bus_output, sce, filtered_sce):
     library(SingleCellExperiment)
     library(scater)
     library(DropletUtils)
+    library(scran)
+    library(stringr)
 
     sce <- read10xCounts('{bus_path}')
     rowData(sce)$ensembl_gene_id <- rownames(sce)
-    at <- annotables::grch38
-    at <- at[!duplicated(at$ensgene),]
-    rd <- as.data.frame(rowData(sce))
-    rd$ensgene <- rd$ID
-    rd <- dplyr::left_join(rd, at, by = "ensgene")
-    rowData(sce) <- rd
-    """.format(bus_path=os.path.abspath(bus_path))
-    rcode += """
-    sce_result <- tryCatch({scran::computeSumFactors(sce)},error=function(e) {NULL})
-    poolsize <- 100;
-    while (is.null(sce_result) && poolsize >= 0) {
-        sce_result <- tryCatch({scran::computeSumFactors(sce,sizes=poolsize)},error=function(e) {NULL})
-        if (is.null(sce_result)) {
-          poolsize <- poolsize - 10;
-        }
-    }"""
-    rcode += """
-    sce <- normalize(sce)
-    mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
+    sce <- sce[,colSums(counts(sce))>200]
+    sce <- sce[rowSums(counts(sce))>0,]
+    counts(sce) <- data.matrix(counts(sce))
+
+    mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\-")])
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
     rownames(sce) <- rowData(sce)$Symbol
     sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
-    sce_filtered <- filter_cells(sce, nmads = 3, type = "lower", log = TRUE, max_mito = 20, max_ribo = 60)
-
-    print("Running PCA")
-    sce_filtered <- runPCA(sce_filtered, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
-    print("Running TSNE")
-    sce_filtered <- runTSNE(sce_filtered, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
-    print("Running UMAP")
-    sce_filtered <- runUMAP(sce_filtered, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
+    print(sce$pct_counts_mitochondrial)
+    print(sce$pct_counts_ribosomal)
+    cells_to_keep <- sce$pct_counts_mitochondrial < 25 && sce$pct_counts_ribosomal < 65
+    sce <- sce[,cells_to_keep]
+    qclust <- quickCluster(sce, min.size = 100)
+    sce <- computeSumFactors(sce, clusters = qclust)
+    sce$size_factor <- sizeFactors(sce)
+    sce <- normalize(sce)
+    sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
+    sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
+    sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
 
     saveRDS(sce, file='{raw}')
     saveRDS(sce_filtered, file='{filtered}')
-    """.format(raw=sce,filtered=filtered_sce)
+    """.format(raw=sce,filtered=filtered_sce, bus_path=bus_path)
     path = "/".join(bus_path.split("/")[:-1])
     qc_script = os.path.join(path,"convert.R")
     output = open(qc_script,"w")
