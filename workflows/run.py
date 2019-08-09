@@ -61,7 +61,7 @@ def RunQC(bus_output, sce, filtered_sce):
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
     rownames(sce) <- rowData(sce)$Symbol
     sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
-
+    saveRDS(sce, file='{raw}')
     cells_to_keep <- sce$pct_counts_mitochondrial < 25 && sce$pct_counts_ribosomal < 65
     sce <- sce[,cells_to_keep]
     qclust <- quickCluster(sce, min.size = 100)
@@ -71,9 +71,7 @@ def RunQC(bus_output, sce, filtered_sce):
     sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
     sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
-
-    saveRDS(sce, file='{raw}')
-    saveRDS(sce_filtered, file='{filtered}')
+    saveRDS(sce, file='{filtered}')
     """.format(raw=sce,filtered=filtered_sce, bus_path=os.path.abspath(bus_path))
     path = "/".join(bus_path.split("/")[:-1])
     qc_script = os.path.join(path,"convert.R")
