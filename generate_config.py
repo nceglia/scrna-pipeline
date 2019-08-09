@@ -20,6 +20,13 @@ cellranger_args.add_argument("--datapath", type=str, help="Path to directory hol
 cellranger_args.add_argument("--referencepath", type=str, help="Path to reference directory with reference in dir labelled by build.", default="/reference")
 cellranger_args.add_argument("--cellranger", type=str, help="Path to cellranger bin.", default="/codebase/cellranger-3.0.2/cellranger-cs/3.0.2/bin/")
 
+kallisto_args = subparsers.add_parser('kallisto')
+cellranger_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
+cellranger_args.add_argument("--datapath", type=str, help="Path to directory holding fastqs.", default ="/data")
+cellranger_args.add_argument("--referencepath", type=str, help="Path to reference directory with reference in dir labelled by build.", default="/reference")
+cellranger_args.add_argument("--kallisto", type=str, help="Path to kallisto bin.", default="/codebase/kallisto/")
+cellranger_args.add_argument("--bustools", type=str, help="Path to bustools.", default="/codebase/bustools/")
+
 sample_args = subparsers.add_parser('analysis')
 sample_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
 sample_args.add_argument("--markers", type=str, help="Path to marker matrix.")

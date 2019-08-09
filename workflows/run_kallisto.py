@@ -13,6 +13,8 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
+os.environ["PATH"] = os.environ["PATH"] + ":" + config.kallisto + ":" + config.bustools
+
 # def DownloadFastqs(sampleid, finished):
 #     fastqs = [FastQDirectory(fastq, config.prefix, config.jobpath, config.datapath) for fastq in [sampleid]]
 #     fastqs = glob.glob(os.path.join(config.datapath,"*.fastq.gz"))
@@ -48,7 +50,7 @@ def RunPseudo(sampleid, workflow, full=False):
         func = RunBusUpload,
         args = (
             sampleid,
-            pypeliner.managed.OutputFile("kallisto.complete"),
+            pypeliner.managed.OutputFile("uploadkallisto.complete"),
         )
     )
     return workflow
