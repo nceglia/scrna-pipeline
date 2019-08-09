@@ -25,7 +25,7 @@ def create_workflow():
     print("\n\n\n")
     print("***** Run: {} ******".format(prefix))
 
-    workflow = RunCollection(workflow)
+    workflow = RunPipeline(workflow)
 
     return workflow
 
