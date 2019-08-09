@@ -338,7 +338,7 @@ def RunPipeline(workflow):
     )
 
     workflow.transform (
-        name = "run_qc",
+        name = "run_seurat",
         func = RunSeuratWorkflow,
         axes = ('sample',),
         args = (
