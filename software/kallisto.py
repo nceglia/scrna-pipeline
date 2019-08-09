@@ -47,6 +47,7 @@ class Kallisto(object):
         if not os.path.exists(self.bus_output):
             cmd = [self.binary,"bus","-i",self.index,"-o",self.tcc_output,"-t",str(self.nthreads),"-x","10x{}".format(self.chem)]
             for fastq in self.fastqs.get_fastqs():
+                if "_I1_001" in fastq: continue
                 cmd.append(fastq)
             print (" ".join(cmd))
             subprocess.call(cmd)
