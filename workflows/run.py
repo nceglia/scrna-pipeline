@@ -57,7 +57,8 @@ def RunQC(bus_output, sce, filtered_sce):
     rd$ensgene <- rd$ID
     rd <- dplyr::left_join(rd, at, by = "ensgene")
     rowData(sce) <- rd
-
+    """.format(bus_path=bus_path)
+    rcode += """
     sce_result <- tryCatch({scran::computeSumFactors(sce)},error=function(e) {NULL})
     poolsize <- 100;
     while (is.null(sce_result) && poolsize >= 0) {
@@ -65,8 +66,8 @@ def RunQC(bus_output, sce, filtered_sce):
         if (is.null(sce_result)) {
           poolsize <- poolsize - 10;
         }
-    }
-
+    }"""
+    rcode += """
     sce <- normalize(sce)
     mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
