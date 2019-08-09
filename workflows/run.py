@@ -84,7 +84,7 @@ def RunQC(bus_output, sce, filtered_sce):
 
     saveRDS(sce, file='{raw}')
     saveRDS(sce_filtered, file='{filtered}')
-    """.format(raw=sce,filtered=filtered_sce,bus_path=bus_path)
+    """.format(raw=sce,filtered=filtered_sce)
     path = "/".join(bus_path.split("/")[:-1])
     convert_script = os.path.join(path,"convert.R")
     output.write(rcode)
