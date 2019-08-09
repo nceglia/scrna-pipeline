@@ -10,6 +10,7 @@ import subprocess
 import warnings
 
 from interface.tenxanalysis import TenxAnalysis
+from interface.fastqdirectory import FastQDirectory
 from utils.cloud import FastqDataStorage
 from interface.qualitycontrol import QualityControl
 from utils.cloud import SampleCollection
