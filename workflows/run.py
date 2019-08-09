@@ -7,6 +7,7 @@ import os
 import json
 import shutil
 import subprocess
+import warnings
 
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import FastqDataStorage
@@ -18,13 +19,15 @@ from software.cellassign import CellAssign
 
 from utils.config import Configuration, write_config
 
+warnings.filterwarnings("ignore")
+
 config = Configuration()
 
 def RunDownload(sampleids, finished):
     for i, sample in enumerate(sampleids):
         fastq = FastqDataStorage(sample)
         fastq.set_data_path(os.path.join(config.datapath,sample))
-        path = fastq.download()
+        path = fastq.download_fastqs()
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
