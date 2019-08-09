@@ -39,6 +39,7 @@ scviz_embedding: None
 copy_number_data: None
 mito: 20
 mouse_reference: /reference/mm10
+kallisto: {kallisto}
 """
 
 
@@ -74,6 +75,14 @@ def write_config(args):
         datapath = args.datapath
         referencepath = args.referencepath
         cellranger = args.cellranger
+    elif subcommand == "kallisto":
+        sample_file = args.samples
+        prefix = args.sampleid
+        markers = args.markers
+        datapath = args.datapath
+        referencepath = args.referencepath
+        kallisto = args.kallisto
+
 
     output.write(basic_yaml.format(run_command=subcommand,
                                    prefix=prefix,
@@ -82,6 +91,7 @@ def write_config(args):
                                    datapath=datapath,
                                    referencepath=referencepath,
                                    cellranger=cellranger,
+                                   kallisto=kallisto,
                                    markers=markers,
                                    samples=sample_file))
 
