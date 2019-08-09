@@ -57,7 +57,7 @@ def RunQC(bus_output, sce, filtered_sce):
     rd$ensgene <- rd$ID
     rd <- dplyr::left_join(rd, at, by = "ensgene")
     rowData(sce) <- rd
-    """.format(bus_path=bus_path)
+    """.format(bus_path=os.path.abspath(bus_path))
     rcode += """
     sce_result <- tryCatch({scran::computeSumFactors(sce)},error=function(e) {NULL})
     poolsize <- 100;
