@@ -9,7 +9,7 @@ import shutil
 import subprocess
 
 from interface.tenxanalysis import TenxAnalysis
-from utils.cloud import TenxDataStorage
+from utils.cloud import FastqDataStorage
 from interface.qualitycontrol import QualityControl
 from utils.cloud import SampleCollection
 from interface.genemarkermatrix import GeneMarkerMatrix
@@ -22,8 +22,9 @@ config = Configuration()
 
 def RunDownload(sampleids, finished):
     for i, sample in enumerate(sampleids):
-        tenx = TenxDataStorage(sample)
-        path = tenx.download()
+        fastq = FastqDataStorage(sample)
+        fastq.set_data_path(os.path.join(config.datapath,sample))
+        path = fastq.download()
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
@@ -36,7 +37,7 @@ def RunKallisto(sample_to_path, bus_output):
     open(bus_output,"w").write(bus_path)
 
 
-def RunQC(sample_to_path, sce, filtered_sce):
+def RunQC(bus_output, sce, filtered_sce):
     bus_path = open(bus_output,"r").read().strip()
     rcode = """
     library(SingleCellExperiment)
@@ -311,7 +312,7 @@ def RunPipeline(workflow):
         func = RunQC,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("bus_path.json","sample"),
             pypeliner.managed.TempOutputFile("sce.rdata","sample"),
             pypeliner.managed.TempOutputFile("filtered.rdata","sample"),
         )
