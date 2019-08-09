@@ -57,7 +57,7 @@ def RunQC(bus_output, sce, filtered_sce):
     sce <- sce[rowSums(counts(sce))>0,]
     counts(sce) <- data.matrix(counts(sce))
 
-    mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\-")])
+    mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
     rownames(sce) <- rowData(sce)$Symbol
     sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
