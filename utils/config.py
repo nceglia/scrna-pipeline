@@ -40,6 +40,7 @@ copy_number_data: None
 mito: 20
 mouse_reference: /reference/mm10
 kallisto: {kallisto}
+bustools: {bustools}
 """
 
 
@@ -82,6 +83,7 @@ def write_config(args):
         datapath = args.datapath
         referencepath = args.referencepath
         kallisto = args.kallisto
+        bustools = args.bustools
 
 
     output.write(basic_yaml.format(run_command=subcommand,
@@ -93,7 +95,8 @@ def write_config(args):
                                    cellranger=cellranger,
                                    kallisto=kallisto,
                                    markers=markers,
-                                   samples=sample_file))
+                                   samples=sample_file,
+                                   bustools=bustools))
 
 class Configuration(object):
     def __init__(self):
