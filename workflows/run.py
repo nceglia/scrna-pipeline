@@ -55,8 +55,10 @@ def RunQC(bus_output, sce, filtered_sce):
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
-    sce[,colSums(counts(sce) != 0) > 1000]
+    sce <- sce[,colSums(counts(sce) != 0) > 500]
     sce <- sce[rowSums(counts(sce))>0,]
+    sce <- data.matrix(counts(sce))
+
 
     mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
