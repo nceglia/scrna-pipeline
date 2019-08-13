@@ -85,6 +85,9 @@ def RunQC(bus_output, sce, filtered_sce):
     output.write(rcode)
     output.close()
     subprocess.call(["Rscript",qc_script])
+    output = "/".join(bus_path.split("/")[:-1])
+    output = os.path.join(output, "sce.rdata")
+    shutil.copyfile(filtered_sce,output)
 
 def RunCellAssign(sce, annot_sce):
     _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
