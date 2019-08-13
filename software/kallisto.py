@@ -65,7 +65,7 @@ class Kallisto(object):
             subprocess.call(cmd)
         if not os.path.exists(self.sorted_bus):
             print("Sorting Corrected Bus.")
-            cmd = [self.bustools, "sort","-T",self.temp,"-t","16","-m","64G",self.corrected_bus,"-o",self.sorted_bus]
+            cmd = [self.bustools, "sort","-T",self.temp,"-t","16","-m","32G",self.corrected_bus,"-o",self.sorted_bus]
             subprocess.call(cmd)
         if not os.path.exists(self.genes_tsv) or not os.path.exists(self.barcodes_tsv) or not os.path.exists(self.matrix):
             print("Running Transcript Count.")
