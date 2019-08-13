@@ -26,7 +26,7 @@ class GeneMarkerMatrix(object):
                 celltype = line.replace(":","").strip()
         return cls(marker_list)
 
-    def write_matrix(self, filename, include_other=True):
+    def write_matrix(self, filename, include_other=False):
         self.indicator = []
         self.genes = list(set([gene for genelist in self.marker_list.values() for gene in genelist]))
         self.cells = list(self.marker_list.keys())
