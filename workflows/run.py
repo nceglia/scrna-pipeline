@@ -68,8 +68,6 @@ def RunQC(bus_output, sce, filtered_sce):
     sce <- normalize(sce)
     cells_to_keep <- sce$pct_counts_mitochondrial < 25 && sce$pct_counts_ribosomal < 65
     sce <- sce[,cells_to_keep]
-    keep.total <- isOutlier(example_sce$total_counts, nmads=3, type="lower", log=TRUE)
-    sce <- sce[,keep.total]
     qclust <- quickCluster(sce, min.size = 100)
     sce <- computeSumFactors(sce, clusters = qclust)
     sce$size_factor <- sizeFactors(sce)
