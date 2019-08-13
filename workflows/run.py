@@ -336,7 +336,7 @@ def RunPipeline(workflow):
         args = (
             pypeliner.managed.TempInputFile("annot.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
-        )aa
+        )
     )
 
     workflow.transform (
