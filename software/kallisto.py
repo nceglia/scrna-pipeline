@@ -33,11 +33,14 @@ class Kallisto(object):
         self.sorted_bus = os.path.join(self.tcc_output,"sorted.bus")
         self.corrected_bus = os.path.join(self.tcc_output,"corrected.bus")
         self.bus_matrix = os.path.join(self.tcc_output,"matrix.tsv")
+        self.temp = os.path.join(self.tcc_output,"ktmp")
         self.bustools = "bustools"
         self.transcripts = os.path.join(self.tcc_output, "transcripts.txt")
         self.tenx_path = os.path.join(self.output, "filtered_feature_bc_matrix")
         if not os.path.exists(self.tenx_path):
             os.makedirs(self.tenx_path)
+        if not os.path.exists(self.temp):
+            os.makedirs(self.temp)
         self.whitelist = "/reference/10xv3_whitelist.txt"
         self.genes_tsv = os.path.join(self.tenx_path,"genes.genes.txt")
         self.barcodes_tsv = os.path.join(self.tenx_path,"genes.barcodes.txt")
@@ -60,7 +63,7 @@ class Kallisto(object):
             subprocess.call(cmd)
         if not os.path.exists(self.sorted_bus):
             print("Sorting Corrected Bus.")
-            cmd = [self.bustools, "sort","-T","tmp","-t","64","-m","64G",self.corrected_bus,"-o",self.sorted_bus]
+            cmd = [self.bustools, "sort","-T",self.temp,"-t","16","-m","64G",self.corrected_bus,"-o",self.sorted_bus]
             subprocess.call(cmd)
         if not os.path.exists(self.genes_tsv) or not os.path.exists(self.barcodes_tsv) or not os.path.exists(self.matrix):
             print("Running Transcript Count.")
