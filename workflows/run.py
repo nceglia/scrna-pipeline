@@ -54,13 +54,9 @@ def RunQC(bus_output, sce, filtered_sce):
     sce <- read10xCounts('{bus_path}')
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
-    counts(sce) <- data.matrix(counts(sce))
     rowData(sce)$ensembl_gene_id <- rownames(sce)
-    e.out <- emptyDrops(counts(sce))
-    is.cell <- e.out$FDR <= 0.01
-    sce <- sce[,is.cell]
-
-
+    sce[,colSums(counts(sce) != 0) > 1000]
+    counts(sce) <- data.matrix(counts(sce))
 
     mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
     ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
