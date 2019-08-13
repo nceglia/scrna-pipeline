@@ -15,10 +15,10 @@ class CellAssign(object):
     def cmd(rdata, rho_csv, results):
         CellAssign.script(rdata, rho_csv, results)
         env = os.environ.copy()
-        submit = ["Rscript",".cache/{}/run_cellassign.R".format(os.path.split(rdata)[0])]
+        submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        submit = ["Rscript",".cache/{}/match.R".format(os.path.split(rdata)[0])]
+        submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
         subprocess.call(submit, env=env)
 
     @staticmethod
@@ -53,10 +53,10 @@ class CellAssign(object):
         filtered_sce = os.path.join(os.path.split(rdata)[0],"sce_cas.rdata")
         filtered_rho = os.path.join(os.path.split(rdata)[0],"rho_cas.rdata")
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        configured = open(".cache/{}/run_cellassign.R".format(os.path.split(rdata)[0]),"w")
+        configured = open("{}/run_cellassign.R".format(os.path.split(rdata)[0]),"w")
         configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho))
         configured.close()
-        match = open(".cache/{}/match.R".format(os.path.split(rdata)[0]),"w")
+        match = open("{}/match.R".format(os.path.split(rdata)[0]),"w")
         match.write(match_barcodes.format(sce=filtered_sce,fit=results,fname=matched_results))
         match.close()
 
