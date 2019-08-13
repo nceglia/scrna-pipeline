@@ -53,7 +53,10 @@ def RunQC(bus_output, sce, filtered_sce):
 
     sce <- read10xCounts('{bus_path}')
     rowData(sce)$ensembl_gene_id <- rownames(sce)
-    sce <- sce[,colSums(counts(sce))>200]
+    e.out <- emptyDrops(counts(sce))
+    is.cell <- e.out$FDR <= 0.01
+    sce <- sce[,is.cell]
+    sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     counts(sce) <- data.matrix(counts(sce))
 
@@ -62,8 +65,11 @@ def RunQC(bus_output, sce, filtered_sce):
     rownames(sce) <- rowData(sce)$Symbol
     sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
     saveRDS(sce, file='{raw}')
+    sce <- normalize(sce)
     cells_to_keep <- sce$pct_counts_mitochondrial < 25 && sce$pct_counts_ribosomal < 65
     sce <- sce[,cells_to_keep]
+    keep.total <- isOutlier(example_sce$total_counts, nmads=3, type="lower", log=TRUE)
+    sce <- sce[,keep.total]
     qclust <- quickCluster(sce, min.size = 100)
     sce <- computeSumFactors(sce, clusters = qclust)
     sce$size_factor <- sizeFactors(sce)
@@ -330,7 +336,7 @@ def RunPipeline(workflow):
         args = (
             pypeliner.managed.TempInputFile("annot.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
-        )
+        )aa
     )
 
     workflow.transform (
