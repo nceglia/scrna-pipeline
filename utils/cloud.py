@@ -155,7 +155,8 @@ class FastqDataStorage(object):
             if sample == self.sampleid:
                 local = os.path.join(self.datapath, fastqname)
                 if not os.path.exists(local):
-                    self.block_blob_service.get_blob_to_path(self.container, fastq.name, local)
+                    pass
+                    #self.block_blob_service.get_blob_to_path(self.container, fastq.name, local)
         return self.datapath
 
 class ReferenceDataStorage(object):
