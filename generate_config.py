@@ -36,7 +36,7 @@ sample_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 clonealign_args = subparsers.add_parser('clonealign')
 clonealign_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
 clonealign_args.add_argument('--copy_cell_clones', type=str, help='Copy cell clones tsv.')
-clonealign_args.add_argument('--filter_cell_clones', type=str, help='Filter cell clones tsv.')
+clonealign_args.add_argument('--filter_cell_cn', type=str, help='Filter cell clones tsv.')
 clonealign_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 integration_args = subparsers.add_parser("integrate")
