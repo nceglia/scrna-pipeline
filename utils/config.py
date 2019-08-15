@@ -89,8 +89,6 @@ def write_config(args):
     elif subcommand == "clonealign":
         prefix = args.sampleid
         markers = args.markers
-        datapath = args.datapath
-        referencepath = args.referencepath
         copy_cell_clones = args.copy_cell_clones
         filtered_cell_cn = args.filtered_cell_cn
 
