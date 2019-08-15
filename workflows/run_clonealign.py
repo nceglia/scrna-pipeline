@@ -141,7 +141,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     subprocess.call(["Rscript","{}".format(run_script)])
 
 
-def create_workflow(workflow):
+def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
     all_samples = [config.sampleid]
     workflow.transform (
