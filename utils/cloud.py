@@ -22,8 +22,10 @@ def get_tenx_object(sampleid):
     tenx = TenxDataStorage(sampleid)
     path = tenx.download()
     return path
-
-aztok = open(".sas_token","r").read().strip()
+try:
+    aztok = open(".sas_token","r").read().strip()
+except Exception as e:
+    aztok = open("/codebase/.sas_token","r").read().strip()
 
 class SampleCollection(object):
 
