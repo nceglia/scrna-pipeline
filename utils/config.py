@@ -56,6 +56,7 @@ def write_config(args):
     datapath = "none"
     samples = "none"
     sample_file = "none"
+    datapath = "/data"
 
     if subcommand == "cellranger":
         datapath = args.datapath
