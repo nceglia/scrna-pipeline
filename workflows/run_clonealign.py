@@ -129,7 +129,7 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"build_input.R")
     output = open(convert_script,"w")
-    output.write(rcode.format(sce=sce_cached,cnv=cnv,clone_sce=clone_sce,cnv_mat=cnv_mat))
+    output.write(rcode.format(sce=sce,cnv=copy_number_data,clone_sce=clone_sce,cnv_mat=cnv_mat))
     output.close()
     subprocess.call(["Rscript","{}".format(convert_script)])
 
