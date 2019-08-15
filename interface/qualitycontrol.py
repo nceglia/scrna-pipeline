@@ -10,7 +10,10 @@ import os
 import shutil
 import uuid
 
-aztok = open(".sas_token","r").read().strip()
+try:
+    aztok = open(".sas_token","r").read().strip()
+except Exception as e:
+    aztok = open("/codebase/.sas_token","r").read().strip()
 
 class QualityControl(object):
 
