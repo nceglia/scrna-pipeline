@@ -145,7 +145,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
 
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
-    all_samples = [config.sampleid]
+    all_samples = [config.prefix]
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
