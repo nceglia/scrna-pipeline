@@ -57,6 +57,8 @@ def write_config(args):
     samples = "none"
     sample_file = "none"
     datapath = "/data"
+    kallisto = "/codebase/kallisto"
+    bustools = "/codebase/bustools"
 
     if subcommand == "cellranger":
         datapath = args.datapath
