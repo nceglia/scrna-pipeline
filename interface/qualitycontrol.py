@@ -144,7 +144,7 @@ sce <- read10xCounts(args[1])
 
 rowData(sce)$ensembl_gene_id <- rownames(sce)
 sce <- getBMFeatureAnnos(sce, filters = "ensembl_gene_id",
-attributes = c("ensembl_gene_id", "hgnc_symbol", "entrezgene",
+attributes = c("ensembl_gene_id", "hgnc_symbol",
 "start_position", "end_position", "chromosome_name"),
 dataset = "hsapiens_gene_ensembl")
 
