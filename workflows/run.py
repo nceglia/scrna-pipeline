@@ -68,7 +68,9 @@ def RunQC(bus_output, sce, filtered_sce):
     print("normalizing")
     sce <- normalize(sce)
     print("filtering")
-    cells_to_keep <- sce$pct_counts_mitochondrial < 25 && sce$pct_counts_ribosomal < 65
+    cells_to_keep <- sce$pct_counts_mitochondrial < 25
+    sce <- sce[,cells_to_keep]
+    cells_to_keep <- sce$pct_counts_ribosomal < 65
     sce <- sce[,cells_to_keep]
     qclust <- quickCluster(sce, min.size = 100)
     sce <- computeSumFactors(sce, clusters = qclust)
