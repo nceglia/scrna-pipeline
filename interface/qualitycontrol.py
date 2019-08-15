@@ -160,7 +160,7 @@ while (is.null(sce_result) && poolsize >= 0) {
 }
 
 # Compute log normal expression values
-sce <- normalize(sce)
+sce <- normalize(sce_result)
 
 
 # Get Mitochondrial genes for QC:
