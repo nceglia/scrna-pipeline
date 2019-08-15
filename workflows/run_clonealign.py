@@ -48,7 +48,7 @@ def RunCellAssign(sce, annot_sce):
     _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     sampleid = sce.split("/")[-2]
-    CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
+    #CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     shutil.copyfile(filtered_sce, annot_sce)
 
@@ -94,14 +94,14 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     library(org.Hs.eg.db)
     library(SingleCellExperiment)
 
-    sce <- readRDS({sce})
+    sce <- readRDS('{sce}')
     sce <- sce[,sce$cell_type=="Ovarian.cancer.cell"]
     rownames(sce) <- rowData(sce)$ensembl_gene_id
     txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
     g <- genes(txdb, single.strand.genes.only=FALSE)
     entrezgene_ensembl_map <- as.list(org.Hs.egENSEMBL)
     entrezgene_ensembl_map <- lapply(entrezgene_ensembl_map, `[`, 1)
-    cnv_data <- read_csv(file={cnv})
+    cnv_data <- read_csv(file='{cnv}')
     cnv_gr <- makeGRangesFromDataFrame(cnv_data, keep.extra.columns = TRUE)
     olaps <- findOverlaps(g, cnv_gr)
     df_gene <- data_frame(entrezgene = names(g)[queryHits(olaps)],
@@ -123,8 +123,8 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     common_genes <- intersect(rownames(cnv_mat), rownames(sce))
     sce <- sce[common_genes,]
     cnv_mat <- cnv_mat[common_genes,]
-    saveRDS(file={clone_sce}, sce)
-    saveRDS(file={cnv_mat}, cnv_mat)
+    saveRDS(file='{clone_sce}', sce)
+    saveRDS(file='{cnv_mat}', cnv_mat)
     """
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"build_input.R")
