@@ -54,7 +54,7 @@ def RunCellAssign(sce, annot_sce):
 
 def RunModeCopyNumber(copy_number_data):
     output = open(copy_number_data,"w")
-	cell_to_clone = open(config.copy_cell_clones,"r").read().splitlines()
+    cell_to_clone = open(config.copy_cell_clones,"r").read().splitlines()
 	cell_to_clone.pop(0)
 	cell_to_clone = dict([x.split("\t") for x in cell_to_clone])
 	copy_number_data = open(config.filtered_cell_cn,"r").read().splitlines()
