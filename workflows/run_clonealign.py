@@ -19,6 +19,8 @@ from software.cellassign import CellAssign
 
 from utils.config import Configuration, write_config
 
+config = Configuration()
+
 def RunDownload(sampleids, finished):
     for i, sample in enumerate(sampleids):
         tenx = TenxDataStorage(sample)
