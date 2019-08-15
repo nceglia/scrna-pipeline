@@ -55,32 +55,32 @@ def RunCellAssign(sce, annot_sce):
 def RunModeCopyNumber(copy_number_data):
     output = open(copy_number_data,"w")
     cell_to_clone = open(config.copy_cell_clones,"r").read().splitlines()
-	cell_to_clone.pop(0)
-	cell_to_clone = dict([x.split("\t") for x in cell_to_clone])
-	copy_number_data = open(config.filtered_cell_cn,"r").read().splitlines()
-	header = copy_number_data.pop(0).split("\t")
-	print("chr,start,end,copy_number,clone")
-	copy_number_mapping = defaultdict(lambda : defaultdict(list))
-	for row in copy_number_data:
-	        row = row.split("\t")
-	        chrm, start, stop, width = row[:4]
-	        stop = str(int(start) + int(width))
-	        cells = dict(zip(header[4:],row[4:]))
-	        #ploidy = stats.mode([math.ceil(int(cn)) for cn in cells.values()])
-	        #ploidy = ploidy.mode[0]
-	        #if ploidy == 0:
-	        #       ploidy = 2
-	        for cell, copy_number in cells.items():
-	                #normalized_cn = math.ceil(int(copy_number) / (int(ploidy) / 2))
-	                copy_number_mapping[chrm+":"+start+":"+stop][cell_to_clone[cell]].append(int(copy_number))
+    cell_to_clone.pop(0)
+    cell_to_clone = dict([x.split("\t") for x in cell_to_clone])
+    copy_number_data = open(config.filtered_cell_cn,"r").read().splitlines()
+    header = copy_number_data.pop(0).split("\t")
+    print("chr,start,end,copy_number,clone")
+    copy_number_mapping = defaultdict(lambda : defaultdict(list))
+    for row in copy_number_data:
+            row = row.split("\t")
+            chrm, start, stop, width = row[:4]
+            stop = str(int(start) + int(width))
+            cells = dict(zip(header[4:],row[4:]))
+            #ploidy = stats.mode([math.ceil(int(cn)) for cn in cells.values()])
+            #ploidy = ploidy.mode[0]
+            #if ploidy == 0:
+            #       ploidy = 2
+            for cell, copy_number in cells.items():
+                #normalized_cn = math.ceil(int(copy_number) / (int(ploidy) / 2))
+                copy_number_mapping[chrm+":"+start+":"+stop][cell_to_clone[cell]].append(int(copy_number))
 
-	for loc in copy_number_mapping:
-	        chrm, start, end = loc.split(":")
-	        for clone, copy_numbers in copy_number_mapping[loc].items():
-	                if clone == "None": continue
-	                mode_copy_number = stats.mode(copy_numbers).mode[0]
-	                line = ["chr"+chrm, start, end, str(int(mode_copy_number)), clone]
-	                print(",".join(line))
+    for loc in copy_number_mapping:
+            chrm, start, end = loc.split(":")
+            for clone, copy_numbers in copy_number_mapping[loc].items():
+                    if clone == "None": continue
+                    mode_copy_number = stats.mode(copy_numbers).mode[0]
+                    line = ["chr"+chrm, start, end, str(int(mode_copy_number)), clone]
+                    print(",".join(line))
                     output.write(",".join(line)+"\n")
     output.close()
 
@@ -88,43 +88,43 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     seurat_cached = os.path.join("seurat_raw.rdata")
     sce_cached = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     rcode = """
-	library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-	library(dplyr)
-	library(tidyverse)
-	library(org.Hs.eg.db)
-	library(SingleCellExperiment)
+    library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+    library(dplyr)
+    library(tidyverse)
+    library(org.Hs.eg.db)
+    library(SingleCellExperiment)
 
-	sce <- readRDS({sce})
-	sce <- sce[,sce$cell_type=="Ovarian.cancer.cell"]
-	rownames(sce) <- rowData(sce)$ensembl_gene_id
-	txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
-	g <- genes(txdb, single.strand.genes.only=FALSE)
-	entrezgene_ensembl_map <- as.list(org.Hs.egENSEMBL)
-	entrezgene_ensembl_map <- lapply(entrezgene_ensembl_map, `[`, 1)
-	cnv_data <- read_csv(file={cnv})
-	cnv_gr <- makeGRangesFromDataFrame(cnv_data, keep.extra.columns = TRUE)
-	olaps <- findOverlaps(g, cnv_gr)
-	df_gene <- data_frame(entrezgene = names(g)[queryHits(olaps)],
-	           copy_number = mcols(cnv_gr)$copy_number[subjectHits(olaps)],
-	           clone = mcols(cnv_gr)$clone[subjectHits(olaps)])
-	df_gene <- dplyr::filter(df_gene, entrezgene %in% names(entrezgene_ensembl_map)) %>%
-	  dplyr::mutate(ensembl_gene_id = unlist(entrezgene_ensembl_map[entrezgene])) %>%
-	  dplyr::select(ensembl_gene_id, entrezgene, copy_number, clone) %>%
-	  drop_na()
-	df_gene <- df_gene %>% group_by(ensembl_gene_id) %>% tally() %>%
-	  filter(n == length(unique(df_gene$clone))) %>%
-	  inner_join(df_gene) %>%
-	  dplyr::select(-n)
-	df_gene_expanded <- spread(df_gene, clone, copy_number)
-	cnv_mat <- dplyr::select(df_gene_expanded, -ensembl_gene_id, -entrezgene) %>% as.matrix()
-	rownames(cnv_mat) <- df_gene_expanded$ensembl_gene_id
-	keep_gene <- rowMins(cnv_mat) <= 6 & rowVars(cnv_mat) > 0
-	cnv_mat <- cnv_mat[keep_gene,]
-	common_genes <- intersect(rownames(cnv_mat), rownames(sce))
-	sce <- sce[common_genes,]
-	cnv_mat <- cnv_mat[common_genes,]
-	saveRDS(file={clone_sce}, sce)
-	saveRDS(file={cnv_mat}, cnv_mat)
+    sce <- readRDS({sce})
+    sce <- sce[,sce$cell_type=="Ovarian.cancer.cell"]
+    rownames(sce) <- rowData(sce)$ensembl_gene_id
+    txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+    g <- genes(txdb, single.strand.genes.only=FALSE)
+    entrezgene_ensembl_map <- as.list(org.Hs.egENSEMBL)
+    entrezgene_ensembl_map <- lapply(entrezgene_ensembl_map, `[`, 1)
+    cnv_data <- read_csv(file={cnv})
+    cnv_gr <- makeGRangesFromDataFrame(cnv_data, keep.extra.columns = TRUE)
+    olaps <- findOverlaps(g, cnv_gr)
+    df_gene <- data_frame(entrezgene = names(g)[queryHits(olaps)],
+               copy_number = mcols(cnv_gr)$copy_number[subjectHits(olaps)],
+               clone = mcols(cnv_gr)$clone[subjectHits(olaps)])
+    df_gene <- dplyr::filter(df_gene, entrezgene %in% names(entrezgene_ensembl_map)) %>%
+      dplyr::mutate(ensembl_gene_id = unlist(entrezgene_ensembl_map[entrezgene])) %>%
+      dplyr::select(ensembl_gene_id, entrezgene, copy_number, clone) %>%
+      drop_na()
+    df_gene <- df_gene %>% group_by(ensembl_gene_id) %>% tally() %>%
+      filter(n == length(unique(df_gene$clone))) %>%
+      inner_join(df_gene) %>%
+      dplyr::select(-n)
+    df_gene_expanded <- spread(df_gene, clone, copy_number)
+    cnv_mat <- dplyr::select(df_gene_expanded, -ensembl_gene_id, -entrezgene) %>% as.matrix()
+    rownames(cnv_mat) <- df_gene_expanded$ensembl_gene_id
+    keep_gene <- rowMins(cnv_mat) <= 6 & rowVars(cnv_mat) > 0
+    cnv_mat <- cnv_mat[keep_gene,]
+    common_genes <- intersect(rownames(cnv_mat), rownames(sce))
+    sce <- sce[common_genes,]
+    cnv_mat <- cnv_mat[common_genes,]
+    saveRDS(file={clone_sce}, sce)
+    saveRDS(file={cnv_mat}, cnv_mat)
     """
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"build_input.R")
