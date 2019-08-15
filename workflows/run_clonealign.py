@@ -53,6 +53,7 @@ def RunCellAssign(sce, annot_sce):
     shutil.copyfile(filtered_sce, annot_sce)
 
 def RunModeCopyNumber(copy_number_data):
+    output = open(copy_number_data,"w")
 	cell_to_clone = open(config.copy_cell_clones,"r").read().splitlines()
 	cell_to_clone.pop(0)
 	cell_to_clone = dict([x.split("\t") for x in cell_to_clone])
@@ -80,6 +81,8 @@ def RunModeCopyNumber(copy_number_data):
 	                mode_copy_number = stats.mode(copy_numbers).mode[0]
 	                line = ["chr"+chrm, start, end, str(int(mode_copy_number)), clone]
 	                print(",".join(line))
+                    output.write(",".join(line)+"\n")
+    output.close()
 
 def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     seurat_cached = os.path.join("seurat_raw.rdata")
