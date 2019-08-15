@@ -41,6 +41,8 @@ mito: 20
 mouse_reference: /reference/mm10
 kallisto: {kallisto}
 bustools: {bustools}
+copy_cell_clones: {copy_cell_clones}
+filtered_cell_cn: {filtered_cell_cn}
 """
 
 
@@ -59,6 +61,8 @@ def write_config(args):
     datapath = "/data"
     kallisto = "/codebase/kallisto"
     bustools = "/codebase/bustools"
+    filtered_cell_cn = "none"
+    copy_cell_clones = "none"
 
     if subcommand == "cellranger":
         datapath = args.datapath
@@ -104,7 +108,9 @@ def write_config(args):
                                    kallisto=kallisto,
                                    markers=markers,
                                    samples=sample_file,
-                                   bustools=bustools))
+                                   bustools=bustools,
+                                   copy_cell_clones=copy_cell_clones,
+                                   filtered_cell_cn=filtered_cell_cn))
 
 class Configuration(object):
     def __init__(self):
