@@ -55,6 +55,7 @@ def write_config(args):
     markers = "none"
     datapath = "none"
     samples = "none"
+    sample_file = args.samples
 
     if subcommand == "cellranger":
         datapath = args.datapath
@@ -84,7 +85,13 @@ def write_config(args):
         referencepath = args.referencepath
         kallisto = args.kallisto
         bustools = args.bustools
-
+    elif subcommand == "clonealign":
+        prefix = args.sampleid
+        markers = args.markers
+        datapath = args.datapath
+        referencepath = args.referencepath
+        copy_cell_clones = args.copy_cell_clones
+        filtered_cell_cn = args.filtered_cell_cn
 
     output.write(basic_yaml.format(run_command=subcommand,
                                    prefix=prefix,

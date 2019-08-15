@@ -33,6 +33,12 @@ sample_args = subparsers.add_parser('analysis')
 sample_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
 sample_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
+clonealign_args = subparsers.add_parser('clonealign')
+clonealign_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
+clonealign_args.add_argument('--copy_cell_clones', type=str, help='Copy cell clones tsv.')
+clonealign_args.add_argument('--filter_cell_clones', type=str, help='Filter cell clones tsv.')
+clonealign_args.add_argument("--markers", type=str, help="Path to marker matrix.")
+
 integration_args = subparsers.add_parser("integrate")
 integration_args.add_argument('--prefix', type=str, help='Analysis prefix')
 integration_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.")
@@ -48,7 +54,7 @@ integration_args.add_argument("--cellranger", type=str, help="Path to cellranger
 
 args = parser.parse_args()
 
-if not os.path.exists(args.samples):
+if not os.path.exists(args.samples) and args.subparser != "clonealign":
     output = open(args.samples, "w")
     output.write(args.sampleid)
     output.close()
