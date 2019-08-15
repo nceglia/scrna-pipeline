@@ -7,6 +7,7 @@ import os
 import json
 import shutil
 import subprocess
+from collections import defaultdict
 
 from interface.tenxanalysis import TenxAnalysis
 from utils.cloud import TenxDataStorage
