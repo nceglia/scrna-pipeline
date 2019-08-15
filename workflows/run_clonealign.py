@@ -210,3 +210,4 @@ def RunCloneAlignWorkflow(workflow):
     #         pypeliner.managed.TempOutputFile("sce.rdata","sample"),
     #     )
     # )
+    return workflow
