@@ -159,8 +159,9 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     library(clonealign)
     sce <- readRDS('{annotated_sce}')
     cal <- readRDS('{cal_fit}')
-    cnv <- readRDS('{cnv_mat}')
+    cnv <- readRDS('{cnv_mat}')""".format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit)
 
+    rcode += """
     recompute_clone_assignment <- function(ca, clone_assignment_probability = 0.95) {
       clone_names <- colnames(ca$ml_params$clone_probs)
       clones <- apply(ca$ml_params$clone_probs, 1, function(r) {
@@ -182,8 +183,8 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     inferred_clones <- unique(ca$clone)
     inferred_clones <- setdiff(inferred_clones, "unassigned")
 
-    collapsed_clones <- grepl("_", inferred_clones)""".format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit)
-    rcode+= """
+    collapsed_clones <- grepl("_", inferred_clones)
+    
     if(any(collapsed_clones)) {
       for(i in which(collapsed_clones)) {
         cclone <- inferred_clones[i]
