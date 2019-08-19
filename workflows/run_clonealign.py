@@ -149,114 +149,114 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(annotated_sce, os.path.join(path,"clone.rdata"))
     shutil.copyfile(cal_fit, os.path.join(path,"cal.rdata"))
-#
-# def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
-#     rcode = """
-#     library(tidyverse)
-#     library(scater)
-#     library(data.table)
-#     library(argparse)
-#     library(broom)
-#     library(clonealign)
-#     sce <- readRDS('{annotated_sce}')
-#     cal <- readRDS('{cal_fit}')
-#
-#     ca <- clonealign::recompute_clone_assignment(cal, 0.5)
-#     cnv <- dplyr::filter({cnv_mat}, !use_gene) %>%
-#       dplyr::rename(clone = cluster,
-#                     copy_number=median_cnmode) %>%
-#       dplyr::select(ensembl_gene_id, clone, copy_number) %>%
-#       spread(clone, copy_number)
-#     inferred_clones <- unique(ca$clone)
-#     inferred_clones <- setdiff(inferred_clones, "unassigned")
-#
-#     collapsed_clones <- grepl("_", inferred_clones)
-#     if(any(collapsed_clones)) {
-#       for(i in which(collapsed_clones)) {
-#         cclone <- inferred_clones[i]
-#         uclones <- unlist(strsplit(cclone, "_"))
-#         new_clone <- rowMedians(cnv_mat[, uclones])
-#         cnv_mat <- cbind(cnv_mat, new_clone)
-#         colnames(cnv_mat)[ncol(cnv_mat)] <- cclone
-#       }
-#     }
-#     cnv_mat <- cnv_mat[, inferred_clones]
-#     cnv_mat <- cnv_mat[matrixStats::rowVars(cnv_mat) > 0,]
-#     cnv_mat <- cnv_mat[matrixStats::rowMaxs(cnv_mat) < 6,]
-#
-#     sce <- sce[,ca$clone_fit$Barcode]
-#
-#     sce <- sce[rowSums(as.matrix(counts(sce))) > 100, ]
-#
-#     common_genes <- intersect(rownames(sce), rownames(cnv_mat))
-#
-#     sce <- sce[common_genes,]
-#     cnv_mat <- cnv_mat[common_genes,]
-#
-#     clones <- ca$clone
-#
-#     assigned_cells <- clones != "unassigned"
-#
-#     sce <- sce[, assigned_cells]
-#     clones <- clones[assigned_cells]
-#
-#     logcs <- logcounts(sce)
-#     cnv_mat_full <- cnv_mat[, clones]
-#
-#     test_estimates <- lapply(seq_len(nrow(sce)), function(i) {
-#       lc <- logcs[i,]
-#       cnv_dist <- cnv_mat_full[i,]
-#       tidy(lm(lc ~ cnv_dist))[2,]
-#     }) %>%
-#       bind_rows()
-#
-#
-#     cnv_mat_full <- cnv_mat[, sample(clones)]
-#     null_estimates <- lapply(seq_len(nrow(sce)), function(i) {
-#       lc <- logcs[i,]
-#       cnv_dist <- cnv_mat_full[i,]
-#       tidy(lm(lc ~ cnv_dist))[2,]
-#     }) %>%
-#       bind_rows()
-#
-#     df <- bind_rows(
-#       dplyr::mutate(test_estimates, dist = "observed"),
-#       dplyr::mutate(null_estimates, dist = "null")
-#     )
-#
-#     tt <- t.test(test_estimates$estimate, null_estimates$estimate)
-#
-#     round2 <- function(x) format(round(x, 2), nsmall = 2)
-#
-#     png('{evaluate_png}')
-#     ggplot(df, aes(x = dist, y = estimate)) +
-#       geom_boxplot(outlier.shape = NA, size = .4) +
-#       labs(x = "Distribution", y = "Coefficient expression ~ copy number",
-#            title = sample,
-#            subtitle = paste0("Genes not used by clonealign, p = ", round2(tt$p.value))) +
-#       theme_bw() +
-#       ylim(-.2, .2)
-#     dev.off()
-#     """
-#     path = os.path.split(annotated_sce)[0]
-#     run_script = os.path.join(path,"run_evaluation.R")
-#     output = open(run_script,"w")
-#     output.write(rcode.format(annoated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit,evaluate_png=evaluate_png))
-#     output.close()
-#     subprocess.call(["Rscript","{}".format(run_script)])
-#     shutil.copyfile(annotated_sce, os.path.join(path,"evaluate_clonealign.png"))
+
+def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
+    rcode = """
+    library(tidyverse)
+    library(scater)
+    library(data.table)
+    library(argparse)
+    library(broom)
+    library(clonealign)
+    sce <- readRDS('{annotated_sce}')
+    cal <- readRDS('{cal_fit}')
+
+    ca <- clonealign::recompute_clone_assignment(cal, 0.5)
+    cnv <- dplyr::filter({cnv_mat}, !use_gene) %>%
+      dplyr::rename(clone = cluster,
+                    copy_number=median_cnmode) %>%
+      dplyr::select(ensembl_gene_id, clone, copy_number) %>%
+      spread(clone, copy_number)
+    inferred_clones <- unique(ca$clone)
+    inferred_clones <- setdiff(inferred_clones, "unassigned")
+
+    collapsed_clones <- grepl("_", inferred_clones)
+    if(any(collapsed_clones)) {
+      for(i in which(collapsed_clones)) {
+        cclone <- inferred_clones[i]
+        uclones <- unlist(strsplit(cclone, "_"))
+        new_clone <- rowMedians(cnv_mat[, uclones])
+        cnv_mat <- cbind(cnv_mat, new_clone)
+        colnames(cnv_mat)[ncol(cnv_mat)] <- cclone
+      }
+    }
+    cnv_mat <- cnv_mat[, inferred_clones]
+    cnv_mat <- cnv_mat[matrixStats::rowVars(cnv_mat) > 0,]
+    cnv_mat <- cnv_mat[matrixStats::rowMaxs(cnv_mat) < 6,]
+
+    sce <- sce[,ca$clone_fit$Barcode]
+
+    sce <- sce[rowSums(as.matrix(counts(sce))) > 100, ]
+
+    common_genes <- intersect(rownames(sce), rownames(cnv_mat))
+
+    sce <- sce[common_genes,]
+    cnv_mat <- cnv_mat[common_genes,]
+
+    clones <- ca$clone
+
+    assigned_cells <- clones != "unassigned"
+
+    sce <- sce[, assigned_cells]
+    clones <- clones[assigned_cells]
+
+    logcs <- logcounts(sce)
+    cnv_mat_full <- cnv_mat[, clones]
+
+    test_estimates <- lapply(seq_len(nrow(sce)), function(i) {
+      lc <- logcs[i,]
+      cnv_dist <- cnv_mat_full[i,]
+      tidy(lm(lc ~ cnv_dist))[2,]
+    }) %>%
+      bind_rows()
 
 
-def RunFigures(clone_sce, celltype_sce, result_sce, tsne, umap):
+    cnv_mat_full <- cnv_mat[, sample(clones)]
+    null_estimates <- lapply(seq_len(nrow(sce)), function(i) {
+      lc <- logcs[i,]
+      cnv_dist <- cnv_mat_full[i,]
+      tidy(lm(lc ~ cnv_dist))[2,]
+    }) %>%
+      bind_rows()
+
+    df <- bind_rows(
+      dplyr::mutate(test_estimates, dist = "observed"),
+      dplyr::mutate(null_estimates, dist = "null")
+    )
+
+    tt <- t.test(test_estimates$estimate, null_estimates$estimate)
+
+    round2 <- function(x) format(round(x, 2), nsmall = 2)
+
+    png('{evaluate_png}')
+    ggplot(df, aes(x = dist, y = estimate)) +
+      geom_boxplot(outlier.shape = NA, size = .4) +
+      labs(x = "Distribution", y = "Coefficient expression ~ copy number",
+           title = sample,
+           subtitle = paste0("Genes not used by clonealign, p = ", round2(tt$p.value))) +
+      theme_bw() +
+      ylim(-.2, .2)
+    dev.off()
+    """
+    path = os.path.split(annotated_sce)[0]
+    run_script = os.path.join(path,"run_evaluation.R")
+    output = open(run_script,"w")
+    output.write(rcode.format(annoated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit,evaluate_png=evaluate_png))
+    output.close()
+    subprocess.call(["Rscript","{}".format(run_script)])
+    shutil.copyfile(annotated_sce, os.path.join(path,"evaluate_clonealign.png"))
+
+
+def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     rcode = """
     library(SingleCellExperiment)
     clone_sce <- readRDS('{clone_sce}')
-    cell_sce <- readRDS('{celltype_sce}')
+    cell_sce <- readRDS('{cell_sce}')
 
     cell_sce <- cell_sce[,cell_sce$cell_type=="Ovarian.cancer.cell"]
 
-    colnames(cell_sce)$Barcode <- colData(cell_sce)$Barcode
-    colnames(clone_sce)$Barcode <- colData(clone_sce)$Barcode
+    colnames(cell_sce) <- colData(cell_sce)$Barcode
+    colnames(clone_sce) <- colData(clone_sce)$Barcode
 
     barcodes <- intersect(colnames(cell_sce),colnames(clone_sce))
     clone_sce <- clone_sce[,barcodes]
@@ -271,9 +271,7 @@ def RunFigures(clone_sce, celltype_sce, result_sce, tsne, umap):
         xlab('UMAP-1') +
         ylab("UMAP-2") +
         guides(fill = guide_legend(title = "Cell Type")) +
-        theme_bw() +
-        theme_nature() +
-        theme_Publication()  + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("CloneAlign") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
+        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("CloneAlign") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
     dev.off()
 
     png('{tsne}')
@@ -281,14 +279,12 @@ def RunFigures(clone_sce, celltype_sce, result_sce, tsne, umap):
         xlab('UMAP-1') +
         ylab("UMAP-2") +
         guides(fill = guide_legend(title = "Cell Type")) +
-        theme_bw() +
-        theme_nature() +
-        theme_Publication()  + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("CloneAlign") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
+        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("CloneAlign") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
     dev.off()
 
     """
-    path = os.path.split(clone_sce)[0]
-    run_script = os.path.join(path,"run_clonealign.R")
+    path = os.getcwd()
+    run_script = os.path.join(path,"run_figures.R")
     output = open(run_script,"w")
     output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce,tsne=tsne,umap=umap))
     output.close()
