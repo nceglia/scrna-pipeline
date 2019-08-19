@@ -45,10 +45,10 @@ def RunExtract(sample_to_path, rdata_path):
 
 def RunCellAssign(sce, annot_sce):
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
+    _fit = os.path.join(os.path.split(sce)[0],"fit.rdata")
+    sampleid = sce.split("/")[-2]
     if not os.path.exists(filtered_sce):
-        _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
-        _fit = os.path.join(os.path.split(sce)[0],"fit.rdata")
-        sampleid = sce.split("/")[-2]
         CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
     path = os.getcwd()
@@ -273,6 +273,7 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
 
 
 def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
+    path = os.path.split(cell_sce)[0]
     result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.rdata")
     tsne_cached = os.path.join(os.path.split(clone_sce)[0],"tsne_cached.png")
     umap_cached = os.path.join(os.path.split(clone_sce)[0],"umap_cached.png")
@@ -312,7 +313,6 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     dev.off()
 
     """
-    path = os.getcwd()
     run_script = os.path.join(path,"run_figures.R")
     output = open(run_script,"w")
     output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce_cached,tsne=tsne_cached,umap=umap_cached))
@@ -321,6 +321,7 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     shutil.copyfile(result_sce_cached, result_sce)
     shutil.copyfile(umap_cached, umap)
     shutil.copyfile(tsne_cached, tsne)
+    path = os.getcwd()
     shutil.copyfile(result_sce_cached, os.path.join(path,"sce.rdata"))
     shutil.copyfile(umap_cached, os.path.join(path,"umap.png"))
     shutil.copyfile(tsne_cached, os.path.join(path,"tsne.png"))
