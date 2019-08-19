@@ -313,7 +313,7 @@ def RunCloneAlignWorkflow(workflow):
     )
     workflow.transform (
         name = "run_cloneeval",
-        fun = RunEvaluation,
+        run = RunEvaluation,
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
