@@ -32,7 +32,7 @@ def RunDownload(sampleids, finished):
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
-def RunExtract(sample_to_path, rdata_path, summary_path):
+def RunExtract(sample_to_path, rdata_path):
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
@@ -41,7 +41,6 @@ def RunExtract(sample_to_path, rdata_path, summary_path):
     qc = QualityControl(tenx_analysis, sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
-    shutil.copyfile(tenx_analysis.summary, summary_path)
     shutil.copyfile(qc.sce, rdata_path)
 
 def RunCellAssign(sce, annot_sce):
