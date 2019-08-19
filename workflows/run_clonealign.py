@@ -132,7 +132,7 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     subprocess.call(["Rscript","{}".format(convert_script)])
 
 def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
-    rdata = """
+    rcode = """
     library(clonealign)
     sce <- readRDS('{clone_sce}')
     cnv <- readRDS('{cnv_mat}')
