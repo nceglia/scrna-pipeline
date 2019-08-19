@@ -250,6 +250,7 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
 def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     rcode = """
     library(SingleCellExperiment)
+    library(scater)
     clone_sce <- readRDS('{clone_sce}')
     cell_sce <- readRDS('{cell_sce}')
 
