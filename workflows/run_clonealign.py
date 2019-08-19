@@ -289,7 +289,7 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce,tsne=tsne,umap=umap))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(result, os.path.join(path,"sce.rdata"))
+    shutil.copyfile(result_sce, os.path.join(path,"sce.rdata"))
     shutil.copyfile(tsne, os.path.join(path,"tsne.png"))
     shutil.copyfile(tsne, os.path.join(path,"umap.png"))
 
