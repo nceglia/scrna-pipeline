@@ -143,6 +143,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     """
     path = os.path.split(clone_sce)[0]
     run_script = os.path.join(path,"run_clonealign.R")
+    output = open(run_script,"w")
     output.write(rcode.format(clone_sce=clone_sce,cnv_mat=cnv_mat,annotated_sce=annotated_sce,cal_fit=cal_fit))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
