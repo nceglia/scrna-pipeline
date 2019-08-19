@@ -160,9 +160,10 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     library(clonealign)
     sce <- readRDS('{annotated_sce}')
     cal <- readRDS('{cal_fit}')
+    cnv <- readRDS('{cnv_mat}')
 
     ca <- clonealign::recompute_clone_assignment(cal, 0.5)
-    cnv <- dplyr::filter({cnv_mat}, !use_gene) %>%
+    cnv <- dplyr::filter(cnv, !use_gene) %>%
       dplyr::rename(clone = cluster,
                     copy_number=median_cnmode) %>%
       dplyr::select(ensembl_gene_id, clone, copy_number) %>%
@@ -170,7 +171,8 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     inferred_clones <- unique(ca$clone)
     inferred_clones <- setdiff(inferred_clones, "unassigned")
 
-    collapsed_clones <- grepl("_", inferred_clones)
+    collapsed_clones <- grepl("_", inferred_clones)""".format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit)
+    rcode+= """
     if(any(collapsed_clones)) {
       for(i in which(collapsed_clones)) {
         cclone <- inferred_clones[i]
@@ -227,7 +229,8 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     tt <- t.test(test_estimates$estimate, null_estimates$estimate)
 
     round2 <- function(x) format(round(x, 2), nsmall = 2)
-
+    """
+    rcode += """
     png('{evaluate_png}')
     ggplot(df, aes(x = dist, y = estimate)) +
       geom_boxplot(outlier.shape = NA, size = .4) +
@@ -237,11 +240,11 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
       theme_bw() +
       ylim(-.2, .2)
     dev.off()
-    """
+    """.format(evaluate_png=evaluate_png)
     path = os.path.split(annotated_sce)[0]
     run_script = os.path.join(path,"run_evaluation.R")
     output = open(run_script,"w")
-    output.write(rcode.format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit,evaluate_png=evaluate_png))
+    output.write(rcode)
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(annotated_sce, os.path.join(path,"evaluate_clonealign.png"))
