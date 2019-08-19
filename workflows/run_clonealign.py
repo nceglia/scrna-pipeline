@@ -47,10 +47,13 @@ def RunCellAssign(sce, annot_sce):
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     if not os.path.exists(filtered_sce):
         _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
-        _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
+        _fit = os.path.join(os.path.split(sce)[0],"fit.rdata")
         sampleid = sce.split("/")[-2]
         CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
+    path = os.getcwd()
+    shutil.copyfile(_fit, os.path.join(path,"fit.rdata"))
+
 
 def RunModeCopyNumber(copy_number_data):
     output = open(copy_number_data,"w")
@@ -153,6 +156,8 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
         subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(annotated_sce_cached, annotated_sce)
     shutil.copyfile(cal_fit_cached, cal_fit)
+    path = os.getcwd()
+    shutil.copyfile(cal_fit_cached, os.path.join(path,"cal.rdata"))
 
 def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     evaluate_png_cached = os.path.join(os.path.split(annotated_sce)[0],"evaluation_cached.png")
@@ -268,7 +273,7 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
 
 
 def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
-    result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.png")
+    result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.rdata")
     tsne_cached = os.path.join(os.path.split(clone_sce)[0],"tsne_cached.png")
     umap_cached = os.path.join(os.path.split(clone_sce)[0],"umap_cached.png")
     rcode = """
@@ -310,13 +315,15 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     path = os.getcwd()
     run_script = os.path.join(path,"run_figures.R")
     output = open(run_script,"w")
-    output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce,tsne=tsne,umap=umap))
+    output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce_cached,tsne=tsne_cached,umap=umap_cached))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(result_sce_cached, result_sce)
     shutil.copyfile(umap_cached, umap)
     shutil.copyfile(tsne_cached, tsne)
-
+    shutil.copyfile(result_sce_cached, os.path.join(path,"sce.rdata"))
+    shutil.copyfile(umap_cached, os.path.join(path,"umap.png"))
+    shutil.copyfile(tsne_cached, os.path.join(path,"tsne.png"))
 
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
