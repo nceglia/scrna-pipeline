@@ -241,7 +241,7 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     path = os.path.split(annotated_sce)[0]
     run_script = os.path.join(path,"run_evaluation.R")
     output = open(run_script,"w")
-    output.write(rcode.format(annoated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit,evaluate_png=evaluate_png))
+    output.write(rcode.format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit,evaluate_png=evaluate_png))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(annotated_sce, os.path.join(path,"evaluate_clonealign.png"))
