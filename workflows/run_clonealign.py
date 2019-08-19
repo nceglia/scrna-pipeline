@@ -377,9 +377,9 @@ def RunCloneAlignWorkflow(workflow):
         args = (
             pypeliner.managed.InputFile("tmp/tmp/sample/0/clone_annotated.rdata"),
             pypeliner.managed.InputFile("tmp/tmp/sample/0/cell_annotated.rdata"),
-            pypeliner.managed.TempOutputFile("result.rdata","sample"),
-            pypeliner.managed.TempOutputFile("tsne_tmp.png","sample"),
-            pypeliner.managed.TempOutputFile("umap_tmp.png","sample"),
+            pypeliner.managed.TempOutputFile("result.rdata"),
+            pypeliner.managed.TempOutputFile("tsne_tmp.png"),
+            pypeliner.managed.TempOutputFile("umap_tmp.png"),
         )
         # args = (
         #     pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
