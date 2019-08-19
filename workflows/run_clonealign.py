@@ -155,14 +155,25 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     library(tidyverse)
     library(scater)
     library(data.table)
-    library(argparse)
     library(broom)
     library(clonealign)
     sce <- readRDS('{annotated_sce}')
     cal <- readRDS('{cal_fit}')
     cnv <- readRDS('{cnv_mat}')
 
-    ca <- clonealign::recompute_clone_assignment(cal, 0.5)
+    recompute_clone_assignment <- function(ca, clone_assignment_probability = 0.95) {
+      clone_names <- colnames(ca$ml_params$clone_probs)
+      clones <- apply(ca$ml_params$clone_probs, 1, function(r) {
+        if(max(r) < clone_assignment_probability) {
+          return("unassigned")
+        }
+        return(clone_names[which.max(r)])
+      })
+      ca$clone <- clones
+      ca
+    }
+
+    ca <- recompute_clone_assignment(cal, 0.5)
     cnv <- dplyr::filter(cnv, !use_gene) %>%
       dplyr::rename(clone = cluster,
                     copy_number=median_cnmode) %>%
