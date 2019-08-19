@@ -59,7 +59,7 @@ def RunModeCopyNumber(copy_number_data):
     cell_to_clone = dict([x.split("\t") for x in cell_to_clone])
     copy_number_data = open(config.filtered_cell_cn,"r").read().splitlines()
     header = copy_number_data.pop(0).split("\t")
-    output.write("chr,start,end,copy_number,clone")
+    output.write("chr,start,end,copy_number,clone\n")
     copy_number_mapping = defaultdict(lambda : defaultdict(list))
     for row in copy_number_data:
             row = row.split("\t")
