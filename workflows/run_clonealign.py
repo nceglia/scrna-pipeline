@@ -48,7 +48,7 @@ def RunCellAssign(sce, annot_sce):
     _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     sampleid = sce.split("/")[-2]
-    #CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
+    CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     shutil.copyfile(filtered_sce, annot_sce)
 
@@ -171,15 +171,15 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempOutputFile("summary_path.html","sample")
         )
     )
-    workflow.transform (
-        name = "run_cellassign",
-        func = RunCellAssign,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("sample.rdata","sample"),
-            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
-        )
-    )
+    # workflow.transform (
+    #     name = "run_cellassign",
+    #     func = RunCellAssign,
+    #     axes = ('sample',),
+    #     args = (
+    #         pypeliner.managed.TempInputFile("sample.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+    #     )
+    # )
     workflow.transform (
         name = "run_modecn",
         func = RunModeCopyNumber,
@@ -193,7 +193,7 @@ def RunCloneAlignWorkflow(workflow):
         func = RunCloneAlignInput,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sce.rdata","sample"),
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
             pypeliner.managed.TempInputFile("copy_number_data.csv","sample"),
             pypeliner.managed.TempOutputFile("clone_sce.rdata","sample"),
             pypeliner.managed.TempOutputFile("cnv.rdata","sample"),
