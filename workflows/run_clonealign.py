@@ -147,7 +147,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
 
-def RunEvaluation(annotated_sce, cal_fit, cnv_mat):
+def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     rcode = """
     library(tidyverse)
     library(scater)
@@ -159,12 +159,91 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat):
     cal <- readRDS('{cal_fit}')
 
     ca <- clonealign::recompute_clone_assignment(cal, 0.5)
-    cnv <- dplyr::filter(raw_cnvs, !use_gene) %>%
+    cnv <- dplyr::filter({cnv_mat}, !use_gene) %>%
       dplyr::rename(clone = cluster,
                     copy_number=median_cnmode) %>%
       dplyr::select(ensembl_gene_id, clone, copy_number) %>%
       spread(clone, copy_number)
+    inferred_clones <- unique(ca$clone)
+    inferred_clones <- setdiff(inferred_clones, "unassigned")
+
+    collapsed_clones <- grepl("_", inferred_clones)
+    if(any(collapsed_clones)) {
+      for(i in which(collapsed_clones)) {
+        cclone <- inferred_clones[i]
+        uclones <- unlist(strsplit(cclone, "_"))
+        new_clone <- rowMedians(cnv_mat[, uclones])
+        cnv_mat <- cbind(cnv_mat, new_clone)
+        colnames(cnv_mat)[ncol(cnv_mat)] <- cclone
+      }
+    }
+    cnv_mat <- cnv_mat[, inferred_clones]
+    cnv_mat <- cnv_mat[matrixStats::rowVars(cnv_mat) > 0,]
+    cnv_mat <- cnv_mat[matrixStats::rowMaxs(cnv_mat) < 6,]
+
+    sce <- sce[,ca$clone_fit$Barcode]
+
+    sce <- sce[rowSums(as.matrix(counts(sce))) > 100, ]
+
+    common_genes <- intersect(rownames(sce), rownames(cnv_mat))
+
+    sce <- sce[common_genes,]
+    cnv_mat <- cnv_mat[common_genes,]
+
+    clones <- ca$clone
+
+    assigned_cells <- clones != "unassigned"
+
+    sce <- sce[, assigned_cells]
+    clones <- clones[assigned_cells]
+
+    logcs <- logcounts(sce)
+    cnv_mat_full <- cnv_mat[, clones]
+
+    test_estimates <- lapply(seq_len(nrow(sce)), function(i) {
+      lc <- logcs[i,]
+      cnv_dist <- cnv_mat_full[i,]
+      tidy(lm(lc ~ cnv_dist))[2,]
+    }) %>%
+      bind_rows()
+
+
+    cnv_mat_full <- cnv_mat[, sample(clones)]
+    null_estimates <- lapply(seq_len(nrow(sce)), function(i) {
+      lc <- logcs[i,]
+      cnv_dist <- cnv_mat_full[i,]
+      tidy(lm(lc ~ cnv_dist))[2,]
+    }) %>%
+      bind_rows()
+
+    df <- bind_rows(
+      dplyr::mutate(test_estimates, dist = "observed"),
+      dplyr::mutate(null_estimates, dist = "null")
+    )
+
+    tt <- t.test(test_estimates$estimate, null_estimates$estimate)
+
+    round2 <- function(x) format(round(x, 2), nsmall = 2)
+
+    png('{evaluate_png}')
+    ggplot(df, aes(x = dist, y = estimate)) +
+      geom_boxplot(outlier.shape = NA, size = .4) +
+      labs(x = "Distribution", y = "Coefficient expression ~ copy number",
+           title = sample,
+           subtitle = paste0("Genes not used by clonealign, p = ", round2(tt$p.value))) +
+      theme_bw() +
+      ylim(-.2, .2)
+    dev.off()
     """
+    path = os.path.split(annotated_sce)[0]
+    run_script = os.path.join(path,"run_evaluation.R")
+    output = open(run_script,"w")
+    output.write(rcode.format(annoated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit,evaluate_png=evaluate_png))
+    output.close()
+    subprocess.call(["Rscript","{}".format(run_script)])
+
+
+# def RunFigures(annotated_sce, celltype_sce, tsne, umap):
 
 
 
@@ -186,18 +265,17 @@ def RunCloneAlignWorkflow(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempOutputFile("sample.rdata","sample"),
-            pypeliner.managed.TempOutputFile("summary_path.html","sample")
         )
     )
-    # workflow.transform (
-    #     name = "run_cellassign",
-    #     func = RunCellAssign,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("sce.rdata","sample"),
-    #     )
-    # )
+    workflow.transform (
+        name = "run_cellassign",
+        func = RunCellAssign,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
+            pypeliner.managed.OutputFile("cell_annotated.rdata","sample"),
+        )
+    )
     workflow.transform (
         name = "run_modecn",
         func = RunModeCopyNumber,
@@ -213,8 +291,8 @@ def RunCloneAlignWorkflow(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample.rdata","sample"),
             pypeliner.managed.TempInputFile("copy_number_data.csv","sample"),
-            pypeliner.managed.TempOutputFile("clone.rdata","sample"),
-            pypeliner.managed.TempOutputFile("cnv.rdata","sample"),
+            pypeliner.managed.OutputFile("clone.rdata","sample"),
+            pypeliner.managed.OutputFile("cnv.rdata","sample"),
         )
     )
     workflow.transform (
@@ -222,28 +300,30 @@ def RunCloneAlignWorkflow(workflow):
         func = RunCloneAlign,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("clone.rdata","sample"),
-            pypeliner.managed.TempInputFile("cnv.rdata","sample"),
-            pypeliner.managed.TempOutputFile("clone_annotated.rdata","sample"),
-            pypeliner.managed.TempOutputFile("cal.rdata","sample"),
+            pypeliner.managed.InputFile("clone.rdata","sample"),
+            pypeliner.managed.InputFile("cnv.rdata","sample"),
+            pypeliner.managed.OutputFile("clone_annotated.rdata","sample"),
+            pypeliner.managed.OutputFile("cal.rdata","sample"),
         )
     )
-    # worfklow.transform (
-    #     name = "run_cloneeval",
-    #     fun = RunEvaluation,
+    worfklow.transform (
+        name = "run_cloneeval",
+        fun = RunEvaluation,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.InputFile("clone_annotated.rdata","sample"),
+            pypeliner.managed.InputFile("cal.rdata","sample"),
+            pypeliner.managed.InputFile("cnv.rdata","sample"),
+            pypeliner.managed.OutputFile("clone_evaluation.png","sample"),
+        )
+    )
+    # workflow.transform (
+    #     name = "run_figures",
+    #     func = RunFigures,
     #     axes = ('sample',),
     #     args = (
     #         pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("cal.rdata","sample"),
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "run_figures",
-    #     func = RunCloneFigures,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("cell_annotated.rdata","sample"),
     #     )
     # )
     return workflow
