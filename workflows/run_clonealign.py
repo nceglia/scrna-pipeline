@@ -306,7 +306,7 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.OutputFile("cal.rdata","sample"),
         )
     )
-    worfklow.transform (
+    workflow.transform (
         name = "run_cloneeval",
         fun = RunEvaluation,
         axes = ('sample',),
