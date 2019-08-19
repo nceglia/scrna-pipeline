@@ -85,8 +85,6 @@ def RunModeCopyNumber(copy_number_data):
     output.close()
 
 def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
-    seurat_cached = os.path.join("seurat_raw.rdata")
-    sce_cached = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     rcode = """
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
     library(dplyr)
@@ -95,7 +93,6 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     library(SingleCellExperiment)
 
     sce <- readRDS('{sce}')
-    sce <- sce[,sce$cell_type=="Ovarian.cancer.cell"]
     rownames(sce) <- rowData(sce)$ensembl_gene_id
     txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
     g <- genes(txdb, single.strand.genes.only=FALSE)
