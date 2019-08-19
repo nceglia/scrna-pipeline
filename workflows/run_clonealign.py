@@ -44,11 +44,12 @@ def RunExtract(sample_to_path, rdata_path):
     shutil.copyfile(qc.sce, rdata_path)
 
 def RunCellAssign(sce, annot_sce):
-    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
-    _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
-    sampleid = sce.split("/")[-2]
-    CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+    if not os.path.exists(filtered_sce):
+        _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
+        _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
+        sampleid = sce.split("/")[-2]
+        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
 
 def RunModeCopyNumber(copy_number_data):
@@ -132,6 +133,8 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     shutil.copyfile(cnv_mat, os.path.join(path,"cnv_mat.rdata"))
 
 def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
+    annotated_sce_cached = os.path.join(os.path.split(clone_sce)[0],"clone_annotated_cached.rdata")
+    cal_fit_cached = os.path.join(os.path.split(clone_sce)[0],"cal_cached.rdata")
     rcode = """
     library(clonealign)
     sce <- readRDS('{clone_sce}')
@@ -144,13 +147,15 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     path = os.path.split(clone_sce)[0]
     run_script = os.path.join(path,"run_clonealign.R")
     output = open(run_script,"w")
-    output.write(rcode.format(clone_sce=clone_sce,cnv_mat=cnv_mat,annotated_sce=annotated_sce,cal_fit=cal_fit))
+    output.write(rcode.format(clone_sce=clone_sce,cnv_mat=cnv_mat,annotated_sce=annotated_sce_cached,cal_fit=cal_fit_cached))
     output.close()
-    subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(annotated_sce, os.path.join(path,"clone.rdata"))
-    shutil.copyfile(cal_fit, os.path.join(path,"cal.rdata"))
+    if not os.path.exists(annotated_sce_cached) or not os.path.exists(cal_fit_cached):
+        subprocess.call(["Rscript","{}".format(run_script)])
+    shutil.copyfile(annotated_sce_cached, annotated_sce)
+    shutil.copyfile(cal_fit_cached, cal_fit)
 
 def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
+    evaluate_png_cached = os.path.join(os.path.split(annotated_sce)[0],"evaluation_cached.png")
     rcode = """
     library(tidyverse)
     library(scater)
@@ -184,7 +189,7 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     inferred_clones <- setdiff(inferred_clones, "unassigned")
 
     collapsed_clones <- grepl("_", inferred_clones)
-    
+
     if(any(collapsed_clones)) {
       for(i in which(collapsed_clones)) {
         cclone <- inferred_clones[i]
@@ -252,17 +257,20 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
       theme_bw() +
       ylim(-.2, .2)
     dev.off()
-    """.format(evaluate_png=evaluate_png)
+    """.format(evaluate_png=evaluate_png_cached)
     path = os.path.split(annotated_sce)[0]
     run_script = os.path.join(path,"run_evaluation.R")
     output = open(run_script,"w")
     output.write(rcode)
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(annotated_sce, os.path.join(path,"evaluate_clonealign.png"))
+    shutil.copyfile(evaluate_png_cached, evaluate_png)
 
 
 def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
+    result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.png")
+    tsne_cached = os.path.join(os.path.split(clone_sce)[0],"tsne_cached.png")
+    umap_cached = os.path.join(os.path.split(clone_sce)[0],"umap_cached.png")
     rcode = """
     library(SingleCellExperiment)
     library(scater)
@@ -305,104 +313,91 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce,tsne=tsne,umap=umap))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(result_sce, os.path.join(path,"sce.rdata"))
-    shutil.copyfile(tsne, os.path.join(path,"tsne.png"))
-    shutil.copyfile(tsne, os.path.join(path,"umap.png"))
+    shutil.copyfile(result_sce_cached, result_sce)
+    shutil.copyfile(umap_cached, umap)
+    shutil.copyfile(tsne_cached, tsne)
 
 
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
     all_samples = [config.prefix]
-    # workflow.transform (
-    #     name = "download_collection",
-    #     func = RunDownload,
-    #     args = (
-    #         all_samples,
-    #         pypeliner.managed.TempOutputFile("sample_path.json","sample")
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "extract_rdata",
-    #     func = RunExtract,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample_path.json","sample"),
-    #         pypeliner.managed.TempOutputFile("sample.rdata","sample"),
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "run_cellassign",
-    #     func = RunCellAssign,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("cell_annotated.rdata","sample"),
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "run_modecn",
-    #     func = RunModeCopyNumber,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempOutputFile("copy_number_data.csv","sample"),
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "run_clonealigninputs",
-    #     func = RunCloneAlignInput,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("copy_number_data.csv","sample"),
-    #         pypeliner.managed.TempOutputFile("clone.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("cnv.rdata","sample"),
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "run_clonealign",
-    #     func = RunCloneAlign,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("clone.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("cnv.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("clone_annotated.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("cal.rdata","sample"),
-    #     )
-    # )
     workflow.transform (
-        name = "run_cloneeval",
-        func = RunEvaluation,
-        # axes = ('sample',),
+        name = "download_collection",
+        func = RunDownload,
         args = (
-            pypeliner.managed.InputFile("tmp/tmp/sample/0/clone_annotated.rdata"),
-            pypeliner.managed.InputFile("tmp/tmp/sample/0/cal.rdata"),
-            pypeliner.managed.InputFile("tmp/tmp/sample/0/cnv.rdata"),
-            pypeliner.managed.TempOutputFile("clone_evaluation.png"),
+            all_samples,
+            pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
-        # args = (
-        #     pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-        #     pypeliner.managed.TempInputFile("cal.rdata","sample"),
-        #     pypeliner.managed.TempInputFile("cnv.rdata","sample"),
-        #     pypeliner.managed.TempOutputFile("clone_evaluation.png","sample"),
-        # )
     )
+    workflow.transform (
+        name = "extract_rdata",
+        func = RunExtract,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempOutputFile("sample.rdata","sample"),
+        )
+    )
+    workflow.transform (
+        name = "run_cellassign",
+        func = RunCellAssign,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
+            pypeliner.managed.TempOutputFile("cell_annotated.rdata","sample"),
+        )
+    )
+    workflow.transform (
+        name = "run_modecn",
+        func = RunModeCopyNumber,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempOutputFile("copy_number_data.csv","sample"),
+        )
+    )
+    workflow.transform (
+        name = "run_clonealigninputs",
+        func = RunCloneAlignInput,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample.rdata","sample"),
+            pypeliner.managed.TempInputFile("copy_number_data.csv","sample"),
+            pypeliner.managed.TempOutputFile("clone.rdata","sample"),
+            pypeliner.managed.TempOutputFile("cnv.rdata","sample"),
+        )
+    )
+    workflow.transform (
+        name = "run_clonealign",
+        func = RunCloneAlign,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("clone.rdata","sample"),
+            pypeliner.managed.TempInputFile("cnv.rdata","sample"),
+            pypeliner.managed.TempOutputFile("clone_annotated.rdata","sample"),
+            pypeliner.managed.TempOutputFile("cal.rdata","sample"),
+        )
+    )
+    # workflow.transform (
+    #     name = "run_cloneeval",
+    #     func = RunEvaluation,
+    #     axes = ('sample',),
+    #     args = (
+    #         pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("cal.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("cnv.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("clone_evaluation.png","sample"),
+    #     )
+    # )
     workflow.transform (
         name = "run_figures",
         func = RunFigures,
-        # axes = ('sample',),
+        axes = ('sample',),
         args = (
-            pypeliner.managed.InputFile("tmp/tmp/sample/0/clone_annotated.rdata"),
-            pypeliner.managed.InputFile("tmp/tmp/sample/0/cell_annotated.rdata"),
-            pypeliner.managed.TempOutputFile("result.rdata"),
-            pypeliner.managed.TempOutputFile("tsne_tmp.png"),
-            pypeliner.managed.TempOutputFile("umap_tmp.png"),
+            pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
+            pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("tsne.png","sample"),
+            pypeliner.managed.TempOutputFile("umap.png","sample"),
         )
-        # args = (
-        #     pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-        #     pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
-        #     pypeliner.managed.TempOutputFile("result.rdata","sample"),
-        #     pypeliner.managed.TempOutputFile("tsne_tmp.png","sample"),
-        #     pypeliner.managed.TempOutputFile("umap_tmp.png","sample"),
-        # )
     )
     return workflow
