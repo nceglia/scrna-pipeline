@@ -127,7 +127,7 @@ library(EnsDb.Hsapiens.v86)
 library(DropletUtils)
 library(stringr)
 library(scran)
-library(annotables)
+# library(annotables)
 
 args = commandArgs(trailingOnly=TRUE)
 
