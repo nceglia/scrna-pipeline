@@ -138,7 +138,7 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
 def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit, qplot):
     annotated_sce_cached = os.path.join(os.path.split(clone_sce)[0],"clone_annotated_cached.rdata")
     cal_fit_cached = os.path.join(os.path.split(clone_sce)[0],"cal_cached.rdata")
-    qplot_cached = os.path.join(os.path.split(clone_sce)[0],"qplot_cached.rdata")
+    qplot_cached = os.path.join(os.path.split(clone_sce)[0],"qplot_cached.png")
     rcode = """
     library(clonealign)
     library(ggplot2)
