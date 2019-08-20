@@ -158,7 +158,6 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
         subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(annotated_sce_cached, annotated_sce)
     shutil.copyfile(cal_fit_cached, cal_fit)
-    shutil.copyfile(qplot_cached, qplot)
     path = os.getcwd()
     shutil.copyfile(cal_fit_cached, os.path.join(path,"cal.rdata"))
 
