@@ -175,7 +175,7 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
 
     rcode += """
     write.csv(cnv, file = "cnv.csv")
-    raw_cnvs <- fread("cnv.csv")
+    cnv <- fread("cnv.csv")
     recompute_clone_assignment <- function(ca, clone_assignment_probability = 0.95) {
       clone_names <- colnames(ca$ml_params$clone_probs)
       clones <- apply(ca$ml_params$clone_probs, 1, function(r) {
