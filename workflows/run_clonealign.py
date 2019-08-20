@@ -87,7 +87,7 @@ def RunModeCopyNumber(copy_number_data):
                     output.write(",".join(line)+"\n")
     output.close()
 
-def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
+def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat, raw_cnv):
     rcode = """
     library(TxDb.Hsapiens.UCSC.hg19.knownGene)
     library(dplyr)
@@ -118,6 +118,7 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     df_gene_expanded <- spread(df_gene, clone, copy_number)
     cnv_mat <- dplyr::select(df_gene_expanded, -ensembl_gene_id, -entrezgene) %>% as.matrix()
     rownames(cnv_mat) <- df_gene_expanded$ensembl_gene_id
+    write.csv(cnv_mat,file='{raw_cnv}')
     keep_gene <- rowMins(cnv_mat) <= 6 & rowVars(cnv_mat) > 0
     cnv_mat <- cnv_mat[keep_gene,]
     common_genes <- intersect(rownames(cnv_mat), rownames(sce))
@@ -129,7 +130,7 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"build_input.R")
     output = open(convert_script,"w")
-    output.write(rcode.format(sce=sce,cnv=copy_number_data,clone_sce=clone_sce,cnv_mat=cnv_mat))
+    output.write(rcode.format(sce=sce,cnv=copy_number_data,clone_sce=clone_sce,cnv_mat=cnv_mat,raw_cnv=raw_cnv))
     output.close()
     subprocess.call(["Rscript","{}".format(convert_script)])
     shutil.copyfile(clone_sce, os.path.join(path,"clone_input.rdata"))
@@ -171,11 +172,9 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     library(clonealign)
     sce <- readRDS('{annotated_sce}')
     cal <- readRDS('{cal_fit}')
-    cnv <- readRDS('{cnv_mat}')""".format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit)
+    cnv <- fread("{cnv_mat}")""".format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit)
 
     rcode += """
-    write.csv(cnv, file = "cnv.csv")
-    cnv <- fread("cnv.csv")
     recompute_clone_assignment <- function(ca, clone_assignment_probability = 0.95) {
       clone_names <- colnames(ca$ml_params$clone_probs)
       clones <- apply(ca$ml_params$clone_probs, 1, function(r) {
@@ -376,6 +375,7 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempInputFile("copy_number_data.csv","sample"),
             pypeliner.managed.TempOutputFile("clone.rdata","sample"),
             pypeliner.managed.TempOutputFile("cnv.rdata","sample"),
+            pypeliner.managed.TempOutputFile("rawcnv.rdata","sample"),
         )
     )
     workflow.transform (
@@ -396,7 +396,7 @@ def RunCloneAlignWorkflow(workflow):
         args = (
             pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
             pypeliner.managed.TempInputFile("cal.rdata","sample"),
-            pypeliner.managed.TempInputFile("cnv.rdata","sample"),
+            pypeliner.managed.TempInputFile("rawcnv.rdata","sample"),
             pypeliner.managed.TempOutputFile("clone_evaluation.png","sample"),
         )
     )
