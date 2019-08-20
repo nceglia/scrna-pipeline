@@ -141,6 +141,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit, qplot):
     qplot_cached = os.path.join(os.path.split(clone_sce)[0],"qplot_cached.rdata")
     rcode = """
     library(clonealign)
+    library(ggplot2)
     sce <- readRDS('{clone_sce}')
     cnv <- readRDS('{cnv_mat}')
     cal <- clonealign(sce, cnv,remove_outlying_genes=FALSE)
