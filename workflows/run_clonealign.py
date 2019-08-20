@@ -389,6 +389,7 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempInputFile("cnv.rdata","sample"),
             pypeliner.managed.TempOutputFile("clone_annotated.rdata","sample"),
             pypeliner.managed.TempOutputFile("cal.rdata","sample"),
+            pypeliner.managed.TempOutputFile("qplot.png","sample"),
         )
     )
     workflow.transform (
