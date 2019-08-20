@@ -389,17 +389,17 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempOutputFile("cal.rdata","sample"),
         )
     )
-    workflow.transform (
-        name = "run_cloneeval",
-        func = RunEvaluation,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-            pypeliner.managed.TempInputFile("cal.rdata","sample"),
-            pypeliner.managed.TempInputFile("rawcnv.rdata","sample"),
-            pypeliner.managed.TempOutputFile("clone_evaluation.png","sample"),
-        )
-    )
+    # workflow.transform (
+    #     name = "run_cloneeval",
+    #     func = RunEvaluation,
+    #     axes = ('sample',),
+    #     args = (
+    #         pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("cal.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("rawcnv.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("clone_evaluation.png","sample"),
+    #     )
+    # )
     workflow.transform (
         name = "run_figures",
         func = RunFigures,
