@@ -135,7 +135,7 @@ def RunCloneAlignInput(sce, copy_number_data, clone_sce, cnv_mat):
     shutil.copyfile(clone_sce, os.path.join(path,"clone_input.rdata"))
     shutil.copyfile(cnv_mat, os.path.join(path,"cnv_mat.rdata"))
 
-def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit, qplot):
+def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     annotated_sce_cached = os.path.join(os.path.split(clone_sce)[0],"clone_annotated_cached.rdata")
     cal_fit_cached = os.path.join(os.path.split(clone_sce)[0],"cal_cached.rdata")
     qplot_cached = os.path.join(os.path.split(clone_sce)[0],"qplot_cached.png")
@@ -148,14 +148,11 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit, qplot):
     sce$clone <- cal$clone
     saveRDS(sce,file='{annotated_sce}')
     saveRDS(cal, file='{cal_fit}')
-    png('{qplot}')
-    qplot(seq_along(cal$elbo), cal$elbo, geom = c("point", "line")) + labs(x = "Iteration", y = "ELBO")
-    dev.off(0)
     """
     path = os.path.split(clone_sce)[0]
     run_script = os.path.join(path,"run_clonealign.R")
     output = open(run_script,"w")
-    output.write(rcode.format(clone_sce=clone_sce,cnv_mat=cnv_mat,annotated_sce=annotated_sce_cached,cal_fit=cal_fit_cached, qplot=qplot_cached))
+    output.write(rcode.format(clone_sce=clone_sce,cnv_mat=cnv_mat,annotated_sce=annotated_sce_cached,cal_fit=cal_fit_cached))
     output.close()
     if not os.path.exists(annotated_sce_cached) or not os.path.exists(cal_fit_cached):
         subprocess.call(["Rscript","{}".format(run_script)])
@@ -164,7 +161,6 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit, qplot):
     shutil.copyfile(qplot_cached, qplot)
     path = os.getcwd()
     shutil.copyfile(cal_fit_cached, os.path.join(path,"cal.rdata"))
-    shutil.copyfile(qplot_cached, os.path.join(path,"qplot.png"))
 
 def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     evaluate_png_cached = os.path.join(os.path.split(annotated_sce)[0],"evaluation_cached.png")
@@ -390,7 +386,6 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempInputFile("cnv.rdata","sample"),
             pypeliner.managed.TempOutputFile("clone_annotated.rdata","sample"),
             pypeliner.managed.TempOutputFile("cal.rdata","sample"),
-            pypeliner.managed.TempOutputFile("qplot.png","sample"),
         )
     )
     workflow.transform (
