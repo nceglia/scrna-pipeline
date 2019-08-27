@@ -127,26 +127,20 @@ library(EnsDb.Hsapiens.v86)
 library(DropletUtils)
 library(stringr)
 library(scran)
-# library(annotables)
+library(annotables)
 
 args = commandArgs(trailingOnly=TRUE)
 
 sce <- read10xCounts(args[1])
 
-# rowData(sce)$ensembl_gene_id <- rownames(sce)
-#
-# at <- annotables::grch38 # If GRCh38 (I think this is default?)
-# at <- at[!duplicated(at$ensgene),]
-# rd <- as.data.frame(rowData(sce))
-# rd$ensgene <- rd$ID
-# rd <- dplyr::left_join(rd, at, by = "ensgene")
-# rowData(sce) <- rd
-
 rowData(sce)$ensembl_gene_id <- rownames(sce)
-sce <- getBMFeatureAnnos(sce, filters = "ensembl_gene_id",
-attributes = c("ensembl_gene_id", "hgnc_symbol",
-"start_position", "end_position", "chromosome_name"),
-dataset = "hsapiens_gene_ensembl")
+
+at <- annotables::grch38 # If GRCh38 (I think this is default?)
+at <- at[!duplicated(at$ensgene),]
+rd <- as.data.frame(rowData(sce))
+rd$ensgene <- rd$ID
+rd <- dplyr::left_join(rd, at, by = "ensgene")
+rowData(sce) <- rd
 
 print("Calculating Size Factors")
 # Calculate size factors
