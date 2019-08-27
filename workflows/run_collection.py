@@ -38,7 +38,7 @@ def RunExtract(sample_to_path, rdata_path, summary_path, metrics_path):
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
     shutil.copyfile(tenx_analysis.summary, summary_path)
-    shutil.copyfile(tenx_analysis.metrics, metrics)
+    shutil.copyfile(tenx_analysis.metrics, metrics_path)
     shutil.copyfile(qc.sce, rdata_path)
 
 def RunCellAssign(sce, annot_sce, cellfit):
