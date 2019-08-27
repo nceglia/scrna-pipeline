@@ -243,7 +243,7 @@ def load_summary(metrics):
     return dict(zip(header,stats))
 
 def load_mito(stats_file):
-    perc_path = os.path.join(stats_file))
+    perc_path = os.path.join(stats_file)
     results = open(perc_path,"r").read().splitlines()[2].split()[-1].strip()
     return results
 
@@ -340,7 +340,7 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
     output.close()
     subprocess.call(["Rscript",".cache/qcthresh.R"])
     patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
-    patient_data["rho"] = GeneMarkerMatrix.read_yaml("/work/shah/reference/transcriptomes/markers/hgsc_v1.yaml").marker_list
+    patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.markers).marker_list
     patient_data_str = json.dumps(patient_data)
     output = open("../report/{}.json".format(given_sample),"w")
     output.write(str(patient_data_str))
