@@ -73,12 +73,6 @@ class Kallisto(object):
             subprocess.call(cmd)
         assert os.path.exists(self.genes_tsv) and os.path.exists(self.barcodes_tsv) and os.path.exists(self.matrix)
 
-    # def draw_knee(self):
-    #     adata = sc.read_mtx(os.path.join(self.tenx,"genes.mtx"))
-    #     adata.obs.index = pd.read_csv(os.path.join(self.tenx,"genes.barcodes.txt"), header=None)[0].values
-    #     adata.var.index = pd.read_csv(os.path.join(self.tenx,"genes.genes.txt"), header=None)[0].values
-    #     knee = np.sort((np.array(adata.X.sum(axis=1))).flatten())[::-1]
-
     def transcript_map(self):
         gene_to_transcript = dict()
         genes = open(self.transcript_to_gene,"r").read().splitlines()

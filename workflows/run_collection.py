@@ -28,7 +28,7 @@ def RunDownload(sampleids, finished):
         path_json = {sample: path}
         open(finished(i),"w").write(json.dumps(path_json))
 
-def RunExtract(sample_to_path, rdata_path, summary_path):
+def RunExtract(sample_to_path, rdata_path, summary_path, metrics_path):
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
     tenx_analysis = TenxAnalysis(path)
@@ -38,15 +38,18 @@ def RunExtract(sample_to_path, rdata_path, summary_path):
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
     shutil.copyfile(tenx_analysis.summary, summary_path)
+    shutil.copyfile(tenx_analysis.metrics, metrics)
     shutil.copyfile(qc.sce, rdata_path)
 
-def RunCellAssign(sce, annot_sce):
+def RunCellAssign(sce, annot_sce, cellfit):
     _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     sampleid = sce.split("/")[-2]
-    CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+    if not os.path.exists(filtered_sce) and not os.path.exists(filtered_sce):
+        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
+    shutil.copyfile(_fit,cellfit)
 
 def RunConvert(sce, seurat):
     seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
@@ -65,17 +68,17 @@ def RunConvert(sce, seurat):
     output = open(convert_script,"w")
     output.write(rcode.format(sce=sce_cached,seurat=seurat_cached))
     output.close()
-    subprocess.call(["Rscript","{}".format(convert_script)])
+    if not os.path.exists(seurat_cached):
+        subprocess.call(["Rscript","{}".format(convert_script)])
     shutil.copyfile(seurat_cached, seurat)
 
 def RunSeuratWorkflow(seurat, qcd_seurat):
     seurat_cached = os.path.join(os.path.split(seurat)[0],"seuret_annot.rdata")
     rcode = """
     library(Seurat)
+    library(sctransform)
     seurat <- readRDS("{seurat}")
-    seurat <- NormalizeData(object = seurat)
-    seurat <- FindVariableFeatures(object = seurat)
-    seurat <- ScaleData(object = seurat)
+    seurat <- SCTransform(object = seurat)
     seurat <- RunPCA(object = seurat)
     seurat <- FindNeighbors(object = seurat)
     seurat <- FindClusters(object = seurat)
@@ -87,7 +90,8 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     output = open(qc_script,"w")
     output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached))
     output.close()
-    subprocess.call(["Rscript", "{}".format(qc_script)])
+    if not os.path.exists(qcd_seurat):
+        subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
 
 def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs):
@@ -131,7 +135,8 @@ def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs)
     output = open(qc_script,"w")
     output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot))
     output.close()
-    subprocess.call(["Rscript","{}".format(qc_script)])
+    if not os.path.exists(exprs_plot):
+        subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(tsne_plot, tsne)
     shutil.copyfile(umap_plot, umap)
     shutil.copyfile(tsne_celltype_plot, tsne_celltype)
@@ -155,11 +160,13 @@ def RunMarkers(seurat,marker_table):
     output = open(marker_script,"w")
     output.write(rcode.format(seurat=seurat, marker_csv=marker_csv_cached))
     output.close()
-    subprocess.call(["Rscript","{}".format(marker_script)])
+    if not os.path.exists(marker_csv_cached):
+        subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunIntegration(seurats, integrated_seurat):
+def RunIntegration(seurats, integrated_seurat, integrated_sce):
     rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached.rdata")
+    sce_cached = os.path.join(os.path.split(integrated_seurat)[0],"integrate_sce_cached.rdata")
     object_list = []
     rcode = """
     library(Seurat)
@@ -181,64 +188,163 @@ def RunIntegration(seurats, integrated_seurat):
     integrated <- RunPCA(integrated, verbose = FALSE)
     integrated <- RunUMAP(integrated, dims = 1:30)
     saveRDS(integrated, file ="{rdata}")
+    sce <- as.SingleCellExperiment(integrated)
+    saveRDS(sce, file="{sce}")
     """
     integrate_script = os.path.join(".cache/integration.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata))
+    output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata, sce=sce_cached))
     output.close()
-    subprocess.call(["Rscript","{}".format(integrate_script)])
-    shutil.copyfile(rdata, integrated_seurat)
+    if not os.path.exists(sce_cached):
+        subprocess.call(["Rscript","{}".format(integrate_script)])
+        shutil.copyfile(rdata, integrated_seurat)
+        shutil.copyfile(sce_cached, integrated_sce)
 
-def RunReport(samples, sces, seurats, tsnes, umaps, tsnecelltypes, umapcelltypes, ridge, features, markers, umi, ribo, mito, counts, raw_sces, summary_path, celltypes, tsne_basic, umap_basic):
-    for id, rdata in seurats.items():
-        sample_json_path = samples[id]
-        sample_json = json.loads(open(sample_json_path,"r").read())
-        sample_name = list(sample_json.keys())[0]
-        dir = "results"
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+def dump_all_coldata(sce):
+    counts = sce.colData
+    column_data = dict()
+    for key in counts.keys():
+        if type(counts[key]) == list:
+            if "endogenous" in key: continue
+            if "top_50_features" in key or "top_100_features" in key or "top_200_features" in key or "top_500_features" in key: continue
+            if "control" in key: continue
+            column_data[key] = counts[key]
+    return column_data
 
-        inventory = dict()
-        inventory["seurat"] = os.path.join(dir,"{}_seurat.rds".format(sample_name))
-        inventory["sce"] = os.path.join(dir,"{}_sce.rds".format(sample_name))
-        inventory["tsne"] = os.path.join(dir,"{}_tsne.png".format(sample_name))
-        inventory["umap"] =  os.path.join(dir,"{}_umap.png".format(sample_name))
-        inventory["ridge"] = os.path.join(dir,"{}_ridge.png".format(sample_name))
-        inventory["features"] = os.path.join(dir,"{}_features.png".format(sample_name))
-        inventory["markers"] = os.path.join(dir,"{}_markers.csv".format(sample_name))
-        inventory["umi"] =  os.path.join(dir,"{}_umi.png".format(sample_name))
-        inventory["ribo"] = os.path.join(dir,"{}_ribo.png".format(sample_name))
-        inventory["mito"] = os.path.join(dir,"{}_mito.png".format(sample_name))
-        inventory["counts"] = os.path.join(dir,"{}_counts.png".format(sample_name))
-        inventory["raw_sce"] = os.path.join(dir,"{}_raw_sce.rdata".format(sample_name))
-        inventory["summary"] = os.path.join(dir,"{}_cellranger.html".format(sample_name))
-        inventory["tsne_basic"] = os.path.join(dir,"{}_tsne_basic.png".format(sample_name))
-        inventory["umap_basic"] = os.path.join(dir,"{}_umap_basic.png".format(sample_name))
-        inventory["celltypes"] = os.path.join(dir,"{}_umap_basic.png".format(sample_name))
+def dump_all_rowdata(sce):
+    counts = sce.rowData
+    column_data = dict()
+    for key in counts.keys():
+        if type(counts[key]) == list:
+            if "is_" in key: continue
+            if "NA" in str(key): continue
+            if "entrezgene" in key: continue
+            column_data[key] = counts[key]
+    print (column_data.keys())
+    return column_data
 
-        shutil.copyfile(rdata, os.path.join(dir,"{}_seurat.rds".format(sample_name)))
-        shutil.copyfile(sces[id], os.path.join(dir,"{}_sce.rds".format(sample_name)))
-        shutil.copyfile(tsnes[id], os.path.join(dir,"{}_tsne.png".format(sample_name)))
-        shutil.copyfile(umaps[id], os.path.join(dir,"{}_umap.png".format(sample_name)))
-        shutil.copyfile(tsnecelltypes[id], os.path.join(dir,"{}_tsne_celltype.png".format(sample_name)))
-        shutil.copyfile(umapcelltypes[id], os.path.join(dir,"{}_umap_celltype.png".format(sample_name)))
-        shutil.copyfile(ridge[id], os.path.join(dir,"{}_ridge.png".format(sample_name)))
-        shutil.copyfile(features[id], os.path.join(dir,"{}_features.png".format(sample_name)))
-        shutil.copyfile(markers[id], os.path.join(dir,"{}_markers.csv".format(sample_name)))
-        shutil.copyfile(umi, os.path.join(dir,"{}_umi.png".format(sample_name)))
-        shutil.copyfile(ribo, os.path.join(dir,"{}_ribo.png".format(sample_name)))
-        shutil.copyfile(mito, os.path.join(dir,"{}_mito.png".format(sample_name)))
-        shutil.copyfile(counts, os.path.join(dir,"{}_counts.png".format(sample_name)))
-        shutil.copyfile(raw_sces, os.path.join(dir,"{}_raw_sce.rdata".format(sample_name)))
-        shutil.copyfile(summary_path[id], os.path.join(dir,"{}_cellranger.html".format(sample_name)))
-        shutil.copyfile(tsne_basic, inventory["tsne_basic"])
-        shutil.copyfile(tsne_basic, inventory["umap_basic"])
-        shutil.copyfile(tsne_basic, inventory["celltypes"])
+def find_chemistry(summary):
+    rows = open(summary,"r").read().splitlines()
+    for i, row in enumerate(rows):
+        if "Chemistry" in row:
+            break
+    chem = rows[i+1].strip().replace("<td>","").replace("</td>","")
+    return chem
 
-        generateHTML(dir, sample_name, inventory)
+def load_summary(metrics):
+    rows = open(metrics,"r").read().splitlines()
+    header = rows.pop(0)
+    header = pp.commaSeparatedList.parseString(header).asList()
+    stats = rows.pop(0)
+    stats = pp.commaSeparatedList.parseString(stats).asList()
+    assert len(header) == len(stats), "{} - {}".format(len(header),len(stats))
+    for i,stat in enumerate(stats):
+        stats[i] = stat.replace(",","").replace('"',"")
+    return dict(zip(header,stats))
 
-        # report = ReportStorage(dir)
-        # report.upload(os.path.dirname(os.path.realpath(__file__)), sample_name)
+def load_mito(stats_file):
+    perc_path = os.path.join(stats_file))
+    results = open(perc_path,"r").read().splitlines()[2].split()[-1].strip()
+    return results
+
+def get_statistics(web_summary, metrics, patient_summary):
+    cols = ["Sample","Chemistry","Mito5","Mito10","Mito15","Mito20"]
+    sample_stats = {}
+    final_stats = dict()
+    summary = os.path.join(web_summary)
+    metrics = os.path.join(metrics)
+    chem = find_chemistry(summary)
+    res = load_summary(metrics)
+    mito20 = load_mito()
+    cols += res.keys()
+    res["Chemistry"] = chem
+    res["Sample"] = name
+    res["Mito5"] = mito5
+    res["Mito10"] = mito10
+    res["Mito15"] = mito15
+    res["Mito20"] = mito20
+    sample_stats[name] = res
+    output = open(patient_summary,"w")
+    output.write("\t".join(cols)+"\n")
+    for sample in sample_stats:
+        row = []
+        columns = []
+        for col in cols:
+            if "Q30" in col: continue
+            columns.append(col)
+            row.append(sample_stats[sample][col])
+        row = [x.replace('"','').replace(",","") for x in row]
+        final_stats[sample] = dict(zip(columns, row))
+        output.write("\t".join(row)+"\n")
+    output.close()
+    return final_stats
+
+def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
+    sce = SingleCellExperiment.fromRData(sce)
+    column_data = dump_all_coldata(sce)
+    patient_data[sample]["celldata"] = column_data
+    gene_data = dump_all_rowdata(sce)
+    patient_data[sample]["genedata"] = gene_data
+    counts = sce.assays["counts"].todense().tolist()
+    logcounts = sce.assays["logcounts"].todense().tolist()
+    count_matrix = collections.defaultdict(dict)
+    log_count_matrix = collections.defaultdict(dict)
+    for symbol, row in zip(gene_data["Symbol"],counts):
+        for barcode, cell in zip(column_data["Barcode"],row):
+            if float(cell) != 0.0:
+                count_matrix[barcode][symbol] = cell
+    for symbol, row in zip(gene_data["Symbol"],logcounts):
+        for barcode, cell in zip(column_data["Barcode"],row):
+            if float(cell) != 0.0:
+                log_count_matrix[barcode][symbol] = cell
+    patient_data[sample]["matrix"] = dict(count_matrix)
+    patient_data[sample]["log_count_matrix"] = dict(log_count_matrix)
+    patient_data[sample]["web_summary"] = summary
+    rdims = sce.reducedDims["UMAP"]
+    barcodes = sce.colData["Barcode"]
+    rdims = numpy.array(rdims).reshape(2, len(barcodes))
+    cellassign = pickle.load(cellassign_fit,"rb"))
+    celltypes = []
+    for celltype in cellassign["cell_type"]:
+        if celltype == "Monocyte.Macrophage":
+            celltype = "Monocyte/Macrophage"
+        else:
+            celltype = celltype.replace("."," ")
+        celltypes.append(celltype)
+    fit = dict(zip(cellassign["Barcode"],celltypes))
+    x_coded = dict(zip(barcodes, rdims[0]))
+    y_coded = dict(zip(barcodes, rdims[1]))
+    coords = dict()
+    for barcode, celltype in fit.items():
+        try:
+            x_val = x_coded[barcode]
+            y_val = y_coded[barcode]
+        except Exception as e:
+            continue
+        coords[barcode] = (x_val, y_val)
+    patient_data[sample]["cellassign"] = fit
+    patient_data[sample]["umap"] = coords
+    outputqc=open("runqc_{}.sh".format(sample),"w")
+    rdata = "../../{0}/runs/.cache/{0}/{0}.rdata".format(sample)
+    stats = ".cache/stats.tsv"
+    qcscript = os.path.join(".cache/qcthresh.R")
+    rcode = """
+    library(SingleCellExperiment)
+    rdata <- readRDS('{sce}')
+    sce <- as(rdata, 'SingleCellExperiment')
+    cells_to_keep <- sce$pct_counts_mito < as.numeric(20)
+    table_cells_to_keep <- table(cells_to_keep)
+    write.table(table_cells_to_keep, file='{stats}',sep="\t")
+    """
+    output.write(rcode.format(seurat=sce, stats=stats)
+    output.close()
+    subprocess.call(["Rscript",".cache/qcthresh.R"])
+    patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
+    patient_data["rho"] = GeneMarkerMatrix.read_yaml("/work/shah/reference/transcriptomes/markers/hgsc_v1.yaml").marker_list
+    patient_data_str = json.dumps(patient_data)
+    output = open("../report/{}.json".format(given_sample),"w")
+    output.write(str(patient_data_str))
+    output.close()
 
 
 
@@ -249,7 +355,6 @@ def RunCollection(workflow):
         func = RunDownload,
         args = (
             all_samples,
-            # pypeliner.managed.TempInputFile("umi.png"),
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )
@@ -260,7 +365,8 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempOutputFile("sample.rdata","sample"),
-            pypeliner.managed.TempOutputFile("summary_path.html","sample")
+            pypeliner.managed.TempOutputFile("summary.html","sample"),
+            pypeliner.managed.TempOutputFile("metrics.csv","sample")
         )
     )
 
@@ -271,6 +377,7 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("cellassign.pkl","sample")
         )
     )
 
@@ -328,140 +435,18 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "report",
-    #     func = RunReport,
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample_path.json","sample"),
-    #         pypeliner.managed.TempInputFile("sce.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_tsne.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_umap.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_tsne_celltype.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_umap_celltype.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_ridge.png","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_features.png","sample"),
-    #         pypeliner.managed.TempInputFile("markers.csv","sample"),
-    #         pypeliner.managed.TempInputFile("seurat_integrated.rdata"),
-    #         # pypeliner.managed.TempInputFile("umi.png"),
-    #         # pypeliner.managed.TempInputFile("mito.png"),
-    #         # pypeliner.managed.TempInputFile("ribo.png"),
-    #         # pypeliner.managed.TempInputFile("counts.png"),
-    #         # pypeliner.managed.TempInputFile("raw_sce.rdata"),
-    #         pypeliner.managed.TempInputFile("summary_path.html","sample"),
-    #         # pypeliner.managed.TempInputFile("celltypes.png"),
-    #         pypeliner.managed.TempInputFile("tsne_by_celltype.png"),
-    #         pypeliner.managed.TempInputFile("umap_by_celltype.png"),
-    #     )
-    # )
+    workflow.transform (
+        name = "sample_level",
+        func = RunPatientSummary,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("summary.html","sample"),
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
+            pypeliner.managed.TempInputFile("metrics.csv","sample")
+            pypeliner.managed.TempOutputFile("report.json","sample"),
+        )
+    )
 
 
     return workflow
-
-
-# def generateHTML(report, sampleid, inventory):
-#     html = os.path.join(report, "report.html")
-#     output = open(html,"w")
-#     output.write(template_header)
-#     res = template.format(sampleid = sampleid,
-#                             raw_sce = inventory["raw_sce"],
-#                             sce = inventory["sce"],
-#                             seurat = inventory["seurat"],
-#                             markers = inventory["markers"],
-#                             summary = inventory["summary"],
-#                             umi = inventory["umi"],
-#                             mito = inventory["mito"],
-#                             ribo = inventory["ribo"],
-#                             counts = inventory["counts"],
-#                             tsne = inventory["tsne"],
-#                             umap = inventory["umap"],
-#                             tsne_celltype_seurat = inventory["tsne_celltype_seurat"],
-#                             umap_celltype_seurat = inventory["umap_celltype_seurat"],
-#                             tsne_basic = inventory["tsne_basic"],
-#                             umap_basic = inventory["umap_basic"],
-#                             celltypes = inventory["celltypes"],
-#                             ridge = inventory["ridge"],
-#                             features = inventory["features"]
-#                             )
-#     output.write(res)
-#     output.write(template_footer)
-#     output.close()
-
-
-template_header = """
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <style>
-            table {
-                border-collapse: collapse;
-                border: 2px black solid;
-                font: 12px sans-serif;
-            }
-
-            td {
-                border: 1px black solid;
-                padding: 5px;
-            }
-        </style>
-    </head>
-    <body>
-        <script src="http://d3js.org/d3.v3.min.js"></script>
-        <!-- <script src="d3.min.js?v=3.2.8"></script> -->
-        <center>"""
-template = """
-        <h1><font face="helvetica" color="#1F1F1F">{sampleid}</font></h1><br><br>
-        <h3>Summary</h3>
-        <br>
-        <table>
-            <tr><td>Raw SCE:</td><td>{raw_sce}</td></tr>
-            <tr><td>SCE (cellassign):</td><td>{sce}</td></tr>
-            <tr><td>Seurat (cellassign):</td><td>{seurat}</td></tr>
-            <tr><td>Markers by Cluster:</td><td>{markers}</td></tr>
-            <tr><td>Cellranger Summary:</td><td>{summary}</td></tr>
-        </table>
-        <br>
-        <h3>QC</h3>
-        <table width="80%">
-            <tr><td>UMI</td><td>Mito</td><td>Ribo</td><td>Counts</td></tr>
-            <tr><td><img src="{umi}"></td><td><img src="{mito}"></td><td><img src="{ribo}"></td><td><img src="{counts}"></td></tr>
-        </table>
-        <br>
-        <h3>Analysis</h3>
-        <table width="80%">
-          <tr><td>Cell Types</td></tr>
-          <tr><td><img src="{celltypes}"></td></tr>
-
-          <tr><td>UMAP</td><td>TSNE</td></tr>
-          <tr><td><img src="{umap_basic}"></td><td><img src="{tsne_basic}"></td></tr>
-
-          <tr><td>UMAP CellType (Seurat)</td><td>TSNE Celltype (Seurat)</td></tr>
-          <tr><td><img src="{seurat_umap_celltype}"></td><td><img src="{seurat_tsne_celltype}"></td></tr>
-
-          <tr><td>Markers in Clusters</td><td>Markers Embedding</td></tr>
-          <tr><td><img src="{ridge}"></td><td><img src="{features}"></td></tr>
-        </table>
-        <br><br><br>
-        <script type="text/javascript"charset="utf-8">
-            d3.text("{markers}", function(data) {
-                var parsedCSV = d3.csv.parseRows(data);
-"""
-template_footer = """
-                var container = d3.select("body")
-                    .append("table").attr("width","100%")
-
-                    .selectAll("tr")
-                        .data(parsedCSV).enter()
-                        .append("tr")
-
-                    .selectAll("td")
-                        .data(function(d) { return d; }).enter()
-                        .append("td")
-                        .text(function(d) { return d; });
-            });
-        </script>
-        </center>
-    </body>
-</html>
-"""

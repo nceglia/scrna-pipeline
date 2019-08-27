@@ -36,50 +36,50 @@ def RunUpload(sampleid, finished, species):
     open(finished,"w").write("Completed")
 
 def RunCellranger(sampleid, workflow):
-    # workflow.transform (
-    #     name = "download_fastqs",
-    #     func = DownloadFastqs,
-    #     args = (
-    #         sampleid,
-    #         pypeliner.managed.TempOutputFile("download_fastqs.complete"),
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "cellranger_counts_human",
-    #     func = Counts,
-    #     args = (
-    #         sampleid,
-    #         pypeliner.managed.TempInputFile("download_fastqs.complete"),
-    #         pypeliner.managed.TempOutputFile("cellranger_human.complete"),
-    #         config.reference
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "cellranger_counts_mouse",
-    #     func = Counts,
-    #     args = (
-    #         sampleid,
-    #         pypeliner.managed.TempInputFile("download_fastqs.complete"),
-    #         pypeliner.managed.TempOutputFile("cellranger_mouse.complete"),
-    #         config.mouse_reference
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "cellranger_upload_human",
-    #     func = RunUpload,
-    #     args = (
-    #         sampleid,
-    #         pypeliner.managed.TempOutputFile("human_upload.complete"),
-    #         "human"
-    #     )
-    # )
-    # workflow.transform (
-    #     name = "cellranger_upload_mouse",
-    #     func = RunUpload,
-    #     args = (
-    #         sampleid + "_mouse",
-    #         pypeliner.managed.TempOutputFile("mouse_upload.complete"),
-    #         "mouse"
-    #     )
-    # )
+    workflow.transform (
+        name = "download_fastqs",
+        func = DownloadFastqs,
+        args = (
+            sampleid,
+            pypeliner.managed.TempOutputFile("download_fastqs.complete"),
+        )
+    )
+    workflow.transform (
+        name = "cellranger_counts_human",
+        func = Counts,
+        args = (
+            sampleid,
+            pypeliner.managed.TempInputFile("download_fastqs.complete"),
+            pypeliner.managed.TempOutputFile("cellranger_human.complete"),
+            config.reference
+        )
+    )
+    workflow.transform (
+        name = "cellranger_counts_mouse",
+        func = Counts,
+        args = (
+            sampleid,
+            pypeliner.managed.TempInputFile("download_fastqs.complete"),
+            pypeliner.managed.TempOutputFile("cellranger_mouse.complete"),
+            config.mouse_reference
+        )
+    )
+    workflow.transform (
+        name = "cellranger_upload_human",
+        func = RunUpload,
+        args = (
+            sampleid,
+            pypeliner.managed.TempOutputFile("human_upload.complete"),
+            "human"
+        )
+    )
+    workflow.transform (
+        name = "cellranger_upload_mouse",
+        func = RunUpload,
+        args = (
+            sampleid + "_mouse",
+            pypeliner.managed.TempOutputFile("mouse_upload.complete"),
+            "mouse"
+        )
+    )
     return workflow
