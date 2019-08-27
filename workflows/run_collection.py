@@ -303,7 +303,7 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
     rdims = sce.reducedDims["UMAP"]
     barcodes = sce.colData["Barcode"]
     rdims = numpy.array(rdims).reshape(2, len(barcodes))
-    cellassign = pickle.load(cellassign_fit,"rb"))
+    cellassign = pickle.load(cellassign_fit,"rb")
     celltypes = []
     for celltype in cellassign["cell_type"]:
         if celltype == "Monocyte.Macrophage":
