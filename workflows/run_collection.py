@@ -437,7 +437,7 @@ def RunCollection(workflow):
 
     workflow.transform (
         name = "sample_level",
-        func = RunPatientSummary,
+        func = RunSampleSummary,
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("summary.html","sample"),
