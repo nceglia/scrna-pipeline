@@ -336,7 +336,7 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
     table_cells_to_keep <- table(cells_to_keep)
     write.table(table_cells_to_keep, file='{stats}',sep="\t")
     """
-    output.write(rcode.format(seurat=sce, stats=stats)
+    output.write(rcode.format(seurat=sce, stats=stats))
     output.close()
     subprocess.call(["Rscript",".cache/qcthresh.R"])
     patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
