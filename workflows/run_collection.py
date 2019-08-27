@@ -443,7 +443,7 @@ def RunCollection(workflow):
             pypeliner.managed.TempInputFile("summary.html","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
-            pypeliner.managed.TempInputFile("metrics.csv","sample")
+            pypeliner.managed.TempInputFile("metrics.csv","sample"),
             pypeliner.managed.TempOutputFile("report.json","sample"),
         )
     )
