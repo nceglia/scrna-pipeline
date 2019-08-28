@@ -35,8 +35,8 @@ def RunExtract(sample_to_path, rdata_path, summary_path, metrics_path):
     tenx_analysis.load()
     tenx_analysis.extract()
     qc = QualityControl(tenx_analysis, sampleid)
-    if not os.path.exists(qc.sce):
-        qc.run(mito=config.mito)
+    #if not os.path.exists(qc.sce):
+    qc.run(mito=config.mito)
     shutil.copyfile(tenx_analysis.summary, summary_path)
     shutil.copyfile(tenx_analysis.metrics_summary, metrics_path)
     shutil.copyfile(qc.sce, rdata_path)
