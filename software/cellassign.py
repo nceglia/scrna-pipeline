@@ -17,14 +17,14 @@ class CellAssign(object):
         env = os.environ.copy()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         if lsf:
-            submit = """/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=4] -R select[type==CentOS7] -n 16 -We 40 -o out -e err /home/ceglian/anaconda/bin/Rscript {}""".format("{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
+            submit = """/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -R select[type==CentOS7] -n 20 -We 40 -o out -e err /home/ceglian/anaconda/bin/Rscript {}""".format("{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
         else:
             submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
             print(submit)
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         if lsf:
-            submit = """/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J mapcells -R rusage[mem=4] -R select[type==CentOS7] -n 16 -We 40 -o out -e err /home/ceglian/anaconda/bin/Rscript {}""".format("{}/match.R".format(os.path.split(rdata)[0])).split()
+            submit = """/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J mapcells -R rusage[mem=1] -R select[type==CentOS7] -n 20 -We 40 -o out -e err /home/ceglian/anaconda/bin/Rscript {}""".format("{}/match.R".format(os.path.split(rdata)[0])).split()
             print(submit)
         else:
             submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
