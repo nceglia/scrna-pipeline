@@ -12,13 +12,20 @@ from interface.genemarkermatrix import GeneMarkerMatrix
 class CellAssign(object):
 
     @staticmethod
-    def cmd(rdata, rho_csv, results):
+    def cmd(rdata, rho_csv, results, lsf=True):
         CellAssign.script(rdata, rho_csv, results)
         env = os.environ.copy()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
+        if lsf:
+            submit = """bsub -K -J cellassign -R "rusage[mem=4]" -R "select[type==CentOS7]" -n 16 -We 40 -o out -e err Rscript {}""".format("{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
+        else:
+            submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
+        if lsf:
+            submit = """bsub -K -J mapcells -R "rusage[mem=4]" -R "select[type==CentOS7]" -n 16 -We 40 -o out -e err Rscript {}""".format("{}/match.R".format(os.path.split(rdata)[0])).split()
+        else:
+            submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
         subprocess.call(submit, env=env)
 
     @staticmethod
@@ -32,8 +39,6 @@ class CellAssign(object):
         print ("CellAssign finished.")
         matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
         pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")
-        print(pkl_fit)
-        print(matched_results)
         lines = open(matched_results,"r").read().splitlines()
         header = lines.pop(0)
         barcodes = []
