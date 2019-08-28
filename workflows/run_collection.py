@@ -47,7 +47,7 @@ def RunCellAssign(sce, annot_sce, cellfit):
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     sampleid = sce.split("/")[-2]
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
-    if not os.path.exists(filtered_sce) or not os.path.exists(filtered_sce):
+    if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
         CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
     shutil.copyfile(_fit,cellfit)
@@ -288,6 +288,7 @@ def get_statistics(web_summary, metrics, patient_summary):
 def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
     sce = SingleCellExperiment.fromRData(sce)
     column_data = dump_all_coldata(sce)
+    patient_data = collections.defaultdict(dict)
     patient_data[sample]["celldata"] = column_data
     gene_data = dump_all_rowdata(sce)
     patient_data[sample]["genedata"] = gene_data
@@ -438,7 +439,8 @@ def RunCollection(workflow):
         func = RunIntegration,
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_integrated.rdata")
+            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
         )
     )
 
