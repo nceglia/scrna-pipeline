@@ -46,7 +46,7 @@ def RunCellAssign(sce, annot_sce, cellfit):
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     sampleid = sce.split("/")[-2]
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
-    if not os.path.exists(filtered_sce) and not os.path.exists(filtered_sce):
+    if not os.path.exists(filtered_sce) or not os.path.exists(filtered_sce):
         CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
     shutil.copyfile(_fit,cellfit)

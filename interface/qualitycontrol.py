@@ -135,12 +135,12 @@ sce <- read10xCounts(args[1])
 
 rowData(sce)$ensembl_gene_id <- rownames(sce)
 
-at <- annotables::grch38 # If GRCh38 (I think this is default?)
-at <- at[!duplicated(at$ensgene),]
-rd <- as.data.frame(rowData(sce))
-rd$ensgene <- rd$ID
-rd <- dplyr::left_join(rd, at, by = "ensgene")
-rowData(sce) <- rd
+# at <- annotables::grch38 # If GRCh38 (I think this is default?)
+# at <- at[!duplicated(at$ensgene),]
+# rd <- as.data.frame(rowData(sce))
+# rd$ensgene <- rd$ID
+# rd <- dplyr::left_join(rd, at, by = "ensgene")
+# rowData(sce) <- rd
 
 print("Calculating Size Factors")
 # Calculate size factors
