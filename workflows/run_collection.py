@@ -7,6 +7,7 @@ import os
 import json
 import shutil
 import subprocess
+import collections
 
 from interface.tenxanalysis import TenxAnalysis
 from interface.singlecellexperiment import SingleCellExperiment
