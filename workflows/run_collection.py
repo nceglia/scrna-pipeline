@@ -73,8 +73,9 @@ def RunConvert(sce, seurat):
         subprocess.call(["Rscript","{}".format(convert_script)])
     shutil.copyfile(seurat_cached, seurat)
 
-def RunSeuratWorkflow(seurat, qcd_seurat):
+def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     seurat_cached = os.path.join(os.path.split(seurat)[0],"seuret_annot.rdata")
+    sce_cached = os.path.join(os.path.split(seurat)[0],"sce_annot.rdata")
     rcode = """
     library(Seurat)
     library(sctransform)
@@ -85,15 +86,19 @@ def RunSeuratWorkflow(seurat, qcd_seurat):
     seurat <- FindClusters(object = seurat)
     seurat <- RunTSNE(object = seurat)
     seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
-    saveRDS(seurat, file = '{qcd_seurat}')"""
+    saveRDS(seurat, file = '{qcd_seurat}')
+    sce <- as.SingleCellExperiment(seurat)
+    saveRDS(sce, file="{qcd_sce}")
+    """
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached))
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached))
     output.close()
-    if not os.path.exists(qcd_seurat):
+    if not os.path.exists(seurat_cached) or not os.path.exists(sce_cached):
         subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
+    shutil.copyfile(sce_cached, qcd_sce)
 
 def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs):
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
@@ -399,6 +404,7 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("seurat.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
         )
     )
 
@@ -442,7 +448,7 @@ def RunCollection(workflow):
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("summary.html","sample"),
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
             pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
             pypeliner.managed.TempInputFile("metrics.csv","sample"),
             pypeliner.managed.TempOutputFile("report.json","sample"),
