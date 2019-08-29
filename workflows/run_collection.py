@@ -182,9 +182,9 @@ def RunMarkers(seurat,marker_table):
         subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunIntegration(seurats, integrated_seurat, integrated_sce):
-    rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached.rdata")
-    sce_cached = os.path.join(os.path.split(integrated_seurat)[0],"integrate_sce_cached.rdata")
+def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="ALL"):
+    rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached_{}.rdata".format(flowsort))
+    sce_cached = os.path.join(os.path.split(integrated_seurat)[0],"integrate_sce_cached_{}.rdata".format(flowsort))
     object_list = []
     rcode = """
     library(Seurat)
@@ -209,7 +209,7 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce):
     sce <- as.SingleCellExperiment(integrated)
     saveRDS(sce, file="{sce}")
     """
-    integrate_script = os.path.join(".cache/integration.R")
+    integrate_script = os.path.join(".cache/integration_{}.R".format(flowsort))
     output = open(integrate_script,"w")
     output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached))
     output.close()
@@ -218,15 +218,29 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce):
     shutil.copyfile(rdata, integrated_seurat)
     shutil.copyfile(sce_cached, integrated_sce)
 
-# def RunNegativeIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
-#     negative_seurats = dict()
-#     for idx, seurat in seurats.items():
-#         sample_to_path =
-#         sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
-#         sample = json.loads(open(sample_to_path,"r").read())
-#         sampleid, path = list(sample.items()).pop()
-#         sampleid = sample_map[sampleid]
+def RunNegativeIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
+    negative_seurats = dict()
+    for idx, seurat in seurats.items():
+        sample_to_path = sample_to_paths[idx]
+        sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
+        sample = json.loads(open(sample_to_path,"r").read())
+        sampleid, path = list(sample.items()).pop()
+        sampleid = sample_map[sampleid]
+        if "CD45N" in sampleid:
+            negative_seurats[idx] = seurat
+    RunIntegration(negative_seurats, integrated_seurat, integrated_sce)
 
+def RunPositiveIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
+    positive_seurats = dict()
+    for idx, seurat in seurats.items():
+        sample_to_path = sample_to_paths[idx]
+        sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
+        sample = json.loads(open(sample_to_path,"r").read())
+        sampleid, path = list(sample.items()).pop()
+        sampleid = sample_map[sampleid]
+        if "CD45P" in sampleid:
+            positive_seurats[idx] = seurat
+    RunIntegration(positive_seurats, integrated_seurat, integrated_sce)
 
 def dump_all_coldata(sce):
     counts = sce.colData
@@ -516,15 +530,26 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
-        name = "integrate",
+        name = "negative_integrate",
         func = RunIntegration,
         args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("seurat_negative_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_negative_integrated.rdata"),
         )
     )
 
+    workflow.transform (
+        name = "positive_integrate",
+        func = RunIntegration,
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_positive_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_positive_integrated.rdata"),
+        )
+    )
 
     workflow.transform (
         name = "sample_level",
