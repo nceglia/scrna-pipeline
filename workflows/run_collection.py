@@ -218,6 +218,16 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce):
     shutil.copyfile(rdata, integrated_seurat)
     shutil.copyfile(sce_cached, integrated_sce)
 
+# def RunNegativeIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
+#     negative_seurats = dict()
+#     for idx, seurat in seurats.items():
+#         sample_to_path =
+#         sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
+#         sample = json.loads(open(sample_to_path,"r").read())
+#         sampleid, path = list(sample.items()).pop()
+#         sampleid = sample_map[sampleid]
+
+
 def dump_all_coldata(sce):
     counts = sce.colData
     column_data = dict()
@@ -373,7 +383,7 @@ def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, repo
     output.write(rcode.format(sce=rdata, stats=stats))
     output.close()
     subprocess.call(["Rscript",".cache/runqc_{}.R".format(sampleid)])
-    patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
+    patient_data["statistics"] = get_statistics(sampleid, summary, metrics, report, stats)
     patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
     patient_data_str = json.dumps(patient_data)
     output = open("../viz/{}.json".format(sampleid),"w")
