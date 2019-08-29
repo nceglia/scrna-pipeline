@@ -200,7 +200,7 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce):
     """
     integrate_script = os.path.join(".cache/integration.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(seurat=seurat, object_list=",".join(object_list), rdata=rdata, sce=sce_cached))
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached))
     output.close()
     if not os.path.exists(sce_cached):
         subprocess.call(["Rscript","{}".format(integrate_script)])
@@ -286,13 +286,15 @@ def get_statistics(web_summary, metrics, patient_summary):
     output.close()
     return final_stats
 
-def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
+def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_fit):
+    sample = json.loads(open(sample_to_path,"r").read())
+    sampleid, path = list(sample.items()).pop()
     sce = SingleCellExperiment.fromRData(sce)
     column_data = dump_all_coldata(sce)
     patient_data = collections.defaultdict(dict)
-    patient_data[sample]["celldata"] = column_data
+    patient_data[sampleid]["celldata"] = column_data
     gene_data = dump_all_rowdata(sce)
-    patient_data[sample]["genedata"] = gene_data
+    patient_data[sampleid]["genedata"] = gene_data
     counts = sce.assays["counts"].todense().tolist()
     logcounts = sce.assays["logcounts"].todense().tolist()
     count_matrix = collections.defaultdict(dict)
@@ -305,9 +307,9 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
         for barcode, cell in zip(column_data["Barcode"],row):
             if float(cell) != 0.0:
                 log_count_matrix[barcode][symbol] = cell
-    patient_data[sample]["matrix"] = dict(count_matrix)
-    patient_data[sample]["log_count_matrix"] = dict(log_count_matrix)
-    patient_data[sample]["web_summary"] = summary
+    patient_data[sampleid]["matrix"] = dict(count_matrix)
+    patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
+    patient_data[sampleid]["web_summary"] = summary
     rdims = sce.reducedDims["UMAP"]
     barcodes = sce.colData["Barcode"]
     rdims = numpy.array(rdims).reshape(2, len(barcodes))
@@ -330,9 +332,9 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
         except Exception as e:
             continue
         coords[barcode] = (x_val, y_val)
-    patient_data[sample]["cellassign"] = fit
-    patient_data[sample]["umap"] = coords
-    outputqc=open("runqc_{}.sh".format(sample),"w")
+    patient_data[sampleid]["cellassign"] = fit
+    patient_data[sampleid]["umap"] = coords
+    outputqc=open("runqc_{}.sh".format(sampleid),"w")
     rdata = "../../{0}/runs/.cache/{0}/{0}.rdata".format(sample)
     stats = ".cache/stats.tsv"
     qcscript = os.path.join(".cache/qcthresh.R")
@@ -450,6 +452,7 @@ def RunCollection(workflow):
         func = RunSampleSummary,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("summary.html","sample"),
             pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
             pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
