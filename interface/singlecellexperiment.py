@@ -185,9 +185,9 @@ class SingleCellExperiment(RS4):
         for assay, label in zip(list_vector, list_vector.names):
             if type(assay) == robjects.methods.RS4:
                 non_zero_elements = assay.slots["x"]
-                row_numbers =pandas2ri.ri2py(assay.slots["i"])
-                column_pointers = pandas2ri.ri2py(assay.slots["p"])
-                nrows = len(list(pandas2ri.ri2py(assay.slots["Dimnames"]))[0])
+                row_numbers =assay.slots["i"]
+                column_pointers = assay.slots["p"]
+                nrows = len(list(assay.slots["Dimnames"])[0])
                 self._assays[label] = SingleCellExperiment.DCGtoCSR(non_zero_elements, row_numbers, column_pointers, nrows)
             elif type(assay) == robjects.vectors.Matrix:
                 self._assays[label] = csr_matrix(pandas2ri.ri2py(assay))
