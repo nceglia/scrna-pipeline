@@ -92,6 +92,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
     saveRDS(seurat, file = '{qcd_seurat}')
     sce <- as.SingleCellExperiment(seurat)
+    rowData(sce)$Symbol <- rownames(sce)
     saveRDS(sce, file="{qcd_sce}")
     """
     path = os.path.split(seurat)[0]
