@@ -628,9 +628,9 @@ def RunCollection(workflow):
         name = "upload_viz",
         func = UploadVizReport,
         args = (
-            pypeliner.managed.TempOutputFile("positive_report.json"),
-            pypeliner.managed.TempOutputFile("negative_report.json"),
-            pypeliner.managed.TempOutputFile("integrated_report.json"),
+            pypeliner.managed.TempInputFile("positive_report.json"),
+            pypeliner.managed.TempInputFile("negative_report.json"),
+            pypeliner.managed.TempInputFile("integrated_report.json"),
             pypeliner.managed.TempOutputFile("upload.complete")
         )
     )
