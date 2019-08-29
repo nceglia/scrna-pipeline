@@ -330,7 +330,7 @@ def get_statistics(sampleid, web_summary, metrics, patient_summary, stats):
         for col in cols:
             if "Q30" in col: continue
             columns.append(col)
-            row.append(sample_stats[sampleid][col])
+            row.append(sample_stats[sample][col])
         row = [x.replace('"','').replace(",","") for x in row]
         final_stats[sample] = dict(zip(columns, row))
         output.write("\t".join(row)+"\n")
@@ -343,10 +343,10 @@ def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, repo
     sampleid, path = list(sample.items()).pop()
     sample_original = sampleid
     sampleid = sample_map[sampleid]
-    if not os.path.exists("../viz/"):
-        os.makedirs("../viz")
-    if not os.path.exists("../viz/html/"):
-        os.makedirs("../viz/html/")
+    if not os.path.exists("viz/"):
+        os.makedirs("viz")
+    if not os.path.exists("viz/html/"):
+        os.makedirs("viz/html/")
     sce = SingleCellExperiment.fromRData(sce)
     column_data = dump_all_coldata(sce)
     patient_data = collections.defaultdict(dict)
@@ -404,10 +404,10 @@ def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, repo
     patient_data["statistics"] = get_statistics(sampleid, summary, metrics, report, stats)
     patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
     patient_data_str = json.dumps(patient_data)
-    output = open("../viz/{}.json".format(sampleid),"w")
+    output = open("viz/{}.json".format(sampleid),"w")
     output.write(str(patient_data_str))
     output.close()
-    shutil.copyfile("../viz/{}.json".format(sampleid),report)
+    shutil.copyfile("viz/{}.json".format(sampleid),report)
 
 def NegativeIntegratedSummary(sce, report):
     IntegratedSummary(sce, "INTEGRATED_CD45_NEGATIVE", report)
