@@ -8,6 +8,9 @@ import json
 import shutil
 import subprocess
 import collections
+import numpy
+import pickle
+import pyparsing as pp
 
 from interface.tenxanalysis import TenxAnalysis
 from interface.singlecellexperiment import SingleCellExperiment
@@ -234,8 +237,9 @@ def find_chemistry(summary):
     rows = open(summary,"r").read().splitlines()
     for i, row in enumerate(rows):
         if "Chemistry" in row:
+            index = i
             break
-    chem = rows[i+1].strip().replace("<td>","").replace("</td>","")
+    chem = rows[index+1].strip().replace("<td>","").replace("</td>","")
     return chem
 
 def load_summary(metrics):
@@ -254,23 +258,20 @@ def load_mito(stats_file):
     results = open(perc_path,"r").read().splitlines()[2].split()[-1].strip()
     return results
 
-def get_statistics(web_summary, metrics, patient_summary):
-    cols = ["Sample","Chemistry","Mito5","Mito10","Mito15","Mito20"]
+def get_statistics(sampleid, web_summary, metrics, patient_summary, stats):
+    cols = ["Sample","Chemistry","Mito20"]
     sample_stats = {}
     final_stats = dict()
     summary = os.path.join(web_summary)
     metrics = os.path.join(metrics)
     chem = find_chemistry(summary)
     res = load_summary(metrics)
-    mito20 = load_mito()
+    mito20 = load_mito(stats)
     cols += res.keys()
     res["Chemistry"] = chem
     res["Sample"] = name
-    res["Mito5"] = mito5
-    res["Mito10"] = mito10
-    res["Mito15"] = mito15
     res["Mito20"] = mito20
-    sample_stats[name] = res
+    sample_stats[sampleid] = res
     output = open(patient_summary,"w")
     output.write("\t".join(cols)+"\n")
     for sample in sample_stats:
@@ -279,7 +280,7 @@ def get_statistics(web_summary, metrics, patient_summary):
         for col in cols:
             if "Q30" in col: continue
             columns.append(col)
-            row.append(sample_stats[sample][col])
+            row.append(sample_stats[sampleid][col])
         row = [x.replace('"','').replace(",","") for x in row]
         final_stats[sample] = dict(zip(columns, row))
         output.write("\t".join(row)+"\n")
@@ -287,6 +288,8 @@ def get_statistics(web_summary, metrics, patient_summary):
     return final_stats
 
 def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_fit):
+    if not os.path.exists("../viz/"):
+        os.makedirs("../viz")
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
     sce = SingleCellExperiment.fromRData(sce)
@@ -295,7 +298,6 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
     patient_data[sampleid]["celldata"] = column_data
     gene_data = dump_all_rowdata(sce)
     patient_data[sampleid]["genedata"] = gene_data
-    counts = sce.assays["counts"].todense().tolist()
     logcounts = sce.assays["logcounts"].todense().tolist()
     log_count_matrix = collections.defaultdict(dict)
     for symbol, row in zip(gene_data["Symbol"],logcounts):
@@ -303,11 +305,13 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
             if float(cell) != 0.0:
                 log_count_matrix[barcode][symbol] = cell
     patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
-    patient_data[sampleid]["web_summary"] = summary
+    final_summary = "../viz/{}_web_summary.html".format(sampleid)
+    shutil.copyfile(summary, "../viz/{}_web_summary.html".format(sampleid))
+    patient_data[sampleid]["web_summary"] = final_summary
     rdims = sce.reducedDims["UMAP"]
     barcodes = sce.colData["Barcode"]
     rdims = numpy.array(rdims).reshape(2, len(barcodes))
-    cellassign = pickle.load(cellassign_fit,"rb")
+    cellassign = pickle.load(open(cellassign_fit,"rb"))
     celltypes = []
     for celltype in cellassign["cell_type"]:
         if celltype == "Monocyte.Macrophage":
@@ -321,17 +325,16 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
     coords = dict()
     for barcode, celltype in fit.items():
         try:
-            x_val = x_coded[barcode]
-            y_val = y_coded[barcode]
+            x_val = int(x_coded[barcode])
+            y_val = int(y_coded[barcode])
         except Exception as e:
             continue
         coords[barcode] = (x_val, y_val)
     patient_data[sampleid]["cellassign"] = fit
     patient_data[sampleid]["umap"] = coords
-    outputqc=open("runqc_{}.sh".format(sampleid),"w")
-    rdata = "../../{0}/runs/.cache/{0}/{0}.rdata".format(sample)
-    stats = ".cache/stats.tsv"
-    qcscript = os.path.join(".cache/qcthresh.R")
+    output=open(".cache/runqc_{}.R".format(sampleid),"w")
+    rdata = "../../{0}/runs/.cache/{0}/{0}.rdata".format(sampleid)
+    stats = ".cache/{0}_stats.tsv".format(sampleid)
     rcode = """
     library(SingleCellExperiment)
     rdata <- readRDS('{sce}')
@@ -340,17 +343,15 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
     table_cells_to_keep <- table(cells_to_keep)
     write.table(table_cells_to_keep, file='{stats}',sep="\t")
     """
-    output.write(rcode.format(seurat=sce, stats=stats))
+    output.write(rcode.format(sce=rdata, stats=stats))
     output.close()
-    subprocess.call(["Rscript",".cache/qcthresh.R"])
+    subprocess.call(["Rscript",".cache/runqc_{}.R".format(sampleid))
     patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
-    patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.markers).marker_list
+    patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
     patient_data_str = json.dumps(patient_data)
-    output = open("../report/{}.json".format(sampleid),"w")
+    output = open("../viz/{}.json".format(sampleid),"w")
     output.write(str(patient_data_str))
     output.close()
-
-
 
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
@@ -441,19 +442,19 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "sample_level",
-    #     func = RunSampleSummary,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("sample_path.json","sample"),
-    #         pypeliner.managed.TempInputFile("summary.html","sample"),
-    #         pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
-    #         pypeliner.managed.TempInputFile("metrics.csv","sample"),
-    #         pypeliner.managed.TempOutputFile("report.json","sample"),
-    #     )
-    # )
+    workflow.transform (
+        name = "sample_level",
+        func = RunSampleSummary,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("summary.html","sample"),
+            pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
+            pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
+            pypeliner.managed.TempInputFile("metrics.csv","sample"),
+            pypeliner.managed.TempOutputFile("report.json","sample"),
+        )
+    )
 
 
     return workflow
