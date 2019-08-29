@@ -319,7 +319,7 @@ def get_statistics(sampleid, web_summary, metrics, patient_summary, stats):
     mito20 = load_mito(stats)
     cols += res.keys()
     res["Chemistry"] = chem
-    res["Sample"] = name
+    res["Sample"] = sampleid
     res["Mito20"] = mito20
     sample_stats[sampleid] = res
     output = open(patient_summary,"w")
