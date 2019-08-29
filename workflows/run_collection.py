@@ -500,22 +500,12 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
-        name = "integrate_positive",
-        func = RunNegativeIntegration,
+        name = "integrate",
+        func = RunIntegration,
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_pos_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_pos_integrated.rdata"),
-        )
-    )
-
-    workflow.transform (
-        name = "integrate_positive",
-        func = RunPositiveIntegration,
-        args = (
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_neg_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_neg_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
         )
     )
 
