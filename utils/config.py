@@ -43,6 +43,7 @@ kallisto: {kallisto}
 bustools: {bustools}
 copy_cell_clones: {copy_cell_clones}
 filtered_cell_cn: {filtered_cell_cn}
+sample_mapping: sample_mapping.ssv
 """
 
 

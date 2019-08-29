@@ -218,6 +218,14 @@ def dump_all_coldata(sce):
             if "endogenous" in key: continue
             if "top_50_features" in key or "top_100_features" in key or "top_200_features" in key or "top_500_features" in key: continue
             if "control" in key: continue
+            corrected = []
+            for value in counts[key]:
+                try:
+                    value = float(value)
+                except:
+                    value = value
+                corrected.append(value)
+            column_data[key] = corrected
             column_data[key] = counts[key]
     return column_data
 
@@ -229,7 +237,14 @@ def dump_all_rowdata(sce):
             if "is_" in key: continue
             if "NA" in str(key): continue
             if "entrezgene" in key: continue
-            column_data[key] = counts[key]
+            corrected = []
+            for value in counts[key]:
+                try:
+                    value = float(value)
+                except:
+                    value = value
+                corrected.append(value)
+            column_data[key] = corrected
     print (column_data.keys())
     return column_data
 
@@ -288,10 +303,14 @@ def get_statistics(sampleid, web_summary, metrics, patient_summary, stats):
     return final_stats
 
 def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_fit):
-    if not os.path.exists("../viz/"):
-        os.makedirs("../viz")
+    sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
+    sampleid = sample_map[sampleid]
+    if not os.path.exists("../viz/"):
+        os.makedirs("../viz")
+    if not os.path.exists("../viz/html/"):
+        os.makedirs("../viz/html/")
     sce = SingleCellExperiment.fromRData(sce)
     column_data = dump_all_coldata(sce)
     patient_data = collections.defaultdict(dict)
@@ -305,8 +324,8 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
             if float(cell) != 0.0:
                 log_count_matrix[barcode][symbol] = cell
     patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
-    final_summary = "../viz/{}_web_summary.html".format(sampleid)
-    shutil.copyfile(summary, "../viz/{}_web_summary.html".format(sampleid))
+    final_summary = "../viz/html/{}_web_summary.html".format(sampleid)
+    shutil.copyfile(summary, "../viz/html/{}_web_summary.html".format(sampleid))
     patient_data[sampleid]["web_summary"] = final_summary
     rdims = sce.reducedDims["UMAP"]
     barcodes = sce.colData["Barcode"]
