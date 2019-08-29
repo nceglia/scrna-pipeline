@@ -364,7 +364,7 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
     """
     output.write(rcode.format(sce=rdata, stats=stats))
     output.close()
-    subprocess.call(["Rscript",".cache/runqc_{}.R".format(sampleid))
+    subprocess.call(["Rscript",".cache/runqc_{}.R".format(sampleid)])
     patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
     patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
     patient_data_str = json.dumps(patient_data)
