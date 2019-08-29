@@ -447,19 +447,19 @@ def RunCollection(workflow):
         )
     )
 
-    workflow.transform (
-        name = "sample_level",
-        func = RunSampleSummary,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempInputFile("summary.html","sample"),
-            pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
-            pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
-            pypeliner.managed.TempInputFile("metrics.csv","sample"),
-            pypeliner.managed.TempOutputFile("report.json","sample"),
-        )
-    )
+    # workflow.transform (
+    #     name = "sample_level",
+    #     func = RunSampleSummary,
+    #     axes = ('sample',),
+    #     args = (
+    #         pypeliner.managed.TempInputFile("sample_path.json","sample"),
+    #         pypeliner.managed.TempInputFile("summary.html","sample"),
+    #         pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
+    #         pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
+    #         pypeliner.managed.TempInputFile("metrics.csv","sample"),
+    #         pypeliner.managed.TempOutputFile("report.json","sample"),
+    #     )
+    # )
 
 
     return workflow
