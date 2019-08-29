@@ -304,7 +304,7 @@ def get_statistics(sampleid, web_summary, metrics, patient_summary, stats):
     output.close()
     return final_stats
 
-def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_fit):
+def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, report):
     sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
     sample = json.loads(open(sample_to_path,"r").read())
     sampleid, path = list(sample.items()).pop()
