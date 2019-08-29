@@ -373,6 +373,52 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
     output = open("../viz/{}.json".format(sampleid),"w")
     output.write(str(patient_data_str))
     output.close()
+    shutil.copyfile("../viz/{}.json".format(sampleid),report)
+
+# def IntegratedSummary(sce):
+#     sampleid = "INTEGRATED_CD45_NEGATIVE"
+#     if not os.path.exists("../viz/"):
+#         os.makedirs("../viz")
+#     if not os.path.exists("../viz/html/"):
+#         os.makedirs("../viz/html/")
+#     sce = SingleCellExperiment.fromRData(sce)
+#     column_data = dump_all_coldata(sce)
+#     patient_data = collections.defaultdict(dict)
+#     patient_data[sampleid]["celldata"] = column_data
+#     gene_data = dump_all_rowdata(sce)
+#     patient_data[sampleid]["genedata"] = gene_data
+#     logcounts = sce.assays["logcounts"].todense().tolist()
+#     log_count_matrix = collections.defaultdict(dict)
+#     for symbol, row in zip(gene_data["Symbol"],logcounts):
+#         for barcode, cell in zip(column_data["Barcode"],row):
+#             if float(cell) != 0.0:
+#                 log_count_matrix[barcode][symbol] = cell
+#     patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
+#     rdims = sce.reducedDims["UMAP"]
+#     barcodes = sce.colData["Barcode"]
+#     rdims = numpy.array(rdims).reshape(2, len(barcodes))
+#     cellassign = pickle.load(open(cellassign_fit,"rb"))
+#     celltypes = []
+#     for celltype in cellassign["cell_type"]:
+#         if celltype == "Monocyte.Macrophage":
+#             celltype = "Monocyte/Macrophage"
+#         else:
+#             celltype = celltype.replace("."," ")
+#         celltypes.append(celltype)
+#     fit = dict(zip(cellassign["Barcode"],celltypes))
+#     x_coded = dict(zip(barcodes, rdims[0]))
+#     y_coded = dict(zip(barcodes, rdims[1]))
+#     coords = dict()
+#     for barcode, celltype in fit.items():
+#         try:
+#             x_val = int(x_coded[barcode])
+#             y_val = int(y_coded[barcode])
+#         except Exception as e:
+#             continue
+#         coords[barcode] = (x_val, y_val)
+#     patient_data[sampleid]["cellassign"] = fit
+#     patient_data[sampleid]["umap"] = coords
+
 
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
@@ -454,14 +500,25 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
-        name = "integrate",
-        func = RunIntegration,
+        name = "integrate_positive",
+        func = RunNegativeIntegration,
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("seurat_pos_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_pos_integrated.rdata"),
         )
     )
+
+    workflow.transform (
+        name = "integrate_positive",
+        func = RunPositiveIntegration,
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_neg_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_neg_integrated.rdata"),
+        )
+    )
+
 
     workflow.transform (
         name = "sample_level",
