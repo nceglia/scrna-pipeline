@@ -16,7 +16,7 @@ from interface.tenxanalysis import TenxAnalysis
 from interface.singlecellexperiment import SingleCellExperiment
 from utils.cloud import TenxDataStorage
 from interface.qualitycontrol import QualityControl
-from utils.cloud import SampleCollection
+from utils.cloud import SampleCollection, VizReportStorage
 from interface.qualitycontrol import QualityControl
 from interface.genemarkermatrix import GeneMarkerMatrix
 from utils.plotting import celltypes, tsne_by_cell_type, umap_by_cell_type
@@ -464,6 +464,12 @@ def IntegratedSummary(sce, sampleid, report):
     output.close()
     shutil.copyfile("../viz/{}.json".format(sampleid),report)
 
+def UploadVizReport(integrated, positive, negative, complete):
+    vizreport = VizReportStorage(config.prefix, "viz")
+    vizreport.compress()
+    vizreport.upload()
+    open(complete,"w").write("pipeline complete.")
+
 def RunCollection(workflow):
     all_samples = open(config.samples, "r").read().splitlines()
     workflow.transform (
@@ -544,6 +550,17 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
+        name = "integrate",
+        func = RunIntegration,
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+        )
+    )
+
+
+    workflow.transform (
         name = "negative_integrate",
         func = RunNegativeIntegration,
         args = (
@@ -597,14 +614,25 @@ def RunCollection(workflow):
         )
     )
 
-    # workflow.transform (
-    #     name = "upload_viz",
-    #     func = UploadVizReport,
-    #     args = (
-    #         pypeliner.managed.TempOutputFile("positive_report.json"),
-    #         pypeliner.managed.TempOutputFile("negativereport.json"),
-    #         pypeliner.managed.TempOutputFile("upload.complete")
-    #     )
-    # )
+    workflow.transform (
+        name = "patient_level",
+        func = IntegratedSummary,
+        args = (
+            pypeliner.managed.TempInputFile("sce_integrated.rdata"),
+            "PATIENT_INTEGRATED",
+            pypeliner.managed.TempOutputFile("integrated_report.json"),
+        )
+    )
+
+    workflow.transform (
+        name = "upload_viz",
+        func = UploadVizReport,
+        args = (
+            pypeliner.managed.TempOutputFile("positive_report.json"),
+            pypeliner.managed.TempOutputFile("negative_report.json"),
+            pypeliner.managed.TempOutputFile("integrated_report.json"),
+            pypeliner.managed.TempOutputFile("upload.complete")
+        )
+    )
 
     return workflow
