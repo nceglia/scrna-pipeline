@@ -191,7 +191,7 @@ class VizReportStorage(object):
 
     def __init__(self, patient, vizpath):
         self.patient = patient
-        self.vispath = vizpath
+        self.vizpath = vizpath
         self.storage_account = "scrnadata"
         self.container = "scrnaviz"
         self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
