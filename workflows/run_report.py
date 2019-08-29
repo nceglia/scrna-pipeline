@@ -74,7 +74,7 @@ def RunReport(sampleid, workflow):
         func = Run,
         args = (
             sampleid,
-            pypeliner.managed.InputFile("cellassignanalysis.complete"),
+            pypeliner.managed.InputFile("qc.complete"),
             pypeliner.managed.OutputFile("report.complete")
         )
     )

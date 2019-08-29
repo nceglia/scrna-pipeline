@@ -68,6 +68,9 @@ class TenxDataStorage(object):
     def upload_cellranger(self, tenx):
         bam_tarball = tenx.bam_tarball()
         bam_tarball_name = os.path.split(bam_tarball)[-1]
+        if self.sampleid not in bam_tarball:
+            bam_tarball = os.path.join(self.sampleid, bam_tarball)
+        print("Uploading {} {}".format(bam_tarball, bam_tarball_name))
         outs_tarball = tenx.outs_tarball()
         outs_tarball_name = os.path.split(outs_tarball)[-1]
         self.upload(self.bams, bam_tarball_name.replace("_mouse",""), bam_tarball)
