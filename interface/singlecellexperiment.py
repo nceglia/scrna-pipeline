@@ -84,7 +84,7 @@ class SingleCellExperiment(RS4):
         sce.rs4 = rs4_object
         sce.rowData = SummarizedExperimentInterface.rowData(sce)
         sce.colData = SummarizedExperimentInterface.colData(sce)
-        # sce.assays = SummarizedExperimentInterface.assays(sce)
+        sce.assays = SummarizedExperimentInterface.assays(sce)
         sce.reducedDims = SingleCellExperimentInterface.reducedDims(sce)
         sce.sizeFactors = BiocGenericsInterface.sizeFactors(sce)
         sce.rownames = robjects.r["rownames"](sce)

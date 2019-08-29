@@ -302,7 +302,6 @@ def RunSampleSummary(sample_to_path, summary, sce, report, metrics, cellassign_f
         for barcode, cell in zip(column_data["Barcode"],row):
             if float(cell) != 0.0:
                 log_count_matrix[barcode][symbol] = cell
-    patient_data[sampleid]["matrix"] = dict(count_matrix)
     patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
     patient_data[sampleid]["web_summary"] = summary
     rdims = sce.reducedDims["UMAP"]
