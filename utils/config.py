@@ -44,6 +44,8 @@ bustools: {bustools}
 copy_cell_clones: {copy_cell_clones}
 filtered_cell_cn: {filtered_cell_cn}
 sample_mapping: sample_mapping.ssv
+positive_rho_matrix: /codebase/markers_positive.yaml
+negative_rho_matrix: /codebase/markers_negative.yaml
 """
 
 

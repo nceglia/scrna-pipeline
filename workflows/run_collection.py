@@ -52,7 +52,13 @@ def RunCellAssign(sce, annot_sce, cellfit):
     sampleid = sce.split("/")[-2]
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
-        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
+        if "CD45N" in sampleid:
+            rho = config.negative_rho_matrix
+        elif "CD45P" in sampleid:
+            rho = config.positive_rho_matrix
+        else:
+            rho = config.rho_matrix
+        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
     shutil.copyfile(_fit.replace("fit_sub","cell_types"),cellfit)
 

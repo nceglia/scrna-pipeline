@@ -184,24 +184,24 @@ class ReferenceDataStorage(object):
             self.extract(local)
         return self.reference
 
-# class VizReportStorage(object):
-#
-#     def __init__(self, patient, vizpath):
-#         self.patient
-#         self.vispath = vizpath
-#         self.storage_account = "scrnadata"
-#         self.container = "reference"
-#         self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
-#         self.tarball = None
-#
-#     def compress(self):
-#         self.tarball =  "{}.tar.gz".format(self.patient)
-#         with tarfile.open(self.tarball, "w:gz") as tar:
-#             tar.add(self.path, arcname=os.path.basename(self.path))
-#
-#     def upload(self,container, blob, local):
-#         print ("Uploading {} to {} in {}".format(self.tarball,blob,container))
-#         self.block_blob_service.create_blob_from_path(container, blob, local)
+class VizReportStorage(object):
+
+    def __init__(self, patient, vizpath):
+        self.patient
+        self.vispath = vizpath
+        self.storage_account = "scrnadata"
+        self.container = "scrnaviz"
+        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
+        self.tarball = None
+
+    def compress(self):
+        self.tarball =  "{}.tar.gz".format(self.patient)
+        with tarfile.open(self.tarball, "w:gz") as tar:
+            tar.add(self.vizpath, arcname=os.path.basename(self.vizpath))
+
+    def upload(self, blob, local):
+        print ("Uploading {} to {} in {}".format(self.tarball,self.tarball,self.container))
+        self.block_blob_service.create_blob_from_path(self.container, self.tarball, self.tarball)
 
 
 class VirtualMachine(object):
