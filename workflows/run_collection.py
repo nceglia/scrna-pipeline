@@ -388,7 +388,7 @@ def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, repo
     patient_data[sampleid]["cellassign"] = fit
     patient_data[sampleid]["umap"] = coords
     output=open(".cache/runqc_{}.R".format(sampleid),"w")
-    rdata = "../../{0}/runs/.cache/{0}/{0}.rdata".format(sample_original)
+    rdata = ".cache/{0}/{0}.rdata".format(sample_original)
     stats = ".cache/{0}_stats.tsv".format(sampleid)
     rcode = """
     library(SingleCellExperiment)
