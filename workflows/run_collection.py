@@ -597,14 +597,14 @@ def RunCollection(workflow):
         )
     )
 
-    workflow.transform (
-        name = "upload_viz",
-        func = UploadVizReport,
-        args = (
-            pypeliner.managed.TempOutputFile("positive_report.json"),
-            pypeliner.managed.TempOutputFile("negativereport.json"),
-            pypeliner.managed.TempOutputFile("upload.complete")
-        )
-    )
+    # workflow.transform (
+    #     name = "upload_viz",
+    #     func = UploadVizReport,
+    #     args = (
+    #         pypeliner.managed.TempOutputFile("positive_report.json"),
+    #         pypeliner.managed.TempOutputFile("negativereport.json"),
+    #         pypeliner.managed.TempOutputFile("upload.complete")
+    #     )
+    # )
 
     return workflow
