@@ -83,6 +83,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     rcode = """
     library(Seurat)
     library(sctransform)
+    library(SingleCellExperiment)
     seurat <- readRDS("{seurat}")
     seurat <- SCTransform(object = seurat)
     seurat <- RunPCA(object = seurat)
