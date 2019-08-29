@@ -190,7 +190,7 @@ class ReferenceDataStorage(object):
 class VizReportStorage(object):
 
     def __init__(self, patient, vizpath):
-        self.patient
+        self.patient = patient
         self.vispath = vizpath
         self.storage_account = "scrnadata"
         self.container = "scrnaviz"

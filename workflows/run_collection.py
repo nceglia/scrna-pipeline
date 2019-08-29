@@ -360,8 +360,8 @@ def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, repo
             if float(cell) != 0.0:
                 log_count_matrix[barcode][symbol] = cell
     patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
-    final_summary = "../viz/html/{}_web_summary.html".format(sampleid)
-    shutil.copyfile(summary, "../viz/html/{}_web_summary.html".format(sampleid))
+    final_summary = "viz/html/{}_web_summary.html".format(sampleid)
+    shutil.copyfile(summary, "viz/html/{}_web_summary.html".format(sampleid))
     patient_data[sampleid]["web_summary"] = final_summary
     rdims = sce.reducedDims["UMAP"]
     barcodes = sce.colData["Barcode"]
@@ -416,10 +416,10 @@ def PositiveIntegratedSummary(sce, report):
     IntegratedSummary(sce, "INTEGRATED_CD45_POSITIVE", report)
 
 def IntegratedSummary(sce, sampleid, report):
-    if not os.path.exists("../viz/"):
-        os.makedirs("../viz")
-    if not os.path.exists("../viz/html/"):
-        os.makedirs("../viz/html/")
+    if not os.path.exists("viz/"):
+        os.makedirs("viz")
+    if not os.path.exists("viz/html/"):
+        os.makedirs("viz/html/")
     sce = SingleCellExperiment.fromRData(sce)
     column_data = dump_all_coldata(sce)
     patient_data = collections.defaultdict(dict)
@@ -459,10 +459,10 @@ def IntegratedSummary(sce, sampleid, report):
     patient_data[sampleid]["umap"] = coords
     patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
     patient_data_str = json.dumps(patient_data)
-    output = open("../viz/{}.json".format(sampleid),"w")
+    output = open("viz/{}.json".format(sampleid),"w")
     output.write(str(patient_data_str))
     output.close()
-    shutil.copyfile("../viz/{}.json".format(sampleid),report)
+    shutil.copyfile("viz/{}.json".format(sampleid),report)
 
 def UploadVizReport(integrated, positive, negative, complete):
     vizreport = VizReportStorage(config.prefix, "viz")
