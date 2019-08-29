@@ -293,19 +293,12 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
     patient_data[sample]["celldata"] = column_data
     gene_data = dump_all_rowdata(sce)
     patient_data[sample]["genedata"] = gene_data
-    counts = sce.assays["counts"].todense().tolist()
     logcounts = sce.assays["logcounts"].todense().tolist()
-    count_matrix = collections.defaultdict(dict)
     log_count_matrix = collections.defaultdict(dict)
-    for symbol, row in zip(gene_data["Symbol"],counts):
-        for barcode, cell in zip(column_data["Barcode"],row):
-            if float(cell) != 0.0:
-                count_matrix[barcode][symbol] = cell
     for symbol, row in zip(gene_data["Symbol"],logcounts):
         for barcode, cell in zip(column_data["Barcode"],row):
             if float(cell) != 0.0:
                 log_count_matrix[barcode][symbol] = cell
-    patient_data[sample]["matrix"] = dict(count_matrix)
     patient_data[sample]["log_count_matrix"] = dict(log_count_matrix)
     patient_data[sample]["web_summary"] = summary
     rdims = sce.reducedDims["UMAP"]
@@ -350,7 +343,7 @@ def RunSampleSummary(summary, sce, report, metrics, cellassign_fit):
     patient_data["statistics"] = get_statistics(summary, metrics, report, stats)
     patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.markers).marker_list
     patient_data_str = json.dumps(patient_data)
-    output = open("../report/{}.json".format(given_sample),"w")
+    output = open("../report/{}.json".format(sampleid),"w")
     output.write(str(patient_data_str))
     output.close()
 
