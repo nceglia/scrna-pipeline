@@ -54,7 +54,7 @@ def RunCellAssign(sce, annot_sce, cellfit):
     if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
         CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
     shutil.copyfile(filtered_sce, annot_sce)
-    shutil.copyfile(_fit,cellfit)
+    shutil.copyfile(_fit.replace("fit_sub","cell_types"),cellfit)
 
 def RunConvert(sce, seurat):
     seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")

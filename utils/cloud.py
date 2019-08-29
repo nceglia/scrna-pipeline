@@ -195,14 +195,12 @@ class ReferenceDataStorage(object):
 #         self.tarball = None
 #
 #     def compress(self):
-#         base = os.cwd()
-#         sample =  "{}.tar.gz".format(self.patient)
-#         self.tarball = os.path.join(base, sample)
+#         self.tarball =  "{}.tar.gz".format(self.patient)
 #         with tarfile.open(self.tarball, "w:gz") as tar:
 #             tar.add(self.path, arcname=os.path.basename(self.path))
 #
 #     def upload(self,container, blob, local):
-#         print ("Uploading {} to {} in {}".format(local,blob,container))
+#         print ("Uploading {} to {} in {}".format(self.tarball,blob,container))
 #         self.block_blob_service.create_blob_from_path(container, blob, local)
 
 
