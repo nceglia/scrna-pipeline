@@ -580,7 +580,7 @@ def RunCloneAlignWorkflow(workflow):
         func = RunFigures,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sce_integrated.rdata","sample"),
+            pypeliner.managed.TempInputFile("sce_integrated.rdata"),
             pypeliner.managed.TempOutputFile("tsne.png","sample"),
             pypeliner.managed.TempOutputFile("umap.png","sample"),
         )
