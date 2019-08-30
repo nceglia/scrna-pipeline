@@ -42,6 +42,7 @@ def RunExtract(sample_to_path, rdata_path, summary_path, metrics_path):
     qc = QualityControl(tenx_analysis, sampleid)
     if not os.path.exists(qc.sce):
         qc.run(mito=config.mito)
+    qc.upload_raw()
     shutil.copyfile(tenx_analysis.summary, summary_path)
     shutil.copyfile(tenx_analysis.metrics_summary, metrics_path)
     shutil.copyfile(qc.sce, rdata_path)
@@ -95,7 +96,6 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     seurat <- RunPCA(object = seurat)
     seurat <- FindNeighbors(object = seurat)
     seurat <- FindClusters(object = seurat)
-    seurat <- RunTSNE(object = seurat)
     seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
     saveRDS(seurat, file = '{qcd_seurat}')
     sce <- as.SingleCellExperiment(seurat)
@@ -231,7 +231,7 @@ def RunNegativeIntegration(sample_to_paths, seurats, integrated_seurat, integrat
         sampleid = sample_map[sampleid]
         if "CD45N" in sampleid:
             negative_seurats[idx] = seurat
-    RunIntegration(negative_seurats, integrated_seurat, integrated_sce)
+    RunIntegration(negative_seurats, integrated_seurat, integrated_sce, flowsort="NEG")
 
 def RunPositiveIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
     positive_seurats = dict()
@@ -243,7 +243,7 @@ def RunPositiveIntegration(sample_to_paths, seurats, integrated_seurat, integrat
         sampleid = sample_map[sampleid]
         if "CD45P" in sampleid:
             positive_seurats[idx] = seurat
-    RunIntegration(positive_seurats, integrated_seurat, integrated_sce)
+    RunIntegration(positive_seurats, integrated_seurat, integrated_sce, flowsort="POS")
 
 def dump_all_coldata(sce):
     counts = sce.colData
