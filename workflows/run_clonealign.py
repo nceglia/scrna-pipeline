@@ -275,6 +275,95 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
     shutil.copyfile(evaluate_png_cached, evaluate_png)
 
 
+def RunConvert(sce, seurat):
+    seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
+    sce_cached = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+    rcode = """
+    library(Seurat)
+    library(SingleCellExperiment)
+    library(scater)
+    sce <- readRDS('{sce}')
+    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
+    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+    saveRDS(seurat,file='{seurat}')
+    """
+    path = os.path.split(sce)[0]
+    convert_script = os.path.join(path,"convert.R")
+    output = open(convert_script,"w")
+    output.write(rcode.format(sce=sce_cached,seurat=seurat_cached))
+    output.close()
+    if not os.path.exists(seurat_cached):
+        subprocess.call(["Rscript","{}".format(convert_script)])
+    shutil.copyfile(seurat_cached, seurat)
+
+def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
+    seurat_cached = os.path.join(os.path.split(seurat)[0],"seuret_annot.rdata")
+    sce_cached = os.path.join(os.path.split(seurat)[0],"sce_annot.rdata")
+    rcode = """
+    library(Seurat)
+    library(sctransform)
+    library(SingleCellExperiment)
+    seurat <- readRDS("{seurat}")
+    seurat <- SCTransform(object = seurat)
+    seurat <- RunPCA(object = seurat)
+    seurat <- FindNeighbors(object = seurat)
+    seurat <- FindClusters(object = seurat)
+    seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
+    saveRDS(seurat, file = '{qcd_seurat}')
+    sce <- as.SingleCellExperiment(seurat)
+    rowData(sce)$Symbol <- rownames(sce)
+    saveRDS(sce, file="{qcd_sce}")
+    """
+    path = os.path.split(seurat)[0]
+    qc_script = os.path.join(path,"qc.R")
+    output = open(qc_script,"w")
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached))
+    output.close()
+    if not os.path.exists(seurat_cached) or not os.path.exists(sce_cached):
+        subprocess.call(["Rscript", "{}".format(qc_script)])
+    shutil.copyfile(seurat_cached, qcd_seurat)
+    shutil.copyfile(sce_cached, qcd_sce)
+
+def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="ALL"):
+    rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached_{}.rdata".format(flowsort))
+    sce_cached = os.path.join(os.path.split(integrated_seurat)[0],"integrate_sce_cached_{}.rdata".format(flowsort))
+    object_list = []
+    rcode = """
+    library(Seurat)
+    library(SingleCellExperiment)
+    """
+    for idx, object in seurats.items():
+        seurat_obj = "seurat{}".format(idx)
+        object_list.append(seurat_obj)
+        load = """
+    seurat{id} <- readRDS("{object}")
+        """.format(id=idx,object=object)
+        rcode += load
+    rcode += """
+    object_list <- c({object_list})
+    features <- SelectIntegrationFeatures(object.list = c({object_list}), nfeatures = 3000)
+    prepped <- PrepSCTIntegration(object.list = c({object_list}), anchor.features = features)
+    anchors <- FindIntegrationAnchors(object.list = prepped, normalization.method="SCT", anchor.features=features)
+    integrated <- IntegrateData(anchorset = anchors, normalization="SCT")
+    saveRDS(integrated, file = "{rdata}")
+    integrated <- RunPCA(integrated, verbose = FALSE)
+    integrated <- RunUMAP(integrated, dims = 1:30)
+    saveRDS(integrated, file ="{rdata}")
+    sce <- as.SingleCellExperiment(integrated)
+    rowData(sce)$Symbol <- rownames(sce)
+    colData(sce)$cell_type <- sce$cell_type
+    saveRDS(sce, file="{sce}")
+    """
+    integrate_script = os.path.join(".cache/integration_{}.R".format(flowsort))
+    output = open(integrate_script,"w")
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached))
+    output.close()
+    if not os.path.exists(sce_cached):
+        subprocess.call(["Rscript","{}".format(integrate_script)])
+    shutil.copyfile(rdata, integrated_seurat)
+    shutil.copyfile(sce_cached, integrated_sce)
+
+
 def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     path = os.path.split(cell_sce)[0]
     result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.rdata")
@@ -389,17 +478,41 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempOutputFile("cal.rdata","sample"),
         )
     )
-    # workflow.transform (
-    #     name = "run_cloneeval",
-    #     func = RunEvaluation,
-    #     axes = ('sample',),
-    #     args = (
-    #         pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("cal.rdata","sample"),
-    #         pypeliner.managed.TempInputFile("rawcnv.rdata","sample"),
-    #         pypeliner.managed.TempOutputFile("clone_evaluation.png","sample"),
-    #     )
-    # )
+
+    workflow.transform (
+        name = "run_convert",
+        func = RunConvert,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
+        )
+    )
+
+    workflow.transform (
+        name = "run_qc",
+        func = RunSeuratWorkflow,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("seurat.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
+        )
+    )
+
+    workflow.transform (
+        name = "visualize_sample",
+        func = RunSeuratViz,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_ridge.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_features.png","sample"),
+        )
+    )
+
     workflow.transform (
         name = "run_figures",
         func = RunFigures,

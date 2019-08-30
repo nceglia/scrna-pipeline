@@ -524,9 +524,7 @@ def RunCollection(workflow):
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_tsne.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
-            pypeliner.managed.TempOutputFile("seurat_tsne_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_ridge.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_features.png","sample"),
