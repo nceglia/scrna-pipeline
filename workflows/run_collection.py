@@ -112,7 +112,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     shutil.copyfile(seurat_cached, qcd_seurat)
     shutil.copyfile(sce_cached, qcd_sce)
 
-def RunSeuratViz(seurat, tsne, umap, tsne_celltype, umap_celltype, ridge, exprs):
+def RunSeuratViz(seurat, umap, umap_celltype, ridge, exprs):
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
     markers = ["'" + marker + "'" for marker in marker_list.genes]
     tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
