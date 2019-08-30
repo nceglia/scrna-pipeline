@@ -277,12 +277,25 @@ def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
 
 def RunConvert(sce, seurat):
     seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
-    sce_cached = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+    sce_cached = os.path.join(os.path.split(sce)[0],"sce.rdata")
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
     library(scater)
-    sce <- readRDS('{sce}')
+    clone_sce <- readRDS('{sce_clone}')
+    cell_sce <- readRDS('{sce_cell')
+
+    cell_sce <- cell_sce[,cell_sce$cell_type=="Ovarian.cancer.cell"]
+
+    colnames(cell_sce) <- colData(cell_sce)$Barcode
+    colnames(clone_sce) <- colData(clone_sce)$Barcode
+
+    barcodes <- intersect(colnames(cell_sce),colnames(clone_sce))
+    clone_sce <- clone_sce[,barcodes]
+    cell_sce <- cell_sce[,barcodes]
+
+    clone_sce$cell_type <- sce_cell$cell_type
+    sce <- clone_sce
     rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
     saveRDS(seurat,file='{seurat}')
@@ -290,7 +303,7 @@ def RunConvert(sce, seurat):
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"convert.R")
     output = open(convert_script,"w")
-    output.write(rcode.format(sce=sce_cached,seurat=seurat_cached))
+    output.write(rcode.format(sce_clone=sce_clone, sce_cell=sce_cell ,seurat=seurat_cached))
     output.close()
     if not os.path.exists(seurat_cached):
         subprocess.call(["Rscript","{}".format(convert_script)])
@@ -324,7 +337,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     shutil.copyfile(seurat_cached, qcd_seurat)
     shutil.copyfile(sce_cached, qcd_sce)
 
-def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="ALL"):
+def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="full"):
     rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached_{}.rdata".format(flowsort))
     sce_cached = os.path.join(os.path.split(integrated_seurat)[0],"integrate_sce_cached_{}.rdata".format(flowsort))
     object_list = []
@@ -364,7 +377,7 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="ALL"):
     shutil.copyfile(sce_cached, integrated_sce)
 
 
-def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
+def RunFigures(sce, tsne, umap):
     path = os.path.split(cell_sce)[0]
     result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.rdata")
     tsne_cached = os.path.join(os.path.split(clone_sce)[0],"tsne_cached.png")
@@ -373,7 +386,6 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     library(SingleCellExperiment)
     library(scater)
     clone_sce <- readRDS('{clone_sce}')
-    cell_sce <- readRDS('{cell_sce}')
 
     cell_sce <- cell_sce[,cell_sce$cell_type=="Ovarian.cancer.cell"]
 
@@ -385,8 +397,6 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     cell_sce <- cell_sce[,barcodes]
 
     cell_sce$clone <- clone_sce$clone
-
-    saveRDS(cell_sce,file='{result_sce}')
 
     png('{umap}')
     plotReducedDim(cell_sce, use_dimred = "UMAP", colour_by = "clone") +
@@ -407,7 +417,7 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
     """
     run_script = os.path.join(path,"run_figures.R")
     output = open(run_script,"w")
-    output.write(rcode.format(clone_sce=clone_sce,cell_sce=cell_sce,result_sce=result_sce_cached,tsne=tsne_cached,umap=umap_cached))
+    output.write(rcode.format(clone_sce=clone_sce,result_sce=result_sce_cached,tsne=tsne_cached,umap=umap_cached))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(result_sce_cached, result_sce)
@@ -420,7 +430,7 @@ def RunFigures(clone_sce, cell_sce, result_sce, tsne, umap):
 
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
-    all_samples = [config.prefix]
+    all_samples = open(config.samples, "r").read().splitlines()
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
@@ -484,7 +494,8 @@ def RunCloneAlignWorkflow(workflow):
         func = RunConvert,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sce.rdata","sample"),
+            pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
+            pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
         )
     )
@@ -514,13 +525,21 @@ def RunCloneAlignWorkflow(workflow):
     )
 
     workflow.transform (
+        name = "integrate",
+        func = RunIntegration,
+        args = (
+            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+        )
+    )
+
+    workflow.transform (
         name = "run_figures",
         func = RunFigures,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-            pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
-            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+            pypeliner.managed.TempInputFile("sce_integrated.rdata","sample"),
             pypeliner.managed.TempOutputFile("tsne.png","sample"),
             pypeliner.managed.TempOutputFile("umap.png","sample"),
         )
