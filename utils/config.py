@@ -96,7 +96,8 @@ def write_config(args):
         kallisto = args.kallisto
         bustools = args.bustools
     elif subcommand == "clonealign":
-        prefix = args.sampleid
+        prefix = "clonealign"
+        sample_file = args.samples
         markers = args.markers
         copy_cell_clones = args.copy_cell_clones
         filtered_cell_cn = args.filtered_cell_cn
