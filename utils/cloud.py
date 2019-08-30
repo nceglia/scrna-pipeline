@@ -202,7 +202,7 @@ class VizReportStorage(object):
         with tarfile.open(self.tarball, "w:gz") as tar:
             tar.add(self.vizpath, arcname=os.path.basename(self.vizpath))
 
-    def upload(self, blob, local):
+    def upload(self):
         print ("Uploading {} to {} in {}".format(self.tarball,self.tarball,self.container))
         self.block_blob_service.create_blob_from_path(self.container, self.tarball, self.tarball)
 
