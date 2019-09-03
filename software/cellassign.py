@@ -29,13 +29,13 @@ class CellAssign(object):
         subprocess.call(submit, env=env)
 
     @staticmethod
-    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv"):
+    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True):
         if not os.path.exists(".cache"):
             os.makedirs(".cache")
         marker_list = GeneMarkerMatrix.read_yaml(rho_yaml)
         marker_list.write_matrix(rho_csv)
         assert os.path.exists(rho_csv)
-        CellAssign.cmd(rdata, rho_csv, results)
+        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf)
         print ("CellAssign finished.")
         matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
         pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")

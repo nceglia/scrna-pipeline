@@ -49,7 +49,7 @@ def RunCellAssign(sce, annot_sce):
     _fit = os.path.join(os.path.split(sce)[0],"fit.rdata")
     sampleid = sce.split("/")[-2]
     if not os.path.exists(filtered_sce):
-        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv)
+        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv, lsf=False)
     shutil.copyfile(filtered_sce, annot_sce)
     path = os.getcwd()
     shutil.copyfile(_fit, os.path.join(path,"fit.rdata"))
@@ -161,118 +161,6 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     shutil.copyfile(cal_fit_cached, cal_fit)
     path = os.getcwd()
     shutil.copyfile(cal_fit_cached, os.path.join(path,"cal.rdata"))
-
-def RunEvaluation(annotated_sce, cal_fit, cnv_mat, evaluate_png):
-    evaluate_png_cached = os.path.join(os.path.split(annotated_sce)[0],"evaluation_cached.png")
-    rcode = """
-    library(tidyverse)
-    library(scater)
-    library(data.table)
-    library(broom)
-    library(clonealign)
-    sce <- readRDS('{annotated_sce}')
-    cal <- readRDS('{cal_fit}')
-    cnv <- fread("{cnv_mat}")""".format(annotated_sce=annotated_sce,cnv_mat=cnv_mat,cal_fit=cal_fit)
-
-    rcode += """
-    recompute_clone_assignment <- function(ca, clone_assignment_probability = 0.95) {
-      clone_names <- colnames(ca$ml_params$clone_probs)
-      clones <- apply(ca$ml_params$clone_probs, 1, function(r) {
-        if(max(r) < clone_assignment_probability) {
-          return("unassigned")
-        }
-        return(clone_names[which.max(r)])
-      })
-      ca$clone <- clones
-      ca
-    }
-
-    ca <- recompute_clone_assignment(cal, 0.5)
-    cnv <- dplyr::filter(cnv, !use_gene) %>%
-      dplyr::rename(clone = cluster,
-                    copy_number=median_cnmode) %>%
-      dplyr::select(ensembl_gene_id, clone, copy_number) %>%
-      spread(clone, copy_number)
-    inferred_clones <- unique(ca$clone)
-    inferred_clones <- setdiff(inferred_clones, "unassigned")
-
-    collapsed_clones <- grepl("_", inferred_clones)
-
-    if(any(collapsed_clones)) {
-      for(i in which(collapsed_clones)) {
-        cclone <- inferred_clones[i]
-        uclones <- unlist(strsplit(cclone, "_"))
-        new_clone <- rowMedians(cnv_mat[, uclones])
-        cnv_mat <- cbind(cnv_mat, new_clone)
-        colnames(cnv_mat)[ncol(cnv_mat)] <- cclone
-      }
-    }
-    cnv_mat <- cnv_mat[, inferred_clones]
-    cnv_mat <- cnv_mat[matrixStats::rowVars(cnv_mat) > 0,]
-    cnv_mat <- cnv_mat[matrixStats::rowMaxs(cnv_mat) < 6,]
-
-    sce <- sce[,ca$clone_fit$Barcode]
-
-    sce <- sce[rowSums(as.matrix(counts(sce))) > 100, ]
-
-    common_genes <- intersect(rownames(sce), rownames(cnv_mat))
-
-    sce <- sce[common_genes,]
-    cnv_mat <- cnv_mat[common_genes,]
-
-    clones <- ca$clone
-
-    assigned_cells <- clones != "unassigned"
-
-    sce <- sce[, assigned_cells]
-    clones <- clones[assigned_cells]
-
-    logcs <- logcounts(sce)
-    cnv_mat_full <- cnv_mat[, clones]
-
-    test_estimates <- lapply(seq_len(nrow(sce)), function(i) {
-      lc <- logcs[i,]
-      cnv_dist <- cnv_mat_full[i,]
-      tidy(lm(lc ~ cnv_dist))[2,]
-    }) %>%
-      bind_rows()
-
-
-    cnv_mat_full <- cnv_mat[, sample(clones)]
-    null_estimates <- lapply(seq_len(nrow(sce)), function(i) {
-      lc <- logcs[i,]
-      cnv_dist <- cnv_mat_full[i,]
-      tidy(lm(lc ~ cnv_dist))[2,]
-    }) %>%
-      bind_rows()
-
-    df <- bind_rows(
-      dplyr::mutate(test_estimates, dist = "observed"),
-      dplyr::mutate(null_estimates, dist = "null")
-    )
-
-    tt <- t.test(test_estimates$estimate, null_estimates$estimate)
-
-    round2 <- function(x) format(round(x, 2), nsmall = 2)
-    """
-    rcode += """
-    png('{evaluate_png}')
-    ggplot(df, aes(x = dist, y = estimate)) +
-      geom_boxplot(outlier.shape = NA, size = .4) +
-      labs(x = "Distribution", y = "Coefficient expression ~ copy number",
-           title = sample,
-           subtitle = paste0("Genes not used by clonealign, p = ", round2(tt$p.value))) +
-      theme_bw() +
-      ylim(-.2, .2)
-    dev.off()
-    """.format(evaluate_png=evaluate_png_cached)
-    path = os.path.split(annotated_sce)[0]
-    run_script = os.path.join(path,"run_evaluation.R")
-    output = open(run_script,"w")
-    output.write(rcode)
-    output.close()
-    subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(evaluate_png_cached, evaluate_png)
 
 def RunSeuratViz(seurat, umap, umap_celltype, ridge, exprs):
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
