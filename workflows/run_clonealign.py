@@ -310,6 +310,7 @@ def RunFigures(sce, umap_cell,umap_clone, umap_sample):
 
     sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,".cache/",""))
     sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,"/filtered_feature_bc_matrix",""))
+    sce$Sample <- as.character(sce$Sample)
     png('{umap_clone}')
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "clone") +
         xlab('UMAP-1') +
