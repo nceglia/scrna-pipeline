@@ -297,37 +297,16 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="full"):
     shutil.copyfile(sce_cached, integrated_sce)
 
 
-def RunFigures(sce, tsne, umap):
-    path = os.path.split(cell_sce)[0]
-    result_sce_cached = os.path.join(os.path.split(clone_sce)[0],"sce_cached.rdata")
-    tsne_cached = os.path.join(os.path.split(clone_sce)[0],"tsne_cached.png")
-    umap_cached = os.path.join(os.path.split(clone_sce)[0],"umap_cached.png")
+def RunFigures(sce, umap):
+    path = os.path.split(sce)[0]
+    umap_cached = os.path.join(os.path.split(sce)[0],"umap_cached.png")
     rcode = """
     library(SingleCellExperiment)
     library(scater)
-    clone_sce <- readRDS('{clone_sce}')
-
-    cell_sce <- cell_sce[,cell_sce$cell_type=="Ovarian.cancer.cell"]
-
-    colnames(cell_sce) <- colData(cell_sce)$Barcode
-    colnames(clone_sce) <- colData(clone_sce)$Barcode
-
-    barcodes <- intersect(colnames(cell_sce),colnames(clone_sce))
-    clone_sce <- clone_sce[,barcodes]
-    cell_sce <- cell_sce[,barcodes]
-
-    cell_sce$clone <- clone_sce$clone
+    sce <- readRDS('{sce}')
 
     png('{umap}')
-    plotReducedDim(cell_sce, use_dimred = "UMAP", colour_by = "clone") +
-        xlab('UMAP-1') +
-        ylab("UMAP-2") +
-        guides(fill = guide_legend(title = "Cell Type")) +
-        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("CloneAlign") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
-    dev.off()
-
-    png('{tsne}')
-    plotReducedDim(cell_sce, use_dimred = "TSNE", colour_by = "clone") +
+    plotReducedDim(sce, use_dimred = "UMAP", colour_by = "clone") +
         xlab('UMAP-1') +
         ylab("UMAP-2") +
         guides(fill = guide_legend(title = "Cell Type")) +
@@ -337,16 +316,13 @@ def RunFigures(sce, tsne, umap):
     """
     run_script = os.path.join(path,"run_figures.R")
     output = open(run_script,"w")
-    output.write(rcode.format(clone_sce=clone_sce,result_sce=result_sce_cached,tsne=tsne_cached,umap=umap_cached))
+    output.write(rcode.format(sce=sce,umap=umap_cached))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(result_sce_cached, result_sce)
     shutil.copyfile(umap_cached, umap)
-    shutil.copyfile(tsne_cached, tsne)
     path = os.getcwd()
-    shutil.copyfile(result_sce_cached, os.path.join(path,"sce.rdata"))
+    shutil.copyfile(sce, os.path.join(path,"sce.rdata"))
     shutil.copyfile(umap_cached, os.path.join(path,"umap.png"))
-    shutil.copyfile(tsne_cached, os.path.join(path,"tsne.png"))
 
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
