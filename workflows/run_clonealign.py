@@ -198,7 +198,7 @@ def RunSeuratViz(seurat, umap, umap_celltype, umap_clone):
 
 
 def RunConvert(sce_cell, sce_clone, seurat):
-    seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
+    seurat_cached = os.path.join(os.path.split(sce_cell)[0],"seurat_raw.rdata")
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
