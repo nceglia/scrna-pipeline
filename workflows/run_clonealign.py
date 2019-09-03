@@ -297,7 +297,7 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="full"):
     shutil.copyfile(sce_cached, integrated_sce)
 
 
-def RunFigures(sce, umap_clone, umap_cell, umap_sample):
+def RunFigures(sce, umap_cell,umap_clone, umap_sample):
     path = os.path.split(sce)[0]
     umap_cell_cached = os.path.join(os.path.split(sce)[0],"umap_celltype_cached.png")
     umap_clone_cached = os.path.join(os.path.split(sce)[0],"umap_clone_cached.png")
@@ -455,8 +455,9 @@ def RunCloneAlignWorkflow(workflow):
         func = RunFigures,
         args = (
             pypeliner.managed.TempInputFile("sce_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("tsne.png"),
-            pypeliner.managed.TempOutputFile("umap.png"),
+            pypeliner.managed.TempOutputFile("umap_cell.png"),
+            pypeliner.managed.TempOutputFile("umap_clone.png"),
+            pypeliner.managed.TempOutputFile("umap_sample.png"),
         )
     )
     return workflow
