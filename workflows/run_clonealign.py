@@ -162,15 +162,12 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     path = os.getcwd()
     shutil.copyfile(cal_fit_cached, os.path.join(path,"cal.rdata"))
 
-def RunSeuratViz(seurat, umap, umap_celltype, ridge, exprs):
+def RunSeuratViz(seurat, umap, umap_celltype, umap_clone):
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
     markers = ["'" + marker + "'" for marker in marker_list.genes]
-    tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
     umap_plot = os.path.join(os.path.split(seurat)[0],"umap.png")
-    tsne_celltype_plot = os.path.join(os.path.split(seurat)[0],"tsne_celltype.png")
     umap_celltype_plot = os.path.join(os.path.split(seurat)[0],"umap_celltype.png")
-    ridge_plot = os.path.join(os.path.split(seurat)[0],"ridge.png")
-    exprs_plot = os.path.join(os.path.split(seurat)[0],"features.png")
+    umap_clone_plot = os.path.join(os.path.split(seurat)[0],"umap_clone.png")
     rcode = """
     library(Seurat)
     library(ggplot2)
@@ -184,25 +181,21 @@ def RunSeuratViz(seurat, umap, umap_celltype, ridge, exprs):
     DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
     dev.off()
 
-    png("{ridge}",width=600,heigh=5000)
-    RidgePlot(object = seurat, features = c({markers}), ncol = 2)
-    dev.off()
-
-    png("{exprs}",width=600,heigh=5000)
-    FeaturePlot(object = seurat, features = c({markers}), ncol= 2)
+    png("{umap_celltype}")
+    DimPlot(object = seurat, reduction = "umap", group.by = "clone")
     dev.off()
     """
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"viz.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot))
+    output.write(rcode.format(seurat=seurat, umap=umap_plot, umap_celltype=umap_celltype_plot,umap_clone=umap_clone_plot))
     output.close()
-    if not os.path.exists(exprs_plot):
+    if not os.path.exists(umap_clone_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(umap_plot, umap)
     shutil.copyfile(umap_celltype_plot, umap_celltype)
-    shutil.copyfile(ridge_plot, ridge)
-    shutil.copyfile(exprs_plot, exprs)
+    shutil.copyfile(umap_clone_plot, umap_clone)
+
 
 def RunConvert(sce, seurat):
     seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
@@ -448,8 +441,7 @@ def RunCloneAlignWorkflow(workflow):
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
-            pypeliner.managed.TempOutputFile("seurat_ridge.png","sample"),
-            pypeliner.managed.TempOutputFile("seurat_features.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_umap_clone.png","sample"),
         )
     )
 
