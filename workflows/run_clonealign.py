@@ -311,21 +311,21 @@ def RunFigures(sce, umap_cell,umap_clone, umap_sample):
     sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,".cache/",""))
     sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,"/filtered_feature_bc_matrix",""))
     sce$Sample <- as.character(sce$Sample)
-    png('{umap_clone}')
+    png('{umap_clone}',width=1000,height=1000)
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "clone") +
         xlab('UMAP-1') +
         ylab("UMAP-2") +
         guides(fill = guide_legend(title = "Cell Type")) +
         theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy","#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Clone") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
     dev.off()
-    png('{umap_sample}')
+    png('{umap_sample}',width=1000,height=1000)
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "Sample") +
         xlab('UMAP-1') +
         ylab("UMAP-2") +
         guides(fill = guide_legend(title = "Cell Type")) +
         theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy","#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Sample") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
     dev.off()
-    png('{umap_celltype}')
+    png('{umap_celltype}',width=1000,height=1000)
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "cell_type") +
         xlab('UMAP-1') +
         ylab("UMAP-2") +
