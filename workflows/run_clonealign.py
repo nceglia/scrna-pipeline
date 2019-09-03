@@ -215,7 +215,7 @@ def RunConvert(sce_cell, sce_clone, seurat):
     clone_sce <- clone_sce[,barcodes]
     cell_sce <- cell_sce[,barcodes]
 
-    clone_sce$cell_type <- sce_cell$cell_type
+    clone_sce$cell_type <- cell_sce$cell_type
     sce <- clone_sce
     rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
