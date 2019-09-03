@@ -221,7 +221,7 @@ def RunConvert(sce_cell, sce_clone, seurat):
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
     saveRDS(seurat,file='{seurat}')
     """
-    path = os.path.split(sce)[0]
+    path = os.path.split(sce_cell)[0]
     convert_script = os.path.join(path,"convert.R")
     output = open(convert_script,"w")
     output.write(rcode.format(sce_clone=sce_clone, sce_cell=sce_cell ,seurat=seurat_cached))
