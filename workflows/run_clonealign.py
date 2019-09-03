@@ -181,7 +181,7 @@ def RunSeuratViz(seurat, umap, umap_celltype, umap_clone):
     DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
     dev.off()
 
-    png("{umap_celltype}")
+    png("{umap_clone}")
     DimPlot(object = seurat, reduction = "umap", group.by = "clone")
     dev.off()
     """
