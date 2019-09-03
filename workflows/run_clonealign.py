@@ -206,7 +206,6 @@ def RunConvert(sce_cell, sce_clone, seurat):
     clone_sce <- readRDS('{sce_cell}')
     cell_sce <- readRDS('{sce_clone}')
 
-    cell_sce <- cell_sce[,cell_sce$cell_type=="Ovarian.cancer.cell"]
 
     colnames(cell_sce) <- colData(cell_sce)$Barcode
     colnames(clone_sce) <- colData(clone_sce)$Barcode
