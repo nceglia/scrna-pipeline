@@ -203,8 +203,8 @@ def RunConvert(sce_cell, sce_clone, seurat):
     library(Seurat)
     library(SingleCellExperiment)
     library(scater)
-    clone_sce <- readRDS('{sce_clone}')
-    cell_sce <- readRDS('{sce_cell}')
+    clone_sce <- readRDS('{sce_cell}')
+    cell_sce <- readRDS('{sce_clone}')
 
     cell_sce <- cell_sce[,cell_sce$cell_type=="Ovarian.cancer.cell"]
 
