@@ -297,32 +297,53 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="full"):
     shutil.copyfile(sce_cached, integrated_sce)
 
 
-def RunFigures(sce, umap):
+def RunFigures(sce, umap_clone, umap_cell, umap_sample):
     path = os.path.split(sce)[0]
-    umap_cached = os.path.join(os.path.split(sce)[0],"umap_cached.png")
+    umap_cell_cached = os.path.join(os.path.split(sce)[0],"umap_celltype_cached.png")
+    umap_clone_cached = os.path.join(os.path.split(sce)[0],"umap_clone_cached.png")
+    umap_sample_cached = os.path.join(os.path.split(sce)[0],"umap_sample_cached.png")
     rcode = """
     library(SingleCellExperiment)
     library(scater)
     sce <- readRDS('{sce}')
 
-    png('{umap}')
+    sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,".cache/",""))
+    sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,"/filtered_feature_bc_matrix",""))
+    png('{umap_clone}')
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "clone") +
         xlab('UMAP-1') +
         ylab("UMAP-2") +
         guides(fill = guide_legend(title = "Cell Type")) +
-        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("CloneAlign") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
+        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy","#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Clone") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
     dev.off()
-
+    png('{umap_sample}')
+    plotReducedDim(sce, use_dimred = "UMAP", colour_by = "Sample") +
+        xlab('UMAP-1') +
+        ylab("UMAP-2") +
+        guides(fill = guide_legend(title = "Cell Type")) +
+        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy","#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Sample") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
+    dev.off()
+    png('{umap_celltype}')
+    plotReducedDim(sce, use_dimred = "UMAP", colour_by = "cell_type") +
+        xlab('UMAP-1') +
+        ylab("UMAP-2") +
+        guides(fill = guide_legend(title = "Cell Type")) +
+        theme_bw() + scale_fill_manual(values=c("#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy","#58d1eb","#000000","#df4173","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Cell Type") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=15, face = "bold"),axis.title.y=element_text(size=15, face = "bold"), legend.text=element_text(size=15, face = "bold"),axis.text.y = element_text(face="bold",size=15),axis.text.x = element_text(face="bold",size=15),legend.title=element_text(size=15))
+    dev.off()
     """
     run_script = os.path.join(path,"run_figures.R")
     output = open(run_script,"w")
-    output.write(rcode.format(sce=sce,umap=umap_cached))
+    output.write(rcode.format(sce=sce,umap_clone=umap_clone_cached,umap_celltype=umap_cell_cached,umap_sample=umap_sample_cached))
     output.close()
     subprocess.call(["Rscript","{}".format(run_script)])
-    shutil.copyfile(umap_cached, umap)
+    shutil.copyfile(umap_cell_cached, umap_cell)
+    shutil.copyfile(umap_clone_cached, umap_clone)
+    shutil.copyfile(umap_sample_cached, umap_sample)
     path = os.getcwd()
     shutil.copyfile(sce, os.path.join(path,"sce.rdata"))
-    shutil.copyfile(umap_cached, os.path.join(path,"umap.png"))
+    shutil.copyfile(umap_clone_cached, os.path.join(path,"umap_clone.png"))
+    shutil.copyfile(umap_cell_cached, os.path.join(path,"umap_cell.png"))
+    shutil.copyfile(umap_sample_cached, os.path.join(path,"umap_sample.png"))
 
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
