@@ -305,6 +305,7 @@ def RunFigures(sce, umap_cell,umap_clone, umap_sample):
     rcode = """
     library(SingleCellExperiment)
     library(scater)
+    library(stringr)
     sce <- readRDS('{sce}')
 
     sce$Sample <- lapply(sce$Sample, function (x) str_replace(x,".cache/",""))
