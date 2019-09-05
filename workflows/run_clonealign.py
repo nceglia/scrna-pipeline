@@ -144,6 +144,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     library(clonealign)
     library(ggplot2)
     sce <- readRDS('{clone_sce}')
+    sce <- sce[,colData(sce)$cell_type=="Ovarian.cancer.cell"]
     cnv <- readRDS('{cnv_mat}')
     cal <- clonealign(sce, cnv,remove_outlying_genes=FALSE)
     sce$clone <- cal$clone
@@ -389,7 +390,7 @@ def RunCloneAlignWorkflow(workflow):
         func = RunCloneAlignInput,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempInputFile("sample.rdata","sample"),
+            pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
             pypeliner.managed.TempInputFile("copy_number_data.csv","sample"),
             pypeliner.managed.TempOutputFile("clone.rdata","sample"),
             pypeliner.managed.TempOutputFile("cnv.rdata","sample"),
