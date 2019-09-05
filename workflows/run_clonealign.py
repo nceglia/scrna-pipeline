@@ -143,6 +143,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     rcode = """
     library(clonealign)
     library(ggplot2)
+    library(SingleCellExperiment)
     sce <- readRDS('{clone_sce}')
     sce <- sce[,colData(sce)$cell_type=="Ovarian.cancer.cell"]
     cnv <- readRDS('{cnv_mat}')
