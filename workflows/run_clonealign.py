@@ -410,58 +410,71 @@ def RunCloneAlignWorkflow(workflow):
         )
     )
 
-    workflow.transform (
-        name = "run_convert",
-        func = RunConvert,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
-            pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
-        )
-    )
 
-    workflow.transform (
-        name = "run_qc",
-        func = RunSeuratWorkflow,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("seurat.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
+    if len(all_samples) > 0:
+        workflow.transform (
+            name = "run_convert",
+            func = RunConvert,
+            axes = ('sample',),
+            args = (
+                pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
+                pypeliner.managed.TempInputFile("cell_annotated.rdata","sample"),
+                pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
+            )
         )
-    )
 
-    workflow.transform (
-        name = "visualize_sample",
-        func = RunSeuratViz,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
-            pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
-            pypeliner.managed.TempOutputFile("seurat_umap_clone.png","sample"),
+        workflow.transform (
+            name = "run_qc",
+            func = RunSeuratWorkflow,
+            axes = ('sample',),
+            args = (
+                pypeliner.managed.TempInputFile("seurat.rdata","sample"),
+                pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
+                pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
+            )
         )
-    )
 
-    workflow.transform (
-        name = "integrate",
-        func = RunIntegration,
-        args = (
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+        workflow.transform (
+            name = "visualize_sample",
+            func = RunSeuratViz,
+            axes = ('sample',),
+            args = (
+                pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+                pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
+                pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
+                pypeliner.managed.TempOutputFile("seurat_umap_clone.png","sample"),
+            )
         )
-    )
 
-    workflow.transform (
-        name = "run_figures",
-        func = RunFigures,
-        args = (
-            pypeliner.managed.TempInputFile("sce_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("umap_cell.png"),
-            pypeliner.managed.TempOutputFile("umap_clone.png"),
-            pypeliner.managed.TempOutputFile("umap_sample.png"),
+        workflow.transform (
+            name = "integrate",
+            func = RunIntegration,
+            args = (
+                pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+                pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
+                pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+            )
         )
-    )
+
+        workflow.transform (
+            name = "run_figures",
+            func = RunFigures,
+            args = (
+                pypeliner.managed.TempInputFile("sce_integrated.rdata"),
+                pypeliner.managed.TempOutputFile("umap_cell.png"),
+                pypeliner.managed.TempOutputFile("umap_clone.png"),
+                pypeliner.managed.TempOutputFile("umap_sample.png"),
+            )
+        )
+    else:
+        workflow.transform (
+            name = "run_figures_single_sample",
+            func = RunFigures,
+            args = (
+                pypeliner.managed.TempInputFile("clone_annotated.rdata"),
+                pypeliner.managed.TempOutputFile("umap_cell.png"),
+                pypeliner.managed.TempOutputFile("umap_clone.png"),
+                pypeliner.managed.TempOutputFile("umap_sample.png"),
+            )
+        )
     return workflow
