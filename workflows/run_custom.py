@@ -517,7 +517,7 @@ def RunCollection(workflow):
         axes = ('sample',),
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce_raw.rdata","sample"),
             pypeliner.managed.TempOutputFile("filtered.rdata","sample"),
         )
     )
