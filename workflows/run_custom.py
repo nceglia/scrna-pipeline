@@ -42,7 +42,7 @@ def RunQC(custom_output, sce, filtered_sce):
     library(scran)
     library(stringr)
 
-    sce <- read10xCounts('{bus_path}')
+    sce <- read10xCounts('{path}')
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
@@ -71,7 +71,7 @@ def RunQC(custom_output, sce, filtered_sce):
     sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     saveRDS(sce, file='{filtered}')
-    """.format(raw=sce,filtered=filtered_sce, bus_path=os.path.abspath(bus_path))
+    """.format(raw=sce,filtered=filtered_sce, path=os.path.abspath(path))
     path = "/".join(bus_path.split("/")[:-1])
     qc_script = os.path.join(path,"convert.R")
     output = open(qc_script,"w")
