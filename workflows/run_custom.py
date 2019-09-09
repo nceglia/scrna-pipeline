@@ -501,8 +501,6 @@ def UploadVizReport(integrated, positive, negative, complete):
 
 def RunCollection(workflow):
 
-def RunDownload(sampleids, finished):
-
     all_samples = open(config.samples, "r").read().splitlines()
 
     workflow.transform (
