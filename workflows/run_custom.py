@@ -96,7 +96,7 @@ def RunCellAssign(sce, annot_sce, cellfit):
             rho = config.positive_rho_matrix
         else:
             rho = config.rho_matrix
-        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv)
+        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=False)
     shutil.copyfile(filtered_sce, annot_sce)
     shutil.copyfile(_fit.replace("fit_sub","cell_types"),cellfit)
 
