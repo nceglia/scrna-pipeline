@@ -544,7 +544,7 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
-        name = "run_qc",
+        name = "run_seurat_workflow",
         func = RunSeuratWorkflow,
         axes = ('sample',),
         args = (
