@@ -84,11 +84,12 @@ def RunQC(custom_output, sce, filtered_sce):
     output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
     shutil.copyfile(filtered_sce,output)
 
-def RunCellAssign(sce, annot_sce, cellfit):
-    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
-    _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
-    sampleid = sce.split("/")[-2]
-    filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+def RunCellAssign(custom_output, sce, annot_sce, cellfit):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    _rho_csv = os.path.join(config.jobpath,"results","rho_csv_sub_{}.csv".format(sampleid))
+    _fit = os.path.join(config.jobpath,"results","fit_sub_{}.pkl".format(sampleid))
+    filtered_sce = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
     if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
         if "CD45N" in sampleid:
             rho = config.negative_rho_matrix
@@ -100,9 +101,31 @@ def RunCellAssign(sce, annot_sce, cellfit):
     shutil.copyfile(filtered_sce, annot_sce)
     shutil.copyfile(_fit.replace("fit_sub","cell_types"),cellfit)
 
-def RunConvert(sce, seurat):
-    seurat_cached = os.path.join(os.path.split(sce)[0],"seurat_raw.rdata")
-    sce_cached = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
+
+def CellAssignAnalysis(custom_output, filtered_sce, celltype_plot, tsne, umap):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    pyfit = os.path.join(os.path.split(sce_cas)[0],"cell_types.pkl")
+    assert os.path.exists(pyfit), "No Pyfit Found."
+    pyfit = pickle.load(open(pyfit,"rb"))
+    marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
+    cell_types = marker_list.celltypes()
+    if "B cell" not in cell_types: cell_types.append("B cell")
+    celltypes(pyfit, sampleid, cellassign_analysis, known_types=cell_types)
+    tsne_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
+    umap_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
+    _celltypes = os.path.join(config.jobpath,"results", "{}_cell_types.png".format(sampleid))
+    _tsne = os.path.join(config.jobpath,"results", "{}_tsne_by_cell_type.png".format(sampleid))
+    _umap = os.path.join(config.jobpath,"results", "{}_umap_by_cell_type.png".format(sampleid))
+    shutil.copyfile(_celltypes, celltype_plot)
+    shutil.copyfile(_umap, umap)
+    shutil.copyfile(_tsne, tsne)
+
+def RunConvert(custom_output, sce, seurat):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    seurat_cached = os.path.join(config.jobpath,"results","{}_seurat_raw.rdata".format(sampleid))
+    sce_cached = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
@@ -113,7 +136,7 @@ def RunConvert(sce, seurat):
     saveRDS(seurat,file='{seurat}')
     """
     path = os.path.split(sce)[0]
-    convert_script = os.path.join(path,"convert.R")
+    convert_script = os.path.join(path,"convert_{}.R".format(sampleid))
     output = open(convert_script,"w")
     output.write(rcode.format(sce=sce_cached,seurat=seurat_cached))
     output.close()
@@ -121,9 +144,13 @@ def RunConvert(sce, seurat):
         subprocess.call(["Rscript","{}".format(convert_script)])
     shutil.copyfile(seurat_cached, seurat)
 
-def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
-    seurat_cached = os.path.join(os.path.split(seurat)[0],"seuret_annot.rdata")
-    sce_cached = os.path.join(os.path.split(seurat)[0],"sce_annot.rdata")
+def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    seurat_cached = os.path.join(config.jobpath, "results","seuret_annot_{}.rdata".format(sampleid))
+    sce_cached = os.path.join(config.jobpath, "results","sce_annot_{}.rdata".format(sampleid))
+    umap = os.path.join(config.jobpath, "results","umap_cluster_{}.png".format(sampleid))
+    tsne = os.path.join(config.jobpath, "results","tsne_cluster_{}.png".format(sampleid))
     rcode = """
     library(Seurat)
     library(sctransform)
@@ -133,7 +160,14 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     seurat <- RunPCA(object = seurat)
     seurat <- FindNeighbors(object = seurat)
     seurat <- FindClusters(object = seurat)
+    seurat <- RunTSNE(object = seurat, reduction = "pca")
     seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
+    png("{tsne}")
+    DimPlot(object = seurat, reduction = "tsne")
+    dev.off()
+    png("{umap}")
+    DimPlot(object = seurat, reduction = "umap")
+    dev.off()
     saveRDS(seurat, file = '{qcd_seurat}')
     sce <- as.SingleCellExperiment(seurat)
     rowData(sce)$Symbol <- rownames(sce)
@@ -142,33 +176,33 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached))
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, tsne=tsne))
     output.close()
     if not os.path.exists(seurat_cached) or not os.path.exists(sce_cached):
         subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
     shutil.copyfile(sce_cached, qcd_sce)
 
-def RunSeuratViz(seurat, umap, umap_celltype, ridge, exprs):
+def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exprs):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
     markers = ["'" + marker + "'" for marker in marker_list.genes]
-    tsne_plot = os.path.join(os.path.split(seurat)[0],"tsne.png")
-    umap_plot = os.path.join(os.path.split(seurat)[0],"umap.png")
-    tsne_celltype_plot = os.path.join(os.path.split(seurat)[0],"tsne_celltype.png")
-    umap_celltype_plot = os.path.join(os.path.split(seurat)[0],"umap_celltype.png")
-    ridge_plot = os.path.join(os.path.split(seurat)[0],"ridge.png")
-    exprs_plot = os.path.join(os.path.split(seurat)[0],"features.png")
+    tsne_celltype_plot = os.path.join(config.jobpath,"results","tsne_celltype_{}_sctransform.png".format(sampleid))
+    umap_celltype_plot = os.path.join(config.jobpath,"results","umap_celltype_{}_sctransform.png".format(sampleid))
+    ridge_plot = os.path.join(config.jobpath,"results","ridge_{}.png".format(sampleid))
+    exprs_plot = os.path.join(config.jobpath,"results","features_{}.png".format(sampleid))
     rcode = """
     library(Seurat)
     library(ggplot2)
     seurat <- readRDS("{seurat}")
 
-    png("{umap}")
-    DimPlot(object = seurat, reduction = "umap")
-    dev.off()
-
     png("{umap_celltype}")
     DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
+    dev.off()
+
+    png("{tsne_celltype}")
+    DimPlot(object = seurat, reduction = "tsne", group.by = "cell_type")
     dev.off()
 
     png("{ridge}",width=600,heigh=5000)
@@ -180,19 +214,21 @@ def RunSeuratViz(seurat, umap, umap_celltype, ridge, exprs):
     dev.off()
     """
     path = os.path.split(seurat)[0]
-    qc_script = os.path.join(path,"viz.R")
+    qc_script = os.path.join(path,"viz_{}.R".format(sampleid))
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, tsne=tsne_plot, umap=umap_plot, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot))
+    output.write(rcode.format(seurat=seurat, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot))
     output.close()
     if not os.path.exists(exprs_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
-    shutil.copyfile(umap_plot, umap)
+    shutil.copyfile(tsne_celltype_plot, tsne_celltype)
     shutil.copyfile(umap_celltype_plot, umap_celltype)
     shutil.copyfile(ridge_plot, ridge)
     shutil.copyfile(exprs_plot, exprs)
 
-def RunMarkers(seurat,marker_table):
-    marker_csv_cached = os.path.join(os.path.split(seurat)[0],"marker_table.csv")
+def RunMarkers(custom_output,seurat,marker_table):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    marker_csv_cached = os.path.join(config.jobpath, "results","marker_table_{}.csv".format(sampleid))
     rcode = """
     library(Seurat)
     library(dplyr)
@@ -203,7 +239,7 @@ def RunMarkers(seurat,marker_table):
     write.csv(marker_table, file = "{marker_csv}")
     """
     path = os.path.split(seurat)[0]
-    marker_script = os.path.join(path,"markers.R")
+    marker_script = os.path.join(path,"markers_{}.R".format(sampleid))
     output = open(marker_script,"w")
     output.write(rcode.format(seurat=seurat, marker_csv=marker_csv_cached))
     output.close()
@@ -211,9 +247,13 @@ def RunMarkers(seurat,marker_table):
         subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="ALL"):
-    rdata = os.path.join(os.path.split(integrated_seurat)[0],"integrate_seurat_cached_{}.rdata".format(flowsort))
-    sce_cached = os.path.join(os.path.split(integrated_seurat)[0],"integrate_sce_cached_{}.rdata".format(flowsort))
+def RunIntegration(custom_output, seurats, integrated_seurat, integrated_sce, integrated_tsne, integrated_umap):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    rdata = os.path.join(config.jobpath,"results","integrated_seurat.rdata")
+    sce_cached = os.path.join(config.jobpath,"results","integrated_sce.rdata")
+    umap = os.path.join(config.jobpath,"results","integrated_tsne.rdata")
+    tsne = os.path.join(config.jobpath,"results","integrated_uamp.rdata")
     object_list = []
     rcode = """
     library(Seurat)
@@ -240,266 +280,26 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, flowsort="ALL"):
     rowData(sce)$Symbol <- rownames(sce)
     colData(sce)$cell_type <- sce$cell_type
     saveRDS(sce, file="{sce}")
+
+    png("{umap}")
+    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
+    dev.off()
+
+    png("{tsne}")
+    DimPlot(object = seurat, reduction = "tsne", group.by = "cell_type")
+    dev.off()
+
     """
     integrate_script = os.path.join(".cache/integration_{}.R".format(flowsort))
     output = open(integrate_script,"w")
-    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached))
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached,umap=umap,tsne=tsne))
     output.close()
     if not os.path.exists(sce_cached):
         subprocess.call(["Rscript","{}".format(integrate_script)])
     shutil.copyfile(rdata, integrated_seurat)
     shutil.copyfile(sce_cached, integrated_sce)
-
-def RunNegativeIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
-    negative_seurats = dict()
-    for idx, seurat in seurats.items():
-        sample_to_path = sample_to_paths[idx]
-        sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
-        sample = json.loads(open(sample_to_path,"r").read())
-        sampleid, path = list(sample.items()).pop()
-        sampleid = sample_map[sampleid]
-        if "CD45N" in sampleid:
-            negative_seurats[idx] = seurat
-    RunIntegration(negative_seurats, integrated_seurat, integrated_sce, flowsort="NEG")
-
-def RunPositiveIntegration(sample_to_paths, seurats, integrated_seurat, integrated_sce):
-    positive_seurats = dict()
-    for idx, seurat in seurats.items():
-        sample_to_path = sample_to_paths[idx]
-        sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
-        sample = json.loads(open(sample_to_path,"r").read())
-        sampleid, path = list(sample.items()).pop()
-        sampleid = sample_map[sampleid]
-        if "CD45P" in sampleid:
-            positive_seurats[idx] = seurat
-    RunIntegration(positive_seurats, integrated_seurat, integrated_sce, flowsort="POS")
-
-def dump_all_coldata(sce):
-    counts = sce.colData
-    column_data = dict()
-    for key in counts.keys():
-        if type(counts[key]) == list:
-            if "endogenous" in key: continue
-            if "top_50_features" in key or "top_100_features" in key or "top_200_features" in key or "top_500_features" in key: continue
-            if "control" in key: continue
-            corrected = []
-            for value in counts[key]:
-                try:
-                    value = float(value)
-                except:
-                    value = value
-                corrected.append(value)
-            column_data[key] = corrected
-            column_data[key] = counts[key]
-    return column_data
-
-def dump_all_rowdata(sce):
-    counts = sce.rowData
-    column_data = dict()
-    for key in counts.keys():
-        if type(counts[key]) == list:
-            if "is_" in key: continue
-            if "NA" in str(key): continue
-            if "entrezgene" in key: continue
-            corrected = []
-            for value in counts[key]:
-                try:
-                    value = float(value)
-                except:
-                    value = value
-                corrected.append(value)
-            column_data[key] = corrected
-    print (column_data.keys())
-    return column_data
-
-def find_chemistry(summary):
-    rows = open(summary,"r").read().splitlines()
-    for i, row in enumerate(rows):
-        if "Chemistry" in row:
-            index = i
-            break
-    chem = rows[index+1].strip().replace("<td>","").replace("</td>","")
-    return chem
-
-def load_summary(metrics):
-    rows = open(metrics,"r").read().splitlines()
-    header = rows.pop(0)
-    header = pp.commaSeparatedList.parseString(header).asList()
-    stats = rows.pop(0)
-    stats = pp.commaSeparatedList.parseString(stats).asList()
-    assert len(header) == len(stats), "{} - {}".format(len(header),len(stats))
-    for i,stat in enumerate(stats):
-        stats[i] = stat.replace(",","").replace('"',"")
-    return dict(zip(header,stats))
-
-def load_mito(stats_file):
-    perc_path = os.path.join(stats_file)
-    results = open(perc_path,"r").read().splitlines()[2].split()[-1].strip()
-    return results
-
-def get_statistics(sampleid, web_summary, metrics, patient_summary, stats):
-    cols = ["Sample","Chemistry","Mito20"]
-    sample_stats = {}
-    final_stats = dict()
-    summary = os.path.join(web_summary)
-    metrics = os.path.join(metrics)
-    chem = find_chemistry(summary)
-    res = load_summary(metrics)
-    mito20 = load_mito(stats)
-    cols += res.keys()
-    res["Chemistry"] = chem
-    res["Sample"] = sampleid
-    res["Mito20"] = mito20
-    sample_stats[sampleid] = res
-    output = open(patient_summary,"w")
-    output.write("\t".join(cols)+"\n")
-    for sample in sample_stats:
-        row = []
-        columns = []
-        for col in cols:
-            if "Q30" in col: continue
-            columns.append(col)
-            row.append(sample_stats[sample][col])
-        row = [x.replace('"','').replace(",","") for x in row]
-        final_stats[sample] = dict(zip(columns, row))
-        output.write("\t".join(row)+"\n")
-    output.close()
-    return final_stats
-
-def RunSampleSummary(sample_to_path, summary, sce, cellassign_fit, metrics, report):
-    sample_map = dict([x.split() for x in open(config.sample_mapping,"r").read().splitlines()])
-    sample = json.loads(open(sample_to_path,"r").read())
-    sampleid, path = list(sample.items()).pop()
-    sample_original = sampleid
-    sampleid = sample_map[sampleid]
-    if not os.path.exists("viz/{}.json".format(sampleid)):
-        if not os.path.exists("viz/"):
-            os.makedirs("viz")
-        if not os.path.exists("viz/html/"):
-            os.makedirs("viz/html/")
-        sce = SingleCellExperiment.fromRData(sce)
-        column_data = dump_all_coldata(sce)
-        patient_data = collections.defaultdict(dict)
-        patient_data[sampleid]["celldata"] = column_data
-        gene_data = dump_all_rowdata(sce)
-        patient_data[sampleid]["genedata"] = gene_data
-        logcounts = sce.assays["logcounts"].todense().tolist()
-        log_count_matrix = collections.defaultdict(dict)
-        for symbol, row in zip(gene_data["Symbol"],logcounts):
-            for barcode, cell in zip(column_data["Barcode"],row):
-                if float(cell) != 0.0:
-                    log_count_matrix[barcode][symbol] = cell
-        patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
-        final_summary = "viz/html/{}_web_summary.html".format(sampleid)
-        shutil.copyfile(summary, "viz/html/{}_web_summary.html".format(sampleid))
-        patient_data[sampleid]["web_summary"] = final_summary
-        rdims = sce.reducedDims["UMAP"]
-        barcodes = sce.colData["Barcode"]
-        rdims = numpy.array(rdims).reshape(2, len(barcodes))
-        cellassign = pickle.load(open(cellassign_fit,"rb"))
-        celltypes = []
-        for celltype in cellassign["cell_type"]:
-            if celltype == "Monocyte.Macrophage":
-                celltype = "Monocyte/Macrophage"
-            else:
-                celltype = celltype.replace("."," ")
-            celltypes.append(celltype)
-        fit = dict(zip(cellassign["Barcode"],celltypes))
-        x_coded = dict(zip(barcodes, rdims[0]))
-        y_coded = dict(zip(barcodes, rdims[1]))
-        coords = dict()
-        for barcode, celltype in fit.items():
-            try:
-                x_val = int(x_coded[barcode])
-                y_val = int(y_coded[barcode])
-            except Exception as e:
-                continue
-            coords[barcode] = (x_val, y_val)
-        patient_data[sampleid]["cellassign"] = fit
-        patient_data[sampleid]["umap"] = coords
-        output=open(".cache/runqc_{}.R".format(sampleid),"w")
-        rdata = ".cache/{0}/{0}.rdata".format(sample_original)
-        stats = ".cache/{0}_stats.tsv".format(sampleid)
-        rcode = """
-        library(SingleCellExperiment)
-        rdata <- readRDS('{sce}')
-        sce <- as(rdata, 'SingleCellExperiment')
-        cells_to_keep <- sce$pct_counts_mito < as.numeric(20)
-        table_cells_to_keep <- table(cells_to_keep)
-        write.table(table_cells_to_keep, file='{stats}',sep="\t")
-        """
-        output.write(rcode.format(sce=rdata, stats=stats))
-        output.close()
-        subprocess.call(["Rscript",".cache/runqc_{}.R".format(sampleid)])
-        patient_data["statistics"] = get_statistics(sampleid, summary, metrics, report, stats)
-        patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
-        patient_data_str = json.dumps(patient_data)
-        output = open("viz/{}.json".format(sampleid),"w")
-        output.write(str(patient_data_str))
-        output.close()
-    shutil.copyfile("viz/{}.json".format(sampleid),report)
-
-def NegativeIntegratedSummary(sce, report):
-    IntegratedSummary(sce, "INTEGRATED_CD45_NEGATIVE", report)
-
-def PositiveIntegratedSummary(sce, report):
-    IntegratedSummary(sce, "INTEGRATED_CD45_POSITIVE", report)
-
-def IntegratedSummary(sce, sampleid, report):
-    if not os.path.exists("viz/"):
-        os.makedirs("viz")
-    if not os.path.exists("viz/html/"):
-        os.makedirs("viz/html/")
-    if not os.path.exists("viz/{}.json".format(sampleid)):
-        sce = SingleCellExperiment.fromRData(sce)
-        column_data = dump_all_coldata(sce)
-        patient_data = collections.defaultdict(dict)
-        patient_data[sampleid]["celldata"] = column_data
-        gene_data = dump_all_rowdata(sce)
-        patient_data[sampleid]["genedata"] = gene_data
-        logcounts = sce.assays["logcounts"].todense().tolist()
-        log_count_matrix = collections.defaultdict(dict)
-        for symbol, row in zip(gene_data["Symbol"],logcounts):
-            for barcode, cell in zip(column_data["Barcode"],row):
-                if float(cell) != 0.0:
-                    log_count_matrix[barcode][symbol] = cell
-        patient_data[sampleid]["log_count_matrix"] = dict(log_count_matrix)
-        rdims = sce.reducedDims["UMAP"]
-        barcodes = sce.colData["Barcode"]
-        rdims = numpy.array(rdims).reshape(2, len(barcodes))
-        _celltypes = sce.colData["cell_type"]
-        celltypes = []
-        for celltype in _celltypes:
-            if celltype == "Monocyte.Macrophage":
-                celltype = "Monocyte/Macrophage"
-            else:
-                celltype = celltype.replace("."," ")
-            celltypes.append(celltype)
-        fit = dict(zip(barcodes,celltypes))
-        x_coded = dict(zip(barcodes, rdims[0]))
-        y_coded = dict(zip(barcodes, rdims[1]))
-        coords = dict()
-        for barcode, celltype in fit.items():
-            try:
-                x_val = int(x_coded[barcode])
-                y_val = int(y_coded[barcode])
-            except Exception as e:
-                continue
-            coords[barcode] = (x_val, y_val)
-        patient_data[sampleid]["cellassign"] = fit
-        patient_data[sampleid]["umap"] = coords
-        patient_data["rho"] = GeneMarkerMatrix.read_yaml(config.rho_matrix).marker_list
-        patient_data_str = json.dumps(patient_data)
-        output = open("viz/{}.json".format(sampleid),"w")
-        output.write(str(patient_data_str))
-        output.close()
-    shutil.copyfile("viz/{}.json".format(sampleid),report)
-
-def UploadVizReport(integrated, positive, negative, complete):
-    vizreport = VizReportStorage(config.prefix, "viz")
-    vizreport.compress()
-    vizreport.upload()
-    open(complete,"w").write("pipeline complete.")
+    shutil.copyfile(tsne, integrated_tsne)
+    shutil.copyfile(umap, integrated_umap)
 
 def RunCollection(workflow):
 
@@ -529,6 +329,7 @@ def RunCollection(workflow):
         func = RunCellAssign,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("filtered.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce.rdata","sample"),
             pypeliner.managed.TempOutputFile("cellassign.pkl","sample")
@@ -540,6 +341,7 @@ def RunCollection(workflow):
         func = RunConvert,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("sce.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
         )
@@ -550,6 +352,7 @@ def RunCollection(workflow):
         func = RunSeuratWorkflow,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
@@ -561,8 +364,9 @@ def RunCollection(workflow):
         func = RunSeuratViz,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_umap.png","sample"),
+            pypeliner.managed.TempOutputFile("seurat_tsne_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_ridge.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_features.png","sample"),
@@ -574,6 +378,7 @@ def RunCollection(workflow):
         func = RunMarkers,
         axes = ('sample',),
         args = (
+            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("markers.csv","sample"),
         )
@@ -583,35 +388,13 @@ def RunCollection(workflow):
         name = "integrate",
         func = RunIntegration,
         args = (
+            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
             pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
+            pypeliner.managed.TempOutputFile("integrated_tsne.png"),
+            pypeliner.managed.TempOutputFile("integrated_umap.png"),
         )
     )
-
-
-    workflow.transform (
-        name = "negative_integrate",
-        func = RunNegativeIntegration,
-        args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_negative_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_negative_integrated.rdata"),
-        )
-    )
-
-    workflow.transform (
-        name = "positive_integrate",
-        func = RunPositiveIntegration,
-        args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_positive_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("sce_positive_integrated.rdata"),
-        )
-    )
-
-
 
     return workflow
