@@ -84,22 +84,16 @@ def RunQC(custom_output, sce, filtered_sce):
     output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
     shutil.copyfile(filtered_sce,output)
 
-def RunCellAssign(custom_output, sce, annot_sce, cellfit):
+def RunCellAssign(custom_output, sce, annot_sce):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
     _rho_csv = os.path.join(config.jobpath,"results","rho_csv_sub_{}.csv".format(sampleid))
     _fit = os.path.join(config.jobpath,"results","fit_sub_{}.pkl".format(sampleid))
     filtered_sce = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
     if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
-        if "CD45N" in sampleid:
-            rho = config.negative_rho_matrix
-        elif "CD45P" in sampleid:
-            rho = config.positive_rho_matrix
-        else:
-            rho = config.rho_matrix
+        rho = config.rho_matrix
         CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=False)
     shutil.copyfile(filtered_sce, annot_sce)
-    shutil.copyfile(_fit.replace("fit_sub","cell_types"),cellfit)
 
 def RunConvert(custom_output, sce, seurat):
     sample = json.loads(open(custom_output,"r").read())
@@ -311,8 +305,7 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("filtered.rdata","sample"),
-            pypeliner.managed.TempOutputFile("sce.rdata","sample"),
-            pypeliner.managed.TempOutputFile("cellassign.pkl","sample")
+            pypeliner.managed.TempOutputFile("sce.rdata","sample")
         )
     )
 
