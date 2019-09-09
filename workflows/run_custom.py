@@ -101,26 +101,6 @@ def RunCellAssign(custom_output, sce, annot_sce, cellfit):
     shutil.copyfile(filtered_sce, annot_sce)
     shutil.copyfile(_fit.replace("fit_sub","cell_types"),cellfit)
 
-
-def CellAssignAnalysis(custom_output, filtered_sce, celltype_plot, tsne, umap):
-    sample = json.loads(open(custom_output,"r").read())
-    sampleid, path = list(sample.items()).pop()
-    pyfit = os.path.join(os.path.split(sce_cas)[0],"cell_types.pkl")
-    assert os.path.exists(pyfit), "No Pyfit Found."
-    pyfit = pickle.load(open(pyfit,"rb"))
-    marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
-    cell_types = marker_list.celltypes()
-    if "B cell" not in cell_types: cell_types.append("B cell")
-    celltypes(pyfit, sampleid, cellassign_analysis, known_types=cell_types)
-    tsne_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
-    umap_by_cell_type(filtered_sce, pyfit, sampleid, cellassign_analysis, known_types=cell_types)
-    _celltypes = os.path.join(config.jobpath,"results", "{}_cell_types.png".format(sampleid))
-    _tsne = os.path.join(config.jobpath,"results", "{}_tsne_by_cell_type.png".format(sampleid))
-    _umap = os.path.join(config.jobpath,"results", "{}_umap_by_cell_type.png".format(sampleid))
-    shutil.copyfile(_celltypes, celltype_plot)
-    shutil.copyfile(_umap, umap)
-    shutil.copyfile(_tsne, tsne)
-
 def RunConvert(custom_output, sce, seurat):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
@@ -336,17 +316,6 @@ def RunCollection(workflow):
         )
     )
 
-    workflow.transform (
-        name = "cellassignanalysis",
-        func = CellAssignAnalysis,
-        args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempInputFile("sce_cas.rdata","sample"),
-            pypeliner.managed.TempOutputFile("celltypes.png","sample"),
-            pypeliner.managed.TempOutputFile("tsne_by_celltype.png","sample"),
-            pypeliner.managed.TempOutputFile("umap_by_celltype.png","sample"),
-        )
-    )
 
     workflow.transform (
         name = "run_convert",
