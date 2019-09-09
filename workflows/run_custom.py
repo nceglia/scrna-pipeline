@@ -27,6 +27,8 @@ from utils.config import Configuration, write_config
 config = Configuration()
 
 def RunParse(sampleids, finished):
+    if not os.path.exists(os.path.join(config.jobpath,"results")):
+        os.makedirs(os.path.join(config.jobpath,"results"))
     for i, sample in enumerate(sampleids):
         path = os.path.join(config.datapath,sample)
         path_json = {sample: path}
@@ -73,13 +75,13 @@ def RunQC(custom_output, sce, filtered_sce):
     saveRDS(sce, file='{filtered}')
     """.format(raw=sce,filtered=filtered_sce, path=os.path.abspath(path))
     path = "/".join(path.split("/")[:-1])
-    qc_script = os.path.join(path,"convert.R")
+    qc_script = os.path.join(path,"convert_{}.R".format(sample))
     output = open(qc_script,"w")
     output.write(rcode)
     output.close()
     subprocess.call(["Rscript",qc_script])
     output = "/".join(path.split("/")[:-1])
-    output = os.path.join(output, "sce.rdata")
+    output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sample))
     shutil.copyfile(filtered_sce,output)
 
 def RunCellAssign(sce, annot_sce, cellfit):
