@@ -610,57 +610,6 @@ def RunCollection(workflow):
         )
     )
 
-    workflow.transform (
-        name = "sample_level",
-        func = RunSampleSummary,
-        axes = ('sample',),
-        args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
-            pypeliner.managed.TempInputFile("summary.html","sample"),
-            pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
-            pypeliner.managed.TempInputFile("cellassign.pkl","sample"),
-            pypeliner.managed.TempInputFile("metrics.csv","sample"),
-            pypeliner.managed.TempOutputFile("report.json","sample"),
-        )
-    )
 
-    workflow.transform (
-        name = "patient_level_negative",
-        func = NegativeIntegratedSummary,
-        args = (
-            pypeliner.managed.TempInputFile("sce_negative_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("negative_report.json"),
-        )
-    )
-
-    workflow.transform (
-        name = "patient_level_positive",
-        func = PositiveIntegratedSummary,
-        args = (
-            pypeliner.managed.TempInputFile("sce_positive_integrated.rdata"),
-            pypeliner.managed.TempOutputFile("positive_report.json"),
-        )
-    )
-
-    workflow.transform (
-        name = "patient_level",
-        func = IntegratedSummary,
-        args = (
-            pypeliner.managed.TempInputFile("sce_integrated.rdata"),
-            "PATIENT_INTEGRATED",
-            pypeliner.managed.TempOutputFile("integrated_report.json"),
-        )
-    )
-
-    workflow.transform (
-        name = "upload_viz",
-        func = UploadVizReport,
-        args = (
-            pypeliner.managed.TempInputFile("positive_report.json"),
-            pypeliner.managed.TempInputFile("negative_report.json"),
-            pypeliner.managed.TempInputFile("integrated_report.json"),
-            pypeliner.managed.TempOutputFile("upload.complete")
-        )
-    )
 
     return workflow
