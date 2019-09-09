@@ -337,6 +337,18 @@ def RunCollection(workflow):
     )
 
     workflow.transform (
+        name = "cellassignanalysis",
+        func = CellAssignAnalysis,
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sce_cas.rdata","sample"),
+            pypeliner.managed.TempOutputFile("celltypes.png","sample"),
+            pypeliner.managed.TempOutputFile("tsne_by_celltype.png","sample"),
+            pypeliner.managed.TempOutputFile("umap_by_celltype.png","sample"),
+        )
+    )
+
+    workflow.transform (
         name = "run_convert",
         func = RunConvert,
         axes = ('sample',),
