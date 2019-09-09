@@ -352,6 +352,7 @@ def RunFigures(sce, umap_cell,umap_clone, umap_sample):
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
     all_samples = open(config.samples, "r").read().splitlines()
+    all_Samples = [sample.strip() for sample in all_samples if sample.strip() != ""]
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
@@ -471,10 +472,10 @@ def RunCloneAlignWorkflow(workflow):
             name = "run_figures_single_sample",
             func = RunFigures,
             args = (
-                pypeliner.managed.TempInputFile("clone_annotated.rdata"),
-                pypeliner.managed.TempOutputFile("umap_cell.png"),
-                pypeliner.managed.TempOutputFile("umap_clone.png"),
-                pypeliner.managed.TempOutputFile("umap_sample.png"),
+                pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
+                pypeliner.managed.TempOutputFile("umap_cell.png","sample"),
+                pypeliner.managed.TempOutputFile("umap_clone.png","sample"),
+                pypeliner.managed.TempOutputFile("umap_sample.png","sample"),
             )
         )
     return workflow
