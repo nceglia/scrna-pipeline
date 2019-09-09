@@ -329,7 +329,7 @@ def RunCollection(workflow):
         func = RunCellAssign,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("filtered.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce.rdata","sample"),
             pypeliner.managed.TempOutputFile("cellassign.pkl","sample")
@@ -341,7 +341,7 @@ def RunCollection(workflow):
         func = RunConvert,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("sce.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat.rdata","sample"),
         )
@@ -352,7 +352,7 @@ def RunCollection(workflow):
         func = RunSeuratWorkflow,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
@@ -364,7 +364,7 @@ def RunCollection(workflow):
         func = RunSeuratViz,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_tsne_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
@@ -378,7 +378,7 @@ def RunCollection(workflow):
         func = RunMarkers,
         axes = ('sample',),
         args = (
-            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("markers.csv","sample"),
         )
@@ -388,7 +388,7 @@ def RunCollection(workflow):
         name = "integrate",
         func = RunIntegration,
         args = (
-            pypeliner.managed.TempOutputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
             pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
