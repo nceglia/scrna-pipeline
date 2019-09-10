@@ -412,7 +412,7 @@ def RunCloneAlignWorkflow(workflow):
     )
 
 
-    if len(all_samples) > 0:
+    if len(all_samples) > 1:
         workflow.transform (
             name = "run_convert",
             func = RunConvert,
