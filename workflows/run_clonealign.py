@@ -471,6 +471,7 @@ def RunCloneAlignWorkflow(workflow):
         workflow.transform (
             name = "run_figures_single_sample",
             func = RunFigures,
+            axes = ('sample',),
             args = (
                 pypeliner.managed.TempInputFile("clone_annotated.rdata","sample"),
                 pypeliner.managed.TempOutputFile("umap_cell.png","sample"),
