@@ -352,7 +352,7 @@ def RunFigures(sce, umap_cell,umap_clone, umap_sample):
 def RunCloneAlignWorkflow(workflow):
     print("Creating workflow.")
     all_samples = open(config.samples, "r").read().splitlines()
-    all_Samples = [sample.strip() for sample in all_samples if sample.strip() != ""]
+    all_samples = [sample.strip() for sample in all_samples if sample.strip() != ""]
     workflow.transform (
         name = "download_collection",
         func = RunDownload,
