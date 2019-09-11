@@ -79,9 +79,9 @@ def RunQC(custom_output, sce, filtered_sce):
     output = open(qc_script,"w")
     output.write(rcode)
     output.close()
-    output = "/".join(path.split("/")[:-1])
+    output = "/".join(path)
     output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
-    if not os.path.exists(output):
+    if not os.path.exists(filtered_sce):
         subprocess.call(["Rscript",qc_script])
     shutil.copyfile(filtered_sce,output)
 
