@@ -74,7 +74,7 @@ def RunQC(custom_output, sce, filtered_sce):
     sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     saveRDS(sce, file='{filtered}')
     """.format(raw=sce,filtered=filtered_sce, path=os.path.abspath(path))
-    path = "/".join(path.split("/")[:-1])
+    path = os.path.split(sce)[0]
     qc_script = os.path.join(path,"convert_{}.R".format(sampleid))
     output = open(qc_script,"w")
     output.write(rcode)
