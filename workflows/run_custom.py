@@ -88,13 +88,16 @@ def RunQC(custom_output, sce, filtered_sce):
 def RunCellAssign(custom_output, sce, annot_sce):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
-    _rho_csv = os.path.join(config.jobpath,"results","rho_csv_sub_{}.csv".format(sampleid))
-    _fit = os.path.join(config.jobpath,"results","fit_sub_{}.pkl".format(sampleid))
+    temp = os.path.split(annot_sce)[0]
+    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_sub.csv")
+    _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
+    _filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     filtered_sce = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
-    if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
+    if not os.path.exists(_filtered_sce) or not os.path.exists(_fit):
         rho = os.path.join(config.jobpath,config.rho_matrix)
         CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True)
-    shutil.copyfile(filtered_sce, annot_sce)
+    shutil.copyfile(_filtered_sce, filtered_sce)
+    shutil.copyfile(_filtered_sce, annot_sce)
 
 def RunConvert(custom_output, sce, seurat):
     sample = json.loads(open(custom_output,"r").read())
