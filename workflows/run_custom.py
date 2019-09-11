@@ -81,8 +81,7 @@ def RunQC(custom_output, sce, filtered_sce):
     output.close()
     output = "/".join(path)
     output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
-    if not os.path.exists(filtered_sce):
-        subprocess.call(["Rscript",qc_script])
+    subprocess.call(["Rscript",qc_script])
     shutil.copyfile(filtered_sce,output)
 
 def RunCellAssign(custom_output, sce, annot_sce):
@@ -272,8 +271,7 @@ def RunIntegration(custom_output, seurats, integrated_seurat, integrated_sce, in
     output = open(integrate_script,"w")
     output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached,umap=umap,tsne=tsne))
     output.close()
-    if not os.path.exists(sce_cached):
-        subprocess.call(["Rscript","{}".format(integrate_script)])
+    subprocess.call(["Rscript","{}".format(integrate_script)])
     shutil.copyfile(rdata, integrated_seurat)
     shutil.copyfile(sce_cached, integrated_sce)
     shutil.copyfile(tsne, integrated_tsne)

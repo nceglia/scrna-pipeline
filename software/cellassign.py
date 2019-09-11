@@ -21,11 +21,7 @@ class CellAssign(object):
             print(submit)
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        if lsf:
-            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J mapcells -R rusage[mem=1] -n 2 -We 5 -o out -e err singularity exec --bind /admin --bind $(pwd):$(pwd) /home/ceglian/images/scrna-pipeline-v3.img Rscript {}""".format("{}/match.R".format(os.path.split(rdata)[0])).split()
-            print(submit)
-        else:
-            submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
+        submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
         subprocess.call(submit, env=env)
 
     @staticmethod
