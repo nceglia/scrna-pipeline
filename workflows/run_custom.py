@@ -79,9 +79,10 @@ def RunQC(custom_output, sce, filtered_sce):
     output = open(qc_script,"w")
     output.write(rcode)
     output.close()
-    subprocess.call(["Rscript",qc_script])
     output = "/".join(path.split("/")[:-1])
     output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
+    if not os.path.exists(output):
+        subprocess.call(["Rscript",qc_script])
     shutil.copyfile(filtered_sce,output)
 
 def RunCellAssign(custom_output, sce, annot_sce):
