@@ -183,11 +183,11 @@ def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exp
     DimPlot(object = seurat, reduction = "tsne", group.by = "cell_type")
     dev.off()
 
-    png("{ridge}",width=600,heigh=5000)
+    png("{ridge}",width=600,height=5000)
     RidgePlot(object = seurat, features = c({markers}), ncol = 2)
     dev.off()
 
-    png("{exprs}",width=600,heigh=5000)
+    png("{exprs}",width=600,height=5000)
     FeaturePlot(object = seurat, features = c({markers}), ncol= 2)
     dev.off()
     """
@@ -225,9 +225,7 @@ def RunMarkers(custom_output,seurat,marker_table):
         subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunIntegration(custom_output, seurats, integrated_seurat, integrated_sce, integrated_tsne, integrated_umap):
-    sample = json.loads(open(custom_output,"r").read())
-    sampleid, path = list(sample.items()).pop()
+def RunIntegration(seurats, integrated_seurat, integrated_sce, integrated_tsne, integrated_umap):
     rdata = os.path.join(config.jobpath,"results","integrated_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_tsne.rdata")
