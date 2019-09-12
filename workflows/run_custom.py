@@ -103,7 +103,7 @@ def RunConvert(custom_output, sce, seurat):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
     seurat_cached = os.path.join(config.jobpath,"results","{}_seurat_raw.rdata".format(sampleid))
-    sce_cached = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
+    # sce_cached = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
@@ -116,7 +116,7 @@ def RunConvert(custom_output, sce, seurat):
     path = os.path.split(sce)[0]
     convert_script = os.path.join(path,"convert_{}.R".format(sampleid))
     output = open(convert_script,"w")
-    output.write(rcode.format(sce=sce_cached,seurat=seurat_cached))
+    output.write(rcode.format(sce=sce,seurat=seurat_cached))
     output.close()
     if not os.path.exists(seurat_cached):
         subprocess.call(["Rscript","{}".format(convert_script)])
@@ -231,7 +231,7 @@ def RunIntegration(custom_output, seurats, integrated_seurat, integrated_sce, in
     rdata = os.path.join(config.jobpath,"results","integrated_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_tsne.rdata")
-    tsne = os.path.join(config.jobpath,"results","integrated_uamp.rdata")
+    tsne = os.path.join(config.jobpath,"results","integrated_umap.rdata")
     object_list = []
     rcode = """
     library(Seurat)
