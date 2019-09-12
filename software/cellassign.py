@@ -16,7 +16,7 @@ class CellAssign(object):
         cwd = os.getcwd()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         if lsf:
-            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err /opt/common/CentOS_7/singularity/singularity-3.0.1/bin/singularity exec --bind /admin --bind /opt --bind {} /home/ceglian/images/scrna-pipeline-v3.img Rscript {}""".format("{}/run_cellassign.R".format(cwd, os.path.split(rdata)[0])).split()
+            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err /opt/common/CentOS_7/singularity/singularity-3.0.1/bin/singularity exec --bind /admin --bind /opt --bind {} /home/ceglian/images/scrna-pipeline-v3.img Rscript {}""".format(cwd,"{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
         else:
             submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
             print(submit)
