@@ -92,7 +92,7 @@ def RunCellAssign(custom_output, sce, annot_sce):
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub.pkl")
     _filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas.rdata")
     filtered_sce = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
-    if not os.path.exists(filtered_sce) or not os.path.exists(_fit):
+    if not os.path.exists(_filtered_sce) or not os.path.exists(_fit):
         rho = os.path.join(config.jobpath,config.rho_matrix)
         CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True)
         shutil.copyfile(_filtered_sce, filtered_sce)
