@@ -83,6 +83,7 @@ def RunQC(custom_output, sce, filtered_sce):
     if not os.path.exists(cached_sce):
         subprocess.call(["Rscript",qc_script])
     shutil.copyfile(cached_sce,filtered_sce)
+    shutil.copyfile(cached_sce,sce)
 
 def RunCellAssign(custom_output, sce, annot_sce):
     sample = json.loads(open(custom_output,"r").read())
