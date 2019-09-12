@@ -37,6 +37,7 @@ def RunParse(sampleids, finished):
 def RunQC(custom_output, sce, filtered_sce):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
+    cached_sce = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
     rcode = """
     library(SingleCellExperiment)
     library(scater)
@@ -73,16 +74,15 @@ def RunQC(custom_output, sce, filtered_sce):
     sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     saveRDS(sce, file='{filtered}')
-    """.format(raw=sce,filtered=filtered_sce, path=os.path.abspath(path))
+    """.format(raw=sce,filtered=cached_sce, path=os.path.abspath(path))
     path = os.path.split(sce)[0]
     qc_script = os.path.join(path,"convert_{}.R".format(sampleid))
     output = open(qc_script,"w")
     output.write(rcode)
     output.close()
-    output = "/".join(path)
-    output = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
-    subprocess.call(["Rscript",qc_script])
-    shutil.copyfile(filtered_sce,output)
+    if not os.path.exists(cached_sce):
+        subprocess.call(["Rscript",qc_script])
+    shutil.copyfile(cached_sce,filtered_sce)
 
 def RunCellAssign(custom_output, sce, annot_sce):
     sample = json.loads(open(custom_output,"r").read())
