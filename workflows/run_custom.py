@@ -266,7 +266,7 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, integrated_tsne, 
     dev.off()
 
     """
-    integrate_script = os.path.join(".cache/integration_{}.R".format(flowsort))
+    integrate_script = os.path.join(".cache/integration.R")
     output = open(integrate_script,"w")
     output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached,umap=umap,tsne=tsne))
     output.close()
