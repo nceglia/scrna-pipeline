@@ -147,6 +147,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     sce <- readRDS('{clone_sce}')
     sce <- sce[,colData(sce)$cell_type=="Ovarian.cancer.cell"]
     cnv <- readRDS('{cnv_mat}')
+    sce <- sce[rowSums(counts(sce))>0,]
     cal <- clonealign(sce, cnv,remove_outlying_genes=FALSE)
     sce$clone <- cal$clone
     saveRDS(sce,file='{annotated_sce}')

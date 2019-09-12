@@ -276,6 +276,7 @@ def RunIntegration(seurats, integrated_seurat, integrated_sce, integrated_tsne, 
     shutil.copyfile(tsne, integrated_tsne)
     shutil.copyfile(umap, integrated_umap)
 
+
 def RunCollection(workflow):
 
     all_samples = open(config.samples, "r").read().splitlines()
@@ -363,7 +364,6 @@ def RunCollection(workflow):
         name = "integrate",
         func = RunIntegration,
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_integrated.rdata"),
             pypeliner.managed.TempOutputFile("sce_integrated.rdata"),
