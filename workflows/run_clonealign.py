@@ -49,7 +49,7 @@ def RunCellAssign(sce, annot_sce):
     _fit = os.path.join(os.path.split(sce)[0],"fit.rdata")
     sampleid = sce.split("/")[-2]
     if not os.path.exists(filtered_sce):
-        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv, lsf=True)
+        CellAssign.run(sce, config.rho_matrix, _fit, rho_csv=_rho_csv, lsf=False)
     shutil.copyfile(filtered_sce, annot_sce)
     path = os.getcwd()
     shutil.copyfile(_fit, os.path.join(path,"fit.rdata"))
@@ -161,7 +161,7 @@ def RunCloneAlign(clone_sce, cnv_mat, annotated_sce, cal_fit):
     output.close()
     cmd = "/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err /opt/common/CentOS_7/singularity/singularity-3.0.1/bin/singularity exec --bind /admin --bind /opt --bind {} /home/ceglian/images/scrna-pipeline-clonealign.img".format(cwd)
     if not os.path.exists(annotated_sce_cached) or not os.path.exists(cal_fit_cached):
-        subprocess.call(cmd.split() + ["Rscript","{}".format(run_script)])
+        subprocess.call(["Rscript","{}".format(run_script)])
     shutil.copyfile(annotated_sce_cached, annotated_sce)
     shutil.copyfile(cal_fit_cached, cal_fit)
     path = os.getcwd()
