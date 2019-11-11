@@ -57,3 +57,5 @@ class TenxDataStorage(object):
 
 if __name__ == '__main__':
     storage = TenxDataStorage("SPECTRUM-OV-052_S1_CD45N_INFRACOLIC_OMENTUM")
+    storage.retrieve_latest()
+    
