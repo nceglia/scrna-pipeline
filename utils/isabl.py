@@ -41,7 +41,7 @@ class TenxDataStorage(object):
                     analysis_stack.append(analysis["storage_url"])
 
         while len(analysis_stack) != 0:
-            latest = urls.pop()
+            latest = analysis_stack.pop()
             cellranger_outs = os.path.join(latest, path_template.format(unique_id))
             if os.path.exists(cellranger_outs):
                 self.tenx_path = os.path.join(self.cache,unique_id)
