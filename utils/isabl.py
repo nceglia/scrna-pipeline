@@ -24,9 +24,7 @@ class TenxDataStorage(object):
 
     def retrieve_latest(self):
         path_template = "{0}/outs/"
-        valid_samples = metadata.single_sample(self.sampleid)
-        print(valid_samples)
-        exit(0)
+        sample = metadata.single_sample(self.sampleid)
         analyses = isabl_cli.get_analyses()
         analysis_stack = collections.defaultdict(list)
 
@@ -47,6 +45,7 @@ class TenxDataStorage(object):
             latest = urls.pop()
             cellranger_outs = os.path.join(latest, path_template.format(sample))
             if os.path.exists(cellranger_outs):
+                print(cellranger_outs)
                 break
 
         # return paths
@@ -58,4 +57,3 @@ class TenxDataStorage(object):
 if __name__ == '__main__':
     storage = TenxDataStorage("SPECTRUM-OV-052_S1_CD45N_INFRACOLIC_OMENTUM")
     storage.retrieve_latest()
-    
