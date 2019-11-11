@@ -55,7 +55,7 @@ def patient_samples(patient_id):
     return valid_samples
 
 def single_sample(nick_unique_id):
-    return samples()[nick_unique_id]
+    return all_samples()[nick_unique_id]
 
 if __name__ == '__main__':
     all_samples = all_samples()
