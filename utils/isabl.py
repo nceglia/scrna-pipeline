@@ -38,6 +38,7 @@ class TenxDataStorage(object):
                 if "CELLRANGER" != analysis["application"].__dict__["name"]:
                     continue
                 print("Cellranger")
+                print(analysis["status"])
                 if analysis["status"] != "SUCCEEDED":
                     print("sucess")
                     analysis_stack[unique_id].append(analysis["storage_url"])
