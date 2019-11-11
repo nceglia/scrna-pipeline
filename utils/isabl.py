@@ -33,13 +33,13 @@ class TenxDataStorage(object):
         for analysis in analyses:
             system_id = analysis.__dict__["targets"][0]["system_id"]
             for experiment in experiments:
-                print(experiment)
                 if system_id != experiment.system_id:
                     continue
                 if "CELLRANGER" != analysis["application"].__dict__["name"]:
                     continue
                 print("Cellranger")
                 if analysis["status"] != "SUCCEEDED":
+                    print("sucess")
                     analysis_stack[unique_id].append(analysis["storage_url"])
                     print("hit")
 
