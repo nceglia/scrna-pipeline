@@ -39,7 +39,7 @@ class TenxDataStorage(object):
                     continue
                 print("Cellranger")
                 print(analysis["status"])
-                if analysis["status"] != "SUCCEEDED":
+                if analysis["status"] == "SUCCEEDED":
                     print("sucess")
                     analysis_stack[unique_id].append(analysis["storage_url"])
                     print("hit")
