@@ -9,7 +9,7 @@ import gzip
 import shutil
 import pickle
 import metadata
-
+from interface.tenxanalysis import TenxAnalysis
 
 class TenxDataStorage(object):
 
@@ -54,3 +54,6 @@ if __name__ == '__main__':
     storage = TenxDataStorage("SPECTRUM-OV-052_S1_CD45N_INFRACOLIC_OMENTUM")
     storage.download()
     print(storage.tenx_path)
+    tenx_analysis = TenxAnalysis(tenx.tenx_path)
+    tenx_analysis.load()
+    tenx_analysis.extract()
