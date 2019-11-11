@@ -39,6 +39,7 @@ class TenxDataStorage(object):
                     continue
                 if analysis["status"] != "SUCCEEDED":
                     analysis_stack[unique_id].append(analysis["storage_url"])
+                    print("hit")
 
         paths = dict()
         for sample, urls in analysis_stack.items():
