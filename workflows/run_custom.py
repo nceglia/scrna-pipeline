@@ -297,7 +297,7 @@ def RunHarmonyIntegration(sces, integrated_harmony, integrated_sce, integrated_t
         sce$sample <- "{idx}"
         rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
         seurat{idx} <- as.Seurat(sce, counts = "counts", data = "logcounts")
-        """.format(id=idx,object=object)
+        """.format(idx=idx,object=object)
         rcode += load
     rcode += """
     merged <- merge(seurat1, y = c({object_list}), project = "{level}")
@@ -520,17 +520,17 @@ def RunCollection(workflow):
         )
     )
 
-    workflow.transform (
-        name = "seurat_integrate",
-        func = RunSeuratIntegration,
-        args = (
-            pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("integrated_seurat_seurat.rdata"),
-            pypeliner.managed.TempOutputFile("integrated_seurat_sce.rdata"),
-            pypeliner.managed.TempOutputFile("integrated_seurat_tsne.png"),
-            pypeliner.managed.TempOutputFile("integrated_seurat_umap.png"),
-        )
-    )
+    # workflow.transform (
+    #     name = "seurat_integrate",
+    #     func = RunSeuratIntegration,
+    #     args = (
+    #         pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
+    #         pypeliner.managed.TempOutputFile("integrated_seurat_seurat.rdata"),
+    #         pypeliner.managed.TempOutputFile("integrated_seurat_sce.rdata"),
+    #         pypeliner.managed.TempOutputFile("integrated_seurat_tsne.png"),
+    #         pypeliner.managed.TempOutputFile("integrated_seurat_umap.png"),
+    #     )
+    # )
 
     workflow.transform (
         name = "harmony_integrate",
