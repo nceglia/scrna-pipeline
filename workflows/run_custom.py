@@ -225,7 +225,7 @@ def RunMarkers(custom_output,seurat,marker_table):
         subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
-def RunIntegration(seurats, integrated_seurat, integrated_sce, integrated_tsne, integrated_umap):
+def RunSeuratIntegration(seurats, integrated_seurat, integrated_sce, integrated_tsne, integrated_umap):
     rdata = os.path.join(config.jobpath,"results","integrated_seurat_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_seurat_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_seurat_tsne.rdata")
@@ -300,7 +300,7 @@ def RunHarmonyIntegration(sces, integrated_harmony, integrated_sce, integrated_t
         """.format(id=idx,object=object)
         rcode += load
     rcode += """
-    merged <- merge(seurat1, y = c({object_list}), project = "{}")
+    merged <- merge(seurat1, y = c({object_list}), project = "{level}")
     saveRDS(merged, file={merged})
     merged <- NormalizeData(merged)
     merged <- FindVariableFeatures(merged)
@@ -533,7 +533,7 @@ def RunCollection(workflow):
 
     workflow.transform (
         name = "harmony_integrate",
-        func = RunSeuratIntegration,
+        func = RunHarmonyIntegration,
         args = (
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("integrated_harmony_seurat.rdata"),
@@ -546,7 +546,7 @@ def RunCollection(workflow):
 
     workflow.transform (
         name = "scanorama_integrate",
-        func = RunSeuratIntegration,
+        func = RunScanoramaIntegration,
         args = (
             pypeliner.managed.TempInputFile("merged_sce.rdata"),
             pypeliner.managed.TempOutputFile("integrated_scanorama_sce.rdata"),
