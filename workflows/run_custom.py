@@ -300,7 +300,7 @@ def RunHarmonyIntegration(sces, integrated_harmony, integrated_sce, integrated_t
         """.format(idx=idx,object=object)
         rcode += load
     rcode += """
-    merged <- merge(seurat1, y = c({object_list}), project = "{level}")
+    merged <- merge(seurat1, y = c({object_list}), project = "pipeline_run")
     saveRDS(merged, file={merged})
     merged <- NormalizeData(merged)
     merged <- FindVariableFeatures(merged)
