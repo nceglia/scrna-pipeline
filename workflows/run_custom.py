@@ -314,7 +314,7 @@ def RunHarmonyIntegration(sces, integrated_harmony, integrated_sce, integrated_t
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached,umap=umap,tsne=tsne,merged=merged))
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,tsne=tsne,merged=merged))
     output.close()
     cmd = """bsub -K -J "harmony" -R "rusage[mem=4]" -R "select[type==CentOS7]" -W 03:00 -n 16 -o output -e error singularity exec /work/ceglian/images/scrna-r-base.img Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
