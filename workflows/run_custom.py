@@ -293,6 +293,7 @@ def RunHarmonyIntegration(sces, integrated_harmony, integrated_sce, integrated_t
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
+        sce <- readRDS("{object}")
         colnames(sce) <- colData(sce)$Barcode
         sce$sample <- "{idx}"
         rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
@@ -301,7 +302,7 @@ def RunHarmonyIntegration(sces, integrated_harmony, integrated_sce, integrated_t
         rcode += load
     rcode += """
     merged <- merge(seurat1, y = c({object_list}), project = "pipeline_run")
-    saveRDS(merged, file={merged})
+    saveRDS(merged, file="{merged}")
     merged <- NormalizeData(merged)
     merged <- FindVariableFeatures(merged)
     merged <- ScaleData(merged)
