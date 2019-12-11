@@ -38,23 +38,6 @@ def retrieve_cellranger_matrix(patient_id, standard_id):
     return
 
 
-class LocalTenxDataStorage(object):
-
-    def __init__(self, sampleid):
-        self.sampleid = sampleid.replace(".tar.gz","")
-        if self.species == "mouse":
-            self.sampleid += "_mouse"
-        self.tenx_path = None
-        self.cache = ".cache"
-        try:
-            os.makedirs(self.cache)
-        except Exception as e:
-            pass
-
-    def download(self):
-
-
-
 class TenxDataStorage(object):
 
     def __init__(self, sampleid, version="v3", software="cellranger", species="human"):
