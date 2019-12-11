@@ -60,7 +60,7 @@ def RunParse(path_json, finished):
 def RunQC(custom_output, sce, filtered_sce):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
-    cached_sce = os.path.join(config.jobpath,"results","sce_{}.rdata".format(sampleid))
+    cached_sce = os.path.join("./results","sce_{}.rdata".format(sampleid))
     rcode = """
     library(SingleCellExperiment)
     library(scater)
