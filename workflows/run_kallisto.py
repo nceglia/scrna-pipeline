@@ -7,7 +7,6 @@ import os
 
 from software.kallisto import Kallisto
 from interface.fastqdirectory import FastQDirectory
-from interface.tenxanalysis import TenxAnalysis
 from utils.config import Configuration, write_config
 
 config = Configuration()
@@ -18,7 +17,7 @@ def RunKallisto(sampleid, finished):
     fastqs = [FastQDirectory(sampleid, config.prefix, config.jobpath, config.datapath)]
     krunner = Kallisto(fastqs[0], sampleid)
     tenx_path = krunner.count()
-    tenx = TenxAnalysis(tenx_path)
+    # tenx = TenxAnalysis(tenx_path)
     # tenxds = TenxDataStorage(sampleid, species=species)
     # tenx.bus_finalize()
     open(finished,"w").write("Completed")
