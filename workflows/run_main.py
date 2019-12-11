@@ -39,12 +39,15 @@ def RunParse(path_json, finished):
 
     gzipped_filtered_barcodes = os.path.join(config.matrix, "barcodes.tsv.gz")
     _filtered_barcodes = gzipped_filtered_barcodes.replace(".gz","")
+    _filtered_barcodes = os.path.join(matrix_cached, os.path.split(_filtered_barcodes))
     check_and_decompress(gzipped_filtered_barcodes, _filtered_barcodes)
     gzipped_filtered_matrices = os.path.join(config.matrix, "matrix.mtx.gz")
     _filtered_matrices = gzipped_filtered_matrices.replace(".gz","")
+    _filtered_matrices = os.path.join(matrix_cached, os.path.split(_filtered_matrices))
     check_and_decompress(gzipped_filtered_matrices, _filtered_matrices)
     gzipped_filtered_genes = os.path.join(config.matrix, "features.tsv.gz")
     filtered_genes = gzipped_filtered_genes.replace("features","genes").replace(".gz","")
+    filtered_genes = os.path.join(matrix_cached, os.path.split(filtered_genes))
     check_and_decompress(gzipped_filtered_genes, filtered_genes)
 
     open(finished(0),"w").write(json.dumps(path_json))
