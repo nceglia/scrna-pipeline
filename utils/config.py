@@ -46,6 +46,7 @@ filtered_cell_cn: {filtered_cell_cn}
 sample_mapping: sample_mapping.ssv
 positive_rho_matrix: /codebase/markers_positive.yaml
 negative_rho_matrix: /codebase/markers_negative.yaml
+matrix: {matrix}
 """
 
 
@@ -117,7 +118,8 @@ def write_config(args):
                                    samples=sample_file,
                                    bustools=bustools,
                                    copy_cell_clones=copy_cell_clones,
-                                   filtered_cell_cn=filtered_cell_cn))
+                                   filtered_cell_cn=filtered_cell_cn,
+                                   matrix=matrix))
 
 class Configuration(object):
     def __init__(self):
