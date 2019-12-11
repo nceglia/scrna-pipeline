@@ -26,7 +26,7 @@ class CellAssign(object):
         subprocess.call(submit, env=env)
 
     @staticmethod
-    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True, B=10, min_delta=2):
+    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=False, B=10, min_delta=2):
         if not os.path.exists(".cache"):
             os.makedirs(".cache")
         marker_list = GeneMarkerMatrix.read_yaml(rho_yaml)
@@ -56,7 +56,7 @@ class CellAssign(object):
         filtered_rho = os.path.join(os.path.split(rdata)[0],"rho_cas.rdata")
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         configured = open("{}/run_cellassign.R".format(os.path.split(rdata)[0]),"w")
-        configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho))
+        configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho,B=B,min_delta=min_delta))
         configured.close()
         match = open("{}/match.R".format(os.path.split(rdata)[0]),"w")
         match.write(match_barcodes.format(sce=filtered_sce,fit=results,fname=matched_results))
