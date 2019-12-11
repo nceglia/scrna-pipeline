@@ -26,8 +26,6 @@ kallisto_args.add_argument("--datapath", type=str, help="Path to directory holdi
 kallisto_args.add_argument("--referencepath", type=str, help="Path to reference directory with reference in dir labelled by build.", default="/reference")
 kallisto_args.add_argument("--kallisto", type=str, help="Path to kallisto bin.", default="/codebase/kallisto/")
 kallisto_args.add_argument("--bustools", type=str, help="Path to bustools.", default="/codebase/bustools/")
-kallisto_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.", default="samples.txt")
-kallisto_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 sample_args = subparsers.add_parser('analysis')
 sample_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
