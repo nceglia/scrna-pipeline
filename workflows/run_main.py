@@ -11,11 +11,9 @@ import collections
 import numpy
 import pickle
 import pyparsing as pp
+import gzip
 
-from interface.tenxanalysis import TenxAnalysis
 from interface.singlecellexperiment import SingleCellExperiment
-from interface.qualitycontrol import QualityControl
-from utils.cloud import SampleCollection, VizReportStorage
 from interface.qualitycontrol import QualityControl
 from interface.genemarkermatrix import GeneMarkerMatrix
 from utils.plotting import celltypes, tsne_by_cell_type, umap_by_cell_type
@@ -25,12 +23,31 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunParse(sample, finished):
+def RunParse(path_json, finished):
     if not os.path.exists(os.path.join(config.jobpath,"results")):
         os.makedirs(os.path.join(config.jobpath,"results"))
-    for i, idx in enumerate(list(sample.keys())):
-        path_json = {sample: sample[idx]}
-        open(finished(i),"w").write(json.dumps(path_json))
+    if not os.path.exists(os.path.join(config.jobpath,".cached")):
+        os.makedirs(os.path.join(config.jobpath,".cached"))
+
+    matrix_cached = os.path.join(config.jobpath,".cached/{}".format(idx))
+    if not os.path.exists(matrix_cached):
+        os.makedirs(matrix_cached)
+
+    def check_and_decompress(gzipped, flat):
+        if os.path.exists(gzipped) and not os.path.exists(flat):
+            self.decompress(gzipped, flat)
+
+    gzipped_filtered_barcodes = os.path.join(config.matrix, "barcodes.tsv.gz")
+    _filtered_barcodes = gzipped_filtered_barcodes.replace(".gz","")
+    check_and_decompress(gzipped_filtered_barcodes, _filtered_barcodes)
+    gzipped_filtered_matrices = os.path.join(config.matrix, "matrix.mtx.gz")
+    _filtered_matrices = gzipped_filtered_matrices.replace(".gz","")
+    check_and_decompress(gzipped_filtered_matrices, _filtered_matrices)
+    gzipped_filtered_genes = os.path.join(config.matrix, "features.tsv.gz")
+    filtered_genes = gzipped_filtered_genes.replace("features","genes").replace(".gz","")
+    check_and_decompress(gzipped_filtered_genes, filtered_genes)
+
+    open(finished(0),"w").write(json.dumps(path_json))
 
 def RunQC(custom_output, sce, filtered_sce):
     sample = json.loads(open(custom_output,"r").read())

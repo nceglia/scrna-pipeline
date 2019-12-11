@@ -70,7 +70,7 @@ def write_config(args):
 
     if subcommand == "analysis":
         matrix = args.matrix
-        prefix = self.sampleid
+        prefix = args.sampleid
     if subcommand == "cellranger":
         datapath = args.datapath
         referencepath = args.referencepath
