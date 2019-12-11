@@ -25,12 +25,11 @@ from utils.config import Configuration, write_config
 
 config = Configuration()
 
-def RunParse(sampleids, finished):
+def RunParse(sample, finished):
     if not os.path.exists(os.path.join(config.jobpath,"results")):
         os.makedirs(os.path.join(config.jobpath,"results"))
-    for i, sample in enumerate(sampleids):
-        path = os.path.join(config.datapath,sample)
-        path_json = {sample: path}
+    for i, idx in enumerate(list(sample.keys())):
+        path_json = {sample: sample[idx]}
         open(finished(i),"w").write(json.dumps(path_json))
 
 def RunQC(custom_output, sce, filtered_sce):
@@ -227,13 +226,15 @@ def RunMarkers(custom_output,seurat,marker_table):
 
 def RunMain(workflow):
 
-    all_samples = [config.sampleid]
+    filtered_matrices = config.matrix
+    sample            = config.prefix
+    sample = {sample : filtered_matrices}
 
     workflow.transform (
         name = "parse_collection",
         func = RunParse,
         args = (
-            all_samples,
+            sample,
             pypeliner.managed.TempOutputFile("sample_path.json","sample")
         )
     )

@@ -66,7 +66,11 @@ def write_config(args):
     bustools = "/codebase/bustools"
     filtered_cell_cn = "none"
     copy_cell_clones = "none"
+    matrix = "none"
 
+    if subcommand == "analysis":
+        matrix = args.matrix
+        prefix = self.sampleid
     if subcommand == "cellranger":
         datapath = args.datapath
         referencepath = args.referencepath
