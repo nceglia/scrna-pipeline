@@ -27,7 +27,8 @@ def RunParse(path_json, finished):
     if not os.path.exists(os.path.join(config.jobpath,".cached")):
         os.makedirs(os.path.join(config.jobpath,".cached"))
 
-    matrix_cached = os.path.join(config.jobpath,".cached/{}".format(idx))
+    sample = list(path_json.keys())[0]
+    matrix_cached = os.path.join(config.jobpath,".cached/{}".format(sample))
     if not os.path.exists(matrix_cached):
         os.makedirs(matrix_cached)
 
@@ -48,6 +49,7 @@ def RunParse(path_json, finished):
     filtered_genes = os.path.join(matrix_cached, os.path.split(filtered_genes))
     check_and_decompress(gzipped_filtered_genes, filtered_genes)
 
+    path_json[sample] = matrix_cached
     open(finished(0),"w").write(json.dumps(path_json))
 
 def RunQC(custom_output, sce, filtered_sce):
