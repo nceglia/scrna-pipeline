@@ -7,7 +7,7 @@ import os
 import shutil
 
 from interface.tenxanalysis import TenxAnalysis
-from utils.cloud import TenxDataStorage
+from utils.isabl import TenxDataStorage
 from interface.qualitycontrol import QualityControl
 
 from utils.config import Configuration, write_config
@@ -16,20 +16,12 @@ config = Configuration()
 
 def Run(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plot, raw_sce):
     print("Running QC.")
-    tenx = TenxDataStorage(sampleid, version="v3", species=species)
-    tenx.download()
+    tenx = TenxDataStorage(sampleid)
     tenx_analysis = TenxAnalysis(tenx.tenx_path)
     tenx_analysis.load()
     tenx_analysis.extract()
-    print("Extracted.")
-    if species == "mouse":
-        qc = QualityControl(tenx_analysis,sampleid,mouse=True)
-    else:
-        qc = QualityControl(tenx_analysis,sampleid)
+    qc = QualityControl(tenx_analysis,sampleid)
     qc.run(mito=config.mito)
-    print ("Uploading")
-    qc.upload_raw()
-    qc.upload()
     plots = qc.plots
     umi = os.path.join(plots,"umi.png")
     mito = os.path.join(plots,"mito.png")
@@ -54,8 +46,6 @@ def RunSCTransform(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plo
         qc = QualityControl(tenx_analysis,sampleid)
     qc.run(mito=config.mito)
     print ("Uploading")
-    qc.upload_raw()
-    qc.upload()
     plots = qc.plots
     umi = os.path.join(plots,"umi.png")
     mito = os.path.join(plots,"mito.png")
@@ -74,7 +64,7 @@ def RunSCTransform(sampleid, species, umi_plot, mito_plot, ribo_plot, counts_plo
     shutil.copyfile(qc.sce, raw_sce)
 
 def RunSeuratQC(bus_path, workflow):
-    
+
     workflow.transform (
         name = "sctransform".format(species),
         func = Run,

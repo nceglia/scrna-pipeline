@@ -1,19 +1,10 @@
 from interface.tenxanalysis import TenxAnalysis
 
-from azure.common.client_factory import get_client_from_cli_profile
-from azure.mgmt.compute import ComputeManagementClient
-from azure.mgmt.network import NetworkManagementClient
-from azure.storage.blob import BlockBlobService, PublicAccess
-
 import subprocess
 import os
 import shutil
 import uuid
 
-try:
-    aztok = open(".sas_token","r").read().strip()
-except Exception as e:
-    aztok = open("/codebase/.sas_token","r").read().strip()
 
 class QualityControl(object):
 
@@ -25,15 +16,10 @@ class QualityControl(object):
         self.cache = ".cache"
         if not os.path.exists(self.cache):
             os.makedirs(self.cache)
-        self.script = os.path.join(self.cache,"qc_{}.R".format(sampleid))
         self.construct = os.path.join(self.cache,"build_{}.R".format(sampleid))
         self.figures = os.path.join(self.cache,"figures_{}.R".format(sampleid))
         self.plots = os.path.join(self.tenx.path, "qc_figures")
         self.veryraw = os.path.join(self.tenx.path, "raw_build_{}.R".format(sampleid))
-
-        output = open(self.script,"w")
-        output.write(filter)
-        output.close()
 
         output = open(self.construct,"w")
         output.write(script)
@@ -48,28 +34,13 @@ class QualityControl(object):
         output.close()
         if not os.path.exists(self.plots):
             os.makedirs(self.plots)
-        self.storage_account = "scrnadata"
-        try:
-            version = self.tenx.detected_version
-        except Exception as e:
-            version = "v3"
-        if mouse:
-            self.container = "rdatamouse{}".format(version)
-            self.rawcontainer = "rdatarawmouse{}".format(version)
-        else:
-            self.container = "rdata{}".format(version)
-            self.rawcontainer = "rdataraw{}".format(version)
-        self.block_blob_service = BlockBlobService(account_name='scrnadata', sas_token=aztok)
 
-    def filter(self, mito=10):
-        assert os.path.exists(self.sce), "SCE needs to be built before filtered."
-        print (" ".join(["Rscript", self.script, self.sce, self.qcdsce, str(mito)]))
-        subprocess.call(["Rscript", self.script, self.sce, self.qcdsce, str(mito)])
-
-    def build(self):
+    def build(self, lsf=True):
         mat = self.tenx.filtered_matrices()
-        print(" ".join(["Rscript", self.construct, mat, self.sce]))
-        subprocess.call(["Rscript", self.construct, mat, self.sce])
+        cmd = ""
+        if lsf:
+            cmd = "/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=8] -n 4 -W 10 -o out -e err /opt/common/CentOS_7/singularity/singularity-3.0.1/bin/singularity exec --bind /admin --bind /opt --bind /work/shah/ /work/shah/images/base_scrna_r.img"
+        subprocess.call(cmd.split() + ["Rscript", self.construct, mat, self.sce])
 
     def build_raw(self):
         mat = self.tenx.raw_matrices()
@@ -82,11 +53,9 @@ class QualityControl(object):
         print (" ".join(["Rscript", self.figures, self.sce, self.plots]))
         subprocess.call(["Rscript", self.figures, self.sce, self.plots])
 
-
     def run(self, mito=10):
         print("Running QC...")
         self.build()
-        self.filter(mito=mito)
         self.plot()
 
     def move(self, path):
@@ -94,16 +63,6 @@ class QualityControl(object):
 
     def sce(self):
         return SingleCellExperiment.fromRData(self.sce)
-
-    def upload(self):
-        print ("Uploading QCD ", self.qcdsce, self.container)
-        self.block_blob_service.create_blob_from_path(self.container, "{}.rdata".format(self.sampleid), self.qcdsce)
-
-    def upload_raw(self):
-        print ("Uploading RAW ", self.sce, self.container)
-        self.block_blob_service.create_blob_from_path(self.rawcontainer, "{}.rdata".format(self.sampleid), self.sce)
-
-
 
 raw = """
 library(scater)
@@ -121,47 +80,55 @@ print("Complete!")
 
 
 script = """
-library(scater)
+library(knitr)
+library(tidyverse)
+library(tensorflow)
 library(SingleCellExperiment)
-library(EnsDb.Hsapiens.v86)
-library(DropletUtils)
-library(stringr)
+library(scater)
+library(data.table)
+library(pheatmap)
+library(ggrepel)
+library(grid)
 library(scran)
+library(yaml)
+library(scales)
+library(feather)
+library(limma)
+library(Seurat)
+library(scrna.utils)
+library(scrna.sceutils)
+library(cellassign)
+library(cellassign.utils)
+library(vdj.utils)
+library(stringr)
 
 args = commandArgs(trailingOnly=TRUE)
 
-sce <- read10xCounts(args[1])
-
-rowData(sce)$ensembl_gene_id <- rownames(sce)
-
-print("Calculating Size Factors")
-# Calculate size factors
-sce_result <- tryCatch({scran::computeSumFactors(sce)},error=function(e) {NULL})
-poolsize <- 100;
-while (is.null(sce_result) && poolsize >= 0) {
-    sce_result <- tryCatch({scran::computeSumFactors(sce,sizes=poolsize)},error=function(e) {NULL})
-    if (is.null(sce_result)) {
-      poolsize <- poolsize - 10;
-    }
-}
-
-# Compute log normal expression values
-sce <- normalize(sce_result)
-
-
-# Get Mitochondrial genes for QC:
-mt_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
-ribo_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
-# Calculate QC metrics
-print("Calculating QC Metrics")
-
+args = commandArgs(trailingOnly=TRUE)
+sce <- readRDS(args[1])
+counts(sce) <- data.matrix(counts(sce))
+logcounts(sce) <- data.matrix(logcounts(sce))
 rownames(sce) <- rowData(sce)$Symbol
+colnames(sce) <- colData(sce)$Barcode
+sce$site <- args[2]
+sce$patient <- args[3]
+sce$sort <- args[4]
+sce$therapy <- args[5]
+sce$sample <- args[6]
 
-sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls =
-                          list(mito=mt_genes, ribo=ribo_genes))
+mito_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\-")]) %>% get_ensembl_id(sce)
+ribo_genes <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")]) %>% unique %>% get_ensembl_id(sce)
+sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls =list(mitochondrial=mito_genes, ribosomal=ribo_genes))
+sce <- filter_cells(sce, nmads = 3, type = "lower",log = TRUE, max_mito = 20, max_ribo = 60)
+
+qclust <- quickCluster(sce, min.size = 100)
+sce <- computeSumFactors(sce, clusters = qclust)
+sce$size_factor <- sizeFactors(sce)
+sce <- normalize(sce)
+
 #Reduced dimensions
 print("Running PCA")
-sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
+sce <- runPCA(sce, ncomponents = 50, exprs_values = "logcounts")
 print("Running TSNE")
 sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
 print("Running UMAP")
@@ -170,31 +137,6 @@ sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
 
 saveRDS(sce, file=args[2])
 print("Finished SCE Build")
-"""
-
-
-filter = """
-library(scater)
-library(SingleCellExperiment)
-library(stringr)
-library(scran)
-
-args = commandArgs(trailingOnly=TRUE)
-
-rdata <- readRDS(args[1])
-sce <- as(rdata, 'SingleCellExperiment')
-
-print("Filtering")
-cells_to_keep <- sce$pct_counts_mito < args[3]
-table_cells_to_keep <- table(cells_to_keep)
-sce <- sce[,cells_to_keep]
-# summ <- summary(sce$total_counts)
-# thresh <- summ[[2]]
-# keep <- sce$total_counts > thresh
-# sce <- sce[,keep]
-
-saveRDS(sce, file=args[2])
-print("Finished Filtering")
 """
 
 

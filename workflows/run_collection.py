@@ -96,7 +96,7 @@ def RunSeuratWorkflow(seurat, qcd_seurat, qcd_sce):
     seurat <- RunPCA(object = seurat)
     seurat <- FindNeighbors(object = seurat)
     seurat <- FindClusters(object = seurat)
-    seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:20)
+    seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:50)
     saveRDS(seurat, file = '{qcd_seurat}')
     sce <- as.SingleCellExperiment(seurat)
     rowData(sce)$Symbol <- rownames(sce)
@@ -160,7 +160,7 @@ def RunMarkers(seurat,marker_table):
     library(Seurat)
     library(dplyr)
     seurat <- readRDS("{seurat}")
-    markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+    markers <- FindAllMarkers(seurat, only.pos = FALSE, min.pct = 0.25, logfc.threshold = 0.25)
     marker_table <- markers %>% group_by(cluster) %>% top_n(n = 20, wt = avg_logFC)
     marker_table <- as.data.frame(marker_table)
     write.csv(marker_table, file = "{marker_csv}")
@@ -457,6 +457,12 @@ def IntegratedSummary(sce, sampleid, report):
         output.write(str(patient_data_str))
         output.close()
     shutil.copyfile("viz/{}.json".format(sampleid),report)
+
+def RunHRDPathway():
+    pass
+
+def RunISGSPathway():
+    pass
 
 def UploadVizReport(integrated, positive, negative, complete):
     vizreport = VizReportStorage(config.prefix, "viz")

@@ -55,7 +55,7 @@ integration_args.add_argument("--cellranger", type=str, help="Path to cellranger
 
 args = parser.parse_args()
 
-if args.subparser != "clonealign" and not os.path.exists(args.samples):
+if args.subparser != "clonealign" and args.subparser != "analysis" and not os.path.exists(args.samples):
     output = open(args.samples, "w")
     output.write(args.sampleid)
     output.close()

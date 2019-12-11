@@ -10,13 +10,13 @@ from interface.genemarkermatrix import GeneMarkerMatrix
 class CellAssign(object):
 
     @staticmethod
-    def cmd(rdata, rho_csv, results, lsf=True):
-        CellAssign.script(rdata, rho_csv, results)
+    def cmd(rdata, rho_csv, results, lsf=True, B=10, min_delta=2):
+        CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta)
         env = os.environ.copy()
         cwd = os.getcwd()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         if lsf:
-            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err /opt/common/CentOS_7/singularity/singularity-3.0.1/bin/singularity exec --bind /admin --bind /opt --bind {} /home/ceglian/images/scrna-pipeline-v3.img Rscript {}""".format(cwd,"{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
+            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err Rscript {}""".format(cwd,"{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
         else:
             submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
             print(submit)
@@ -26,13 +26,13 @@ class CellAssign(object):
         subprocess.call(submit, env=env)
 
     @staticmethod
-    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True):
+    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True, B=10, min_delta=2):
         if not os.path.exists(".cache"):
             os.makedirs(".cache")
         marker_list = GeneMarkerMatrix.read_yaml(rho_yaml)
         marker_list.write_matrix(rho_csv)
         assert os.path.exists(rho_csv)
-        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf)
+        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf, B=B, min_delta=min_delta)
         print ("CellAssign finished.")
         matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
         pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")
@@ -93,7 +93,7 @@ rho <- rho[common_genes,]
 rho <- data.matrix(rho)
 s <- sizeFactors(sce)
 print('call')
-fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B=10, num_runs=3, shrinkage=TRUE)
+fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B={B}, num_runs=3, min_delta={min_delta}, shrinkage=TRUE)
 sce_result <- sce_result[,colnames(sce)]
 colData(sce_result)$cell_type <- fit_cellassign$cell_type
 print('save')
