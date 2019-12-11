@@ -30,6 +30,7 @@ kallisto_args.add_argument("--bustools", type=str, help="Path to bustools.", def
 sample_args = subparsers.add_parser('analysis')
 sample_args.add_argument('--sampleid', type=str, help='Sample id')
 sample_args.add_argument('--matrix', type=str, help='Path to filtered matrix.')
+sample_args.add_argument('--markers', type=str, help='Path to filtered matrix.', default="/codebase/markers.yaml")
 
 clonealign_args = subparsers.add_parser('clonealign')
 clonealign_args.add_argument('--samples', type=str, help='Sample ID linked to fastqs in scrnadata.')
