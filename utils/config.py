@@ -90,7 +90,6 @@ def write_config(args):
         cellranger = args.cellranger
     elif subcommand == "kallisto":
         prefix = args.sampleid
-        markers = args.markers
         datapath = args.datapath
         referencepath = args.referencepath
         kallisto = args.kallisto
