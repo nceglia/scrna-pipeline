@@ -10,7 +10,8 @@ from interface.genemarkermatrix import GeneMarkerMatrix
 class CellAssign(object):
 
     @staticmethod
-    def cmd(rdata, rho_csv, results, lsf=True, B=10, min_delta=2):
+    def cmd(rdata, rho_csv, results, lsf=False, B=10, min_delta=2):
+        lsf = False
         CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta)
         env = os.environ.copy()
         cwd = os.getcwd()
