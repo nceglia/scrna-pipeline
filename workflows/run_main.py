@@ -68,7 +68,7 @@ def RunQC(custom_output, sce, filtered_sce):
     library(scran)
     library(stringr)
 
-    sce <- read10xCounts('{path}')
+    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/')
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
