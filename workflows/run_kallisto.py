@@ -19,8 +19,8 @@ def RunKallisto(sampleid, finished):
     krunner = Kallisto(fastqs[0], sampleid)
     tenx_path = krunner.count()
     tenx = TenxAnalysis(tenx_path)
-    tenxds = TenxDataStorage(sampleid, species=species)
-    tenx.bus_finalize()
+    # tenxds = TenxDataStorage(sampleid, species=species)
+    # tenx.bus_finalize()
     open(finished,"w").write("Completed")
 
 def RunPseudo(sampleid, workflow, full=False):
