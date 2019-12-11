@@ -10,7 +10,7 @@ import pypeliner.managed
 
 from utils.config import Configuration
 
-from workflows.run_cellranger import RunPseudo
+from workflows.run_kallisto import RunPseudo
 
 config = Configuration()
 
