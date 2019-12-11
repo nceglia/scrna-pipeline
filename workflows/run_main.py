@@ -32,9 +32,14 @@ def RunParse(path_json, finished):
     if not os.path.exists(matrix_cached):
         os.makedirs(matrix_cached)
 
+    def decompress(gzipped, extracted):
+        with gzip.open(gzipped, 'rb') as f_in:
+            with open(extracted, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
     def check_and_decompress(gzipped, flat):
         if os.path.exists(gzipped) and not os.path.exists(flat):
-            self.decompress(gzipped, flat)
+            decompress(gzipped, flat)
 
     gzipped_filtered_barcodes = os.path.join(config.matrix, "barcodes.tsv.gz")
     _filtered_barcodes = gzipped_filtered_barcodes.replace(".gz","")
