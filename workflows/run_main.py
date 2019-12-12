@@ -97,11 +97,11 @@ def RunQC(custom_output, sce, filtered_sce):
     dev.off(0)
 
     png("./results/mito.png")
-    hist(sce$pct_counts_mito, breaks=20, col='darkolivegreen4',xlab='Proportion of reads in mitochondrial genes')
+    hist(sce$pct_counts_mitochondrial, breaks=20, col='darkolivegreen4',xlab='Proportion of reads in mitochondrial genes')
     dev.off(0)
 
     png("./results/ribo.png")
-    hist(sce$pct_counts_ribo, breaks=20, col='firebrick4',xlab='Proportion of reads in ribosomal genes')
+    hist(sce$pct_counts_ribosomal, breaks=20, col='firebrick4',xlab='Proportion of reads in ribosomal genes')
     dev.off()
 
     saveRDS(sce, file='{raw}')
