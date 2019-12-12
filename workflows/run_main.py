@@ -68,19 +68,17 @@ def RunQC(custom_output, sce, filtered_sce):
     library(DropletUtils)
     library(scran)
     library(stringr)
+    library(Seurat)
 
-    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/') ## REMOVE ME
+    ## REMOVE ME
+    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/')
+    ## MAKE THIS BACK TO {path}
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
     sce <- sce[,colSums(counts(sce) != 0) > 100]
     sce <- sce[rowSums(counts(sce))>0,]
     counts(sce) <- data.matrix(counts(sce))
-
-    print("Generating Figures")
-
-
-
 
     print("calculating metrics")
     mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
@@ -116,6 +114,13 @@ def RunQC(custom_output, sce, filtered_sce):
     sce <- computeSumFactors(sce, clusters = qclust)
     sce$size_factor <- sizeFactors(sce)
     print("Running red dim")
+
+    #FIX ME FIXED FOR TESTING
+    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+    seurat.downsample = subset(seurat, cells = sample(Cells(seurat), 100))
+    sce <- as.SingleCellExperiment(seurat.downsample)
+    #FIX ME
+
     sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
     sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
@@ -205,7 +210,7 @@ def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce, t_cell_rdata, 
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, sample=sampleid))
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, sample=sampleid, t_cell_data=t_cell_cached, cancer_data=cancer_cached))
     output.close()
     if not os.path.exists(seurat_cached) or not os.path.exists(sce_cached):
         subprocess.call(["Rscript", "{}".format(qc_script)])
