@@ -293,7 +293,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
 
     if not os.path.exists(rdata_cached):
         rho = "/codebase/exhaustion.yaml"
-        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True)
+        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True,script_prefix="exhaustion_")
         shutil.copyfile(_filtered_sce, rdata_cached)
     shutil.copyfile(rdata_cached, rdata)
     rcode = """
@@ -327,8 +327,8 @@ def RunHRD(custom_input, sce, rdata, umap):
     filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas_hrd.rdata")
 
     if not os.path.exists(rdata_cached):
-        rho = "/codebase/exhaustion.yaml"
-        CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True)
+        rho = "/codebase/hrd.yaml"
+        CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True,script_prefix="hrd_")
         shutil.copyfile(filtered_sce, rdata_cached)
     shutil.copyfile(rdata_cached, rdata)
     rcode = """

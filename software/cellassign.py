@@ -10,9 +10,9 @@ from interface.genemarkermatrix import GeneMarkerMatrix
 class CellAssign(object):
 
     @staticmethod
-    def cmd(rdata, rho_csv, results, lsf=False, B=10, min_delta=2):
+    def cmd(rdata, rho_csv, results, lsf=False, B=10, min_delta=2, script_prefix=""):
         lsf = False #REMOVE ME
-        CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta)
+        CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta, script_prefix=script_prefix)
         env = os.environ.copy()
         cwd = os.getcwd()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
@@ -27,13 +27,13 @@ class CellAssign(object):
         subprocess.call(submit, env=env)
 
     @staticmethod
-    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=False, B=10, min_delta=2):
+    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=False, B=10, min_delta=2, script_prefix=""):
         if not os.path.exists(".cache"):
             os.makedirs(".cache")
         marker_list = GeneMarkerMatrix.read_yaml(rho_yaml)
         marker_list.write_matrix(rho_csv)
         assert os.path.exists(rho_csv)
-        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf, B=B, min_delta=min_delta)
+        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf, B=B, min_delta=min_delta, script_prefix=script_prefix)
         print ("CellAssign finished.")
         matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
         pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")
@@ -52,11 +52,11 @@ class CellAssign(object):
         print ("Results written.")
 
     @staticmethod
-    def script(rdata, rho_csv, results, B, min_delta):
+    def script(rdata, rho_csv, results, B, min_delta, script_prefix=""):
         filtered_sce = os.path.join(os.path.split(rdata)[0],"sce_cas.rdata")
         filtered_rho = os.path.join(os.path.split(rdata)[0],"rho_cas.rdata")
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        configured = open("{}/run_cellassign.R".format(os.path.split(rdata)[0]),"w")
+        configured = open("{}/{}run_cellassign.R".format(os.path.split(rdata)[0],script_prefix),"w")
         configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho,B=B,min_delta=min_delta))
         configured.close()
         match = open("{}/match.R".format(os.path.split(rdata)[0]),"w")
