@@ -121,9 +121,9 @@ def RunQC(custom_output, sce, filtered_sce):
     sce <- as.SingleCellExperiment(seurat.downsample)
     #FIX ME
 
-    sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
-    sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
-    sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
+    # sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
+    # sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
+    # sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     saveRDS(sce, file='{filtered}')
     """.format(raw=sce,filtered=cached_sce, path=os.path.abspath(path))
     path = os.path.split(sce)[0]
