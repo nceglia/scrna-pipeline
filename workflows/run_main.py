@@ -61,6 +61,7 @@ def RunQC(custom_output, sce, filtered_sce):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
     cached_sce = os.path.join("./results","sce_{}.rdata".format(sampleid))
+
     rcode = """
     library(SingleCellExperiment)
     library(scater)
@@ -68,13 +69,31 @@ def RunQC(custom_output, sce, filtered_sce):
     library(scran)
     library(stringr)
 
-    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/')
+    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/') ## REMOVE ME
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
     sce <- sce[,colSums(counts(sce) != 0) > 100]
     sce <- sce[rowSums(counts(sce))>0,]
     counts(sce) <- data.matrix(counts(sce))
+
+    print("Generating Figures")
+
+    png(paste0("./results,"/counts.png"))
+    hist(sce$total_counts, breaks=20, col='darkgoldenrod1',xlab='Total Counts')
+    dev.off(0)
+
+    png(paste0("./results,"/umi.png"))
+    hist(sce$log10_total_counts, breaks=20, col='darkgoldenrod1',xlab='Log-total UMI count')
+    dev.off(0)
+
+    png(paste0("./results,"/mito.png"))
+    hist(sce$pct_counts_mito, breaks=20, col='darkolivegreen4',xlab='Proportion of reads in mitochondrial genes')
+    dev.off(0)
+
+    png(paste0("./results,"/ribo.png"))
+    hist(sce$pct_counts_ribo, breaks=20, col='firebrick4',xlab='Proportion of reads in ribosomal genes')
+
 
     print("calculating metrics")
     mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
@@ -145,13 +164,14 @@ def RunConvert(custom_output, sce, seurat):
         subprocess.call(["Rscript","{}".format(convert_script)])
     shutil.copyfile(seurat_cached, seurat)
 
-def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce):
+def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce, t_cell_rdata, cancer_rdata):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
     seurat_cached = os.path.join(config.jobpath, "results","seuret_annot_{}.rdata".format(sampleid))
     sce_cached = os.path.join(config.jobpath, "results","sce_annot_{}.rdata".format(sampleid))
     umap = os.path.join(config.jobpath, "results","umap_cluster_{}.png".format(sampleid))
-    tsne = os.path.join(config.jobpath, "results","tsne_cluster_{}.png".format(sampleid))
+    t_cell_cached = os.path.join(config.jobpath, "results","t_cell_{}.rdata".format(sampleid))
+    cancer_cached = os.path.join(config.jobpath, "results","cancer_{}.rdata".format(sampleid))
     rcode = """
     library(Seurat)
     library(sctransform)
@@ -163,21 +183,25 @@ def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce):
     seurat <- FindClusters(object = seurat)
     seurat <- RunTSNE(object = seurat, reduction = "pca")
     seurat <- RunUMAP(object = seurat, reduction = "pca", dims = 1:50)
-    png("{tsne}")
-    DimPlot(object = seurat, reduction = "tsne")
-    dev.off()
-    png("{umap}")
-    DimPlot(object = seurat, reduction = "umap")
+    png("{umap}", width=1000, height=1000)
+    DimPlot(object = seurat, reduction = "umap", plot.title='{sample}', dark.theme=TRUE)
     dev.off()
     saveRDS(seurat, file = '{qcd_seurat}')
     sce <- as.SingleCellExperiment(seurat)
     rowData(sce)$Symbol <- rownames(sce)
     saveRDS(sce, file="{qcd_sce}")
+
+    sce_t_cell <- sce[,sce$cell_type=="Cytotoxic.T.cell"]
+    saveRDS(sce_t_cell, file="{t_cell_rdata}")
+
+    sce_cancer <- sce[,sce$cell_type=="Ovarian.cancer.cell"]
+    saveRDS(sce_cancer, file="{cancer_rdata}")
+
     """
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, tsne=tsne))
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, sample=sampleid))
     output.close()
     if not os.path.exists(seurat_cached) or not os.path.exists(sce_cached):
         subprocess.call(["Rscript", "{}".format(qc_script)])
@@ -189,8 +213,7 @@ def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exp
     sampleid, path = list(sample.items()).pop()
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
     markers = ["'" + marker + "'" for marker in marker_list.genes]
-    tsne_celltype_plot = os.path.join(config.jobpath,"results","tsne_celltype_{}_sctransform.png".format(sampleid))
-    umap_celltype_plot = os.path.join(config.jobpath,"results","umap_celltype_{}_sctransform.png".format(sampleid))
+    umap_celltype_plot = os.path.join(config.jobpath,"results","umap_celltype_{}.png".format(sampleid))
     ridge_plot = os.path.join(config.jobpath,"results","ridge_{}.png".format(sampleid))
     exprs_plot = os.path.join(config.jobpath,"results","features_{}.png".format(sampleid))
     rcode = """
@@ -198,12 +221,8 @@ def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exp
     library(ggplot2)
     seurat <- readRDS("{seurat}")
 
-    png("{umap_celltype}")
-    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
-    dev.off()
-
-    png("{tsne_celltype}")
-    DimPlot(object = seurat, reduction = "tsne", group.by = "cell_type")
+    png("{umap_celltype}", width=1000, height=1000)
+    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type", dark.theme=TRUE, plot.title="{sample}")
     dev.off()
 
     png("{ridge}",width=600,height=5000)
@@ -217,11 +236,10 @@ def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exp
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"viz_{}.R".format(sampleid))
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, tsne_celltype=tsne_celltype_plot, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot))
+    output.write(rcode.format(seurat=seurat, umap_celltype=umap_celltype_plot, markers=",".join(markers), ridge = ridge_plot, exprs=exprs_plot, sample=sampleid))
     output.close()
     if not os.path.exists(exprs_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
-    shutil.copyfile(tsne_celltype_plot, tsne_celltype)
     shutil.copyfile(umap_celltype_plot, umap_celltype)
     shutil.copyfile(ridge_plot, ridge)
     shutil.copyfile(exprs_plot, exprs)
@@ -248,6 +266,109 @@ def RunMarkers(custom_output,seurat,marker_table):
         subprocess.call(["Rscript","{}".format(marker_script)])
     shutil.copyfile(marker_csv_cached, marker_table)
 
+
+def RunExhaustion(custom_input, sce, rdata, umap):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    rdata_cached = os.path.join(config.jobpath, "results","exhaustion_{}.rdata".format(sampleid))
+    umap_cached = os.path.join(config.jobpath, "results","exhaustion_umap_{}.png".format(sampleid))
+
+    temp = os.path.split(sce)[0]
+    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_exhaustion.csv")
+    _fit = os.path.join(os.path.split(sce)[0],"fit_sub_exhaustion.pkl")
+    _filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas_exhaustion.rdata")
+
+    if not os.path.exists(rdata_cached):
+        rho = "/codebase/exhaustion.yaml"
+        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True)
+        shutil.copyfile(_filtered_sce, rdata_cached)
+    shutil.copyfile(rdata_cached, rdata)
+    rcode = """
+    library(Seurat)
+    library(ggplot2)
+    sce <- readRDS("{sce}")
+    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
+    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+
+    png("{umap}", width=1000, height=1000)
+    DimPlot(object = seurat, reduction = "umap", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+    dev.off()
+    """
+    qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
+    output = open(qc_script,"w")
+    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid))
+    output.close()
+    if not os.path.exists(exprs_plot):
+        subprocess.call(["Rscript","{}".format(qc_script)])
+    shutil.copyfile(umap_cached, umap)
+
+def RunHRD(custom_input, sce, rdata, umap):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    rdata_cached = os.path.join(config.jobpath, "results","hrd_{}.rdata".format(sampleid))
+    umap_cached = os.path.join(config.jobpath, "results","hrd_umap_{}.png".format(sampleid))
+
+    temp = os.path.split(sce)[0]
+    rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_hrd.csv")
+    fit = os.path.join(os.path.split(sce)[0],"fit_sub_hrd.pkl")
+    filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas_hrd.rdata")
+
+    if not os.path.exists(rdata_cached):
+        rho = "/codebase/exhaustion.yaml"
+        CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True)
+        shutil.copyfile(filtered_sce, rdata_cached)
+    shutil.copyfile(rdata_cached, rdata)
+    rcode = """
+    library(Seurat)
+    library(ggplot2)
+
+    fit <- readRDS("{fit}")
+    sce <- readRDS("{sce}")
+
+    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
+    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+
+    png("{umap}", width=1000, height=1000)
+    DimPlot(object = seurat, reduction = "umap", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+    dev.off()
+    """
+    qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
+    output = open(qc_script,"w")
+    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid))
+    output.close()
+    if not os.path.exists(exprs_plot):
+        subprocess.call(["Rscript","{}".format(qc_script)])
+    shutil.copyfile(umap_cached, umap)
+
+def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_annotated):
+    sample = json.loads(open(custom_output,"r").read())
+    sampleid, path = list(sample.items()).pop()
+    sce_annotated_cached = os.path.join(config.jobpath, "results","{}_complete.rdata".format(sampleid))
+    rcode = """
+    library(SingleCellExperiment)
+
+    sce <- readRDS("{sce}")
+    sce_exhaustion <- readRDS("{sce_exhaustion}")
+    sce_hrd <- readRDS("{sce_hrd}")
+
+    colnames(sce) <- colData(sce)$Barcode
+    colnames(sce_hrd) <- colData(sce_hrd)$Barcode
+    colnames(sce_exhaustion) <- colData(sce_exhaustion)$Barcode
+
+    sce$repairtype <- "Other"
+    sce$Exhaustion_prob <- 0.0
+    sce[,colnames(sce_hrd)]$repairtype <- sce_hrd$repairtype
+    sce[,colnames(sce)] <- sce_exhaustion$Exhaustion_prob
+
+    saveRDS(sce, file="{sce_cached}")
+    """
+    script = os.path.join(temp,"finalize_{}.R".format(sampleid))
+    output = open(script,"w")
+    output.write(rcode.format(sce=sce_celltype, sce_exhaustion=sce_exhaustion, sce_hrd=sce_hrd, sce_cached=sce_annotated_cached))
+    output.close()
+    if not os.path.exists(exprs_plot):
+        subprocess.call(["Rscript","{}".format(qc_script)])
+    shutil.copyfile(sce_annotated_cached, sce_annotated)
 
 def RunMain(workflow):
 
@@ -306,6 +427,8 @@ def RunMain(workflow):
             pypeliner.managed.TempInputFile("seurat.rdata","sample"),
             pypeliner.managed.TempOutputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("sce_qcd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("t_cell.rdata","sample"),
+            pypeliner.managed.TempOutputFile("cancer.rdata","sample"),
         )
     )
 
@@ -331,6 +454,44 @@ def RunMain(workflow):
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
             pypeliner.managed.TempOutputFile("markers.csv","sample"),
+        )
+    )
+
+    workflow.transform (
+        name = "exhaustion",
+        func = RunExhaustion,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("t_cell.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce_exhaustion.rdata","sample"),
+            pypeliner.managed.TempOutputFile("t_cell_exhaustion.png","sample"),
+        )
+    )
+
+
+    workflow.transform (
+        name = "hrd_pathway",
+        func = RunHRD,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("cancer.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce_hrd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("hrd_cancer.png","sample"),
+        )
+    )
+
+    workflow.transform (
+        name = "finalize_sce",
+        func = RunAnnotateSCE,
+        axes = ('sample',),
+        args = (
+            pypeliner.managed.TempInputFile("sample_path.json","sample"),
+            pypeliner.managed.TempInputFile("sce_qcd.rdata","sample"),
+            pypeliner.managed.TempInputFile("sce_exhaustion.rdata","sample"),
+            pypeliner.managed.TempInputFile("sce_hrd.rdata","sample"),
+            pypeliner.managed.TempOutputFile("sce_annotated.rdata","sample"),
         )
     )
 
