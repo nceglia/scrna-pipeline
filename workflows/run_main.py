@@ -221,7 +221,7 @@ def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce, t_cell_rdata, 
     shutil.copyfile(cancer_cached, cancer_rdata)
     shutil.copyfile(t_cell_cached, t_cell_rdata)
 
-def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exprs):
+def RunSeuratViz(custom_output, seurat, umap_celltype, ridge, exprs):
     sample = json.loads(open(custom_output,"r").read())
     sampleid, path = list(sample.items()).pop()
     marker_list = GeneMarkerMatrix.read_yaml(config.rho_matrix)
@@ -316,7 +316,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     shutil.copyfile(umap_cached, umap)
 
 def RunHRD(custom_input, sce, rdata, umap):
-    sample = json.loads(open(custom_output,"r").read())
+    sample = json.loads(open(custom_input,"r").read())
     sampleid, path = list(sample.items()).pop()
     rdata_cached = os.path.join(config.jobpath, "results","hrd_{}.rdata".format(sampleid))
     umap_cached = os.path.join(config.jobpath, "results","hrd_umap_{}.png".format(sampleid))
@@ -354,7 +354,7 @@ def RunHRD(custom_input, sce, rdata, umap):
     shutil.copyfile(umap_cached, umap)
 
 def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_annotated):
-    sample = json.loads(open(custom_output,"r").read())
+    sample = json.loads(open(custom_input,"r").read())
     sampleid, path = list(sample.items()).pop()
     sce_annotated_cached = os.path.join(config.jobpath, "results","{}_complete.rdata".format(sampleid))
     rcode = """
@@ -452,7 +452,6 @@ def RunMain(workflow):
         args = (
             pypeliner.managed.TempInputFile("sample_path.json","sample"),
             pypeliner.managed.TempInputFile("seurat_qcd.rdata","sample"),
-            pypeliner.managed.TempOutputFile("seurat_tsne_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_umap_celltype.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_ridge.png","sample"),
             pypeliner.managed.TempOutputFile("seurat_features.png","sample"),
