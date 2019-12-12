@@ -102,6 +102,7 @@ def RunQC(custom_output, sce, filtered_sce):
 
     png("./results/ribo.png")
     hist(sce$pct_counts_ribo, breaks=20, col='firebrick4',xlab='Proportion of reads in ribosomal genes')
+    dev.off()
 
     saveRDS(sce, file='{raw}')
     print("normalizing")
