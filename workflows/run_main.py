@@ -281,7 +281,7 @@ def RunMarkers(custom_output,seurat,marker_table):
 
 
 def RunExhaustion(custom_input, sce, rdata, umap):
-    sample = json.loads(open(custom_output,"r").read())
+    sample = json.loads(open(custom_input,"r").read())
     sampleid, path = list(sample.items()).pop()
     rdata_cached = os.path.join(config.jobpath, "results","exhaustion_{}.rdata".format(sampleid))
     umap_cached = os.path.join(config.jobpath, "results","exhaustion_umap_{}.png".format(sampleid))
