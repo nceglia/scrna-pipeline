@@ -79,19 +79,19 @@ def RunQC(custom_output, sce, filtered_sce):
 
     print("Generating Figures")
 
-    png(paste0("./results,"/counts.png"))
+    png("./results/counts.png")
     hist(sce$total_counts, breaks=20, col='darkgoldenrod1',xlab='Total Counts')
     dev.off(0)
 
-    png(paste0("./results,"/umi.png"))
+    png("./results/umi.png")
     hist(sce$log10_total_counts, breaks=20, col='darkgoldenrod1',xlab='Log-total UMI count')
     dev.off(0)
 
-    png(paste0("./results,"/mito.png"))
+    png("./results/mito.png")
     hist(sce$pct_counts_mito, breaks=20, col='darkolivegreen4',xlab='Proportion of reads in mitochondrial genes')
     dev.off(0)
 
-    png(paste0("./results,"/ribo.png"))
+    png("./results/ribo.png")
     hist(sce$pct_counts_ribo, breaks=20, col='firebrick4',xlab='Proportion of reads in ribosomal genes')
 
 
