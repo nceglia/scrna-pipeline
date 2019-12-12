@@ -79,6 +79,15 @@ def RunQC(custom_output, sce, filtered_sce):
 
     print("Generating Figures")
 
+
+
+
+    print("calculating metrics")
+    mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
+    ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
+    rownames(sce) <- rowData(sce)$Symbol
+    sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
+
     png("./results/counts.png")
     hist(sce$total_counts, breaks=20, col='darkgoldenrod1',xlab='Total Counts')
     dev.off(0)
@@ -94,12 +103,6 @@ def RunQC(custom_output, sce, filtered_sce):
     png("./results/ribo.png")
     hist(sce$pct_counts_ribo, breaks=20, col='firebrick4',xlab='Proportion of reads in ribosomal genes')
 
-
-    print("calculating metrics")
-    mitochondrial <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^MT\\\-")])
-    ribosomal <- as.character(rowData(sce)$Symbol[str_detect(rowData(sce)$Symbol, "^RP(L|S)")])
-    rownames(sce) <- rowData(sce)$Symbol
-    sce <- calculateQCMetrics(sce, exprs_values = "counts", feature_controls = list(mitochondrial=mitochondrial, ribosomal=ribosomal))
     saveRDS(sce, file='{raw}')
     print("normalizing")
     sce <- normalize(sce)
