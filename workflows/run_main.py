@@ -119,7 +119,7 @@ def RunQC(custom_output, sce, filtered_sce):
     colnames(sce) <- colData(sce)$Barcode
     rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-    seurat.downsample = subset(seurat, cells = sample(Cells(seurat), 100))
+    seurat.downsample = subset(seurat, cells = sample(Cells(seurat), 500))
     sce <- as.SingleCellExperiment(seurat.downsample)
     #FIX ME
 
