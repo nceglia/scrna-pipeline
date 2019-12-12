@@ -212,7 +212,7 @@ def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce, t_cell_rdata, 
     path = os.path.split(seurat)[0]
     qc_script = os.path.join(path,"qc.R")
     output = open(qc_script,"w")
-    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, sample=sampleid, t_cell_data=t_cell_cached, cancer_data=cancer_cached))
+    output.write(rcode.format(seurat=seurat, qcd_seurat=seurat_cached, qcd_sce=sce_cached, umap=umap, sample=sampleid, t_cell_rdata=t_cell_cached, cancer_rdata=cancer_cached))
     output.close()
     if not os.path.exists(seurat_cached) or not os.path.exists(sce_cached):
         subprocess.call(["Rscript", "{}".format(qc_script)])
