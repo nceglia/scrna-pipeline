@@ -218,6 +218,8 @@ def RunSeuratWorkflow(custom_output, seurat, qcd_seurat, qcd_sce, t_cell_rdata, 
         subprocess.call(["Rscript", "{}".format(qc_script)])
     shutil.copyfile(seurat_cached, qcd_seurat)
     shutil.copyfile(sce_cached, qcd_sce)
+    shutil.copyfile(cancer_cached, cancer_rdata)
+    shutil.copyfile(t_cell_cached, t_cell_rdata)
 
 def RunSeuratViz(custom_output, seurat, tsne_celltype, umap_celltype, ridge, exprs):
     sample = json.loads(open(custom_output,"r").read())
