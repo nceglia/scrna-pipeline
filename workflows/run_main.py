@@ -115,13 +115,13 @@ def RunQC(custom_output, sce, filtered_sce):
     sce$size_factor <- sizeFactors(sce)
     print("Running red dim")
 
-    #FIX ME FIXED FOR TESTING
-    colnames(sce) <- colData(sce)$Barcode
-    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
-    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-    seurat.downsample = subset(seurat, cells = sample(Cells(seurat), 1000))
-    sce <- as.SingleCellExperiment(seurat.downsample)
-    #FIX ME
+    # #FIX ME FIXED FOR TESTING
+    # colnames(sce) <- colData(sce)$Barcode
+    # rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
+    # seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+    # seurat.downsample = subset(seurat, cells = sample(Cells(seurat), 1000))
+    # sce <- as.SingleCellExperiment(seurat.downsample)
+    # #FIX ME
 
     # sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
     # sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
