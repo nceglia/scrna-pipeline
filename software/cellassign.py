@@ -17,9 +17,9 @@ class CellAssign(object):
         cwd = os.getcwd()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         if lsf:
-            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err Rscript {}""".format(cwd,"{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
+            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err Rscript {}""".format(cwd,"{}/{}run_cellassign.R".format(os.path.split(rdata)[0]), script_prefix).split()
         else:
-            submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
+            submit = ["Rscript","{}/{}run_cellassign.R".format(os.path.split(rdata)[0], script_prefix)]
             print(submit)
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
