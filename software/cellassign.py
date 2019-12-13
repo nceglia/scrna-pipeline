@@ -53,6 +53,7 @@ class CellAssign(object):
 
     @staticmethod
     def script(rdata, rho_csv, results, B, min_delta, script_prefix=""):
+        print(script_prefix)
         filtered_sce = os.path.join(os.path.split(rdata)[0],"{}sce_cas.rdata".format(script_prefix))
         filtered_rho = os.path.join(os.path.split(rdata)[0],"{}rho_cas.rdata".format(script_prefix))
         matched_results = os.path.join(os.path.split(results)[0],"{}cell_types.tsv".format(script_prefix))
