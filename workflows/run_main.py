@@ -24,11 +24,11 @@ config = Configuration()
 def RunParse(path_json, finished):
     if not os.path.exists(os.path.join(config.jobpath,"results")):
         os.makedirs(os.path.join(config.jobpath,"results"))
-    if not os.path.exists(os.path.join(config.jobpath,".cached")):
-        os.makedirs(os.path.join(config.jobpath,".cached"))
+    if not os.path.exists(os.path.join(config.jobpath,".cache")):
+        os.makedirs(os.path.join(config.jobpath,".cache"))
 
     sample = list(path_json.keys())[0]
-    matrix_cached = os.path.join(config.jobpath,".cached/{}".format(sample))
+    matrix_cached = os.path.join(config.jobpath,".cache/{}".format(sample))
     if not os.path.exists(matrix_cached):
         os.makedirs(matrix_cached)
 
@@ -299,12 +299,16 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     rcode = """
     library(Seurat)
     library(ggplot2)
+    library(scater)
     sce <- readRDS("{sce}")
-    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
+    fit <- readRDS("{fit}")
+
+    sce$Exhaustion_prob <- fit$mle_params$gamma["Exhausted.T.cell"]
+
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
 
     png("{umap}", width=1000, height=1000)
-    DimPlot(object = seurat, reduction = "umap", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+    FeaturePlot(object = seurat, reduction = "UMAP", features=c("Exhaustion_prob"), plot.title="{sample}")
     dev.off()
     """
     qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
@@ -330,27 +334,31 @@ def RunHRD(custom_input, sce, rdata, umap):
         rho = "/codebase/hrd.yaml"
         CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True,script_prefix="hrd_")
         shutil.copyfile(filtered_sce, rdata_cached)
-    shutil.copyfile(rdata_cached, rdata)
+
     rcode = """
     library(Seurat)
     library(ggplot2)
-
+    library(scater)
     fit <- readRDS("{fit}")
     sce <- readRDS("{sce}")
-
-    rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
+    sce$repairtype <- fit$cell_type
+    sce$HRD_prob <- fit$mle_params$gamma[,"HRD"]
+    sce$HR_prob <- fit$mle_params$gamma[,"HR"]
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+    seurat$repairtype <- sce$repairtype
 
     png("{umap}", width=1000, height=1000)
-    DimPlot(object = seurat, reduction = "umap", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+    DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
     dev.off()
+    saveRDS(sce, file="{sce}")
     """
     qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
     output = open(qc_script,"w")
-    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid))
+    output.write(rcode.format(sce=rdata_cached, umap=umap_cached, sample=sampleid, format(fit)))
     output.close()
     if not os.path.exists(exprs_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
+    shutil.copyfile(rdata_cached, rdata)
     shutil.copyfile(umap_cached, umap)
 
 def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_annotated):
