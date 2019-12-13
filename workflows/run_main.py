@@ -313,7 +313,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     """
     qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
     output = open(qc_script,"w")
-    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid))
+    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid, fit=fit))
     output.close()
     if not os.path.exists(exprs_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
@@ -354,7 +354,7 @@ def RunHRD(custom_input, sce, rdata, umap):
     """
     qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
     output = open(qc_script,"w")
-    output.write(rcode.format(sce=rdata_cached, umap=umap_cached, sample=sampleid, format(fit)))
+    output.write(rcode.format(sce=rdata_cached, umap=umap_cached, sample=sampleid, fit=fit))
     output.close()
     if not os.path.exists(exprs_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
