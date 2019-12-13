@@ -313,7 +313,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     """
     qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
     output = open(qc_script,"w")
-    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid, fit=fit))
+    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid, fit=_fit))
     output.close()
     if not os.path.exists(exprs_plot):
         subprocess.call(["Rscript","{}".format(qc_script)])
