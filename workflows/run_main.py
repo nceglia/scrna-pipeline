@@ -362,6 +362,7 @@ def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_anno
     sample = json.loads(open(custom_input,"r").read())
     sampleid, path = list(sample.items()).pop()
     sce_annotated_cached = os.path.join(config.jobpath, "results","{}_complete.rdata".format(sampleid))
+    temp = os.path.split(sce_celltype)[0]
     rcode = """
     library(SingleCellExperiment)
 
