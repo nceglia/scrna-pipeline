@@ -308,7 +308,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
 
     png("{umap}", width=1000, height=1000)
-    FeaturePlot(object = seurat, reduction = "UMAP", features=c("Exhaustion_prob"), plot.title="{sample}")
+    FeaturePlot(object = seurat, reduction = "UMAP", features=c("Exhaustion_prob"))
     dev.off()
     """
     qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
