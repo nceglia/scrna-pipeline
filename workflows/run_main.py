@@ -384,7 +384,7 @@ def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_anno
     output = open(script,"w")
     output.write(rcode.format(sce=sce_celltype, sce_exhaustion=sce_exhaustion, sce_hrd=sce_hrd, sce_cached=sce_annotated_cached))
     output.close()
-    subprocess.call(["Rscript","{}".format(qc_script)])
+    subprocess.call(["Rscript","{}".format(script)])
     shutil.copyfile(sce_annotated_cached, sce_annotated)
 
 def RunMain(workflow):
