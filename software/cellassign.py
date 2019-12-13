@@ -94,7 +94,7 @@ rho <- rho[common_genes,]
 rho <- data.matrix(rho)
 s <- sizeFactors(sce)
 print('call')
-fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B={B}, num_runs=3, min_delta={min_delta}, shrinkage=TRUE)
+fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B={B}, num_runs=1, min_delta={min_delta}, shrinkage=TRUE) ##CHANGE ME
 sce_result <- sce_result[,colnames(sce)]
 colData(sce_result)$cell_type <- fit_cellassign$cell_type
 print('save')
