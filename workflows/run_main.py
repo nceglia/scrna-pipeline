@@ -299,14 +299,13 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     rcode = """
     library(Seurat)
     library(ggplot2)
-    library(scater)
     sce <- readRDS("{sce}")
     fit <- readRDS("{fit}")
 
-    sce$Exhaustion_prob <- fit$mle_params$gamma["Exhausted.T.cell"]
+    sce$Exhaustion_prob <- fit$mle_params$gamma[,"Exhausted.T.cell"]
 
     seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-
+    seurat$Exhaustion_prob <- sce$Exhaustion_prob
     png("{umap}", width=1000, height=1000)
     FeaturePlot(object = seurat, reduction = "UMAP", features=c("Exhaustion_prob"))
     dev.off()
@@ -337,7 +336,7 @@ def RunHRD(custom_input, sce, rdata, umap):
     rcode = """
     library(Seurat)
     library(ggplot2)
-    library(scater)
+
     fit <- readRDS("{fit}")
     sce <- readRDS("{sce}")
     sce$repairtype <- fit$cell_type
