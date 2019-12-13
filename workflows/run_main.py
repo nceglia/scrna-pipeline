@@ -380,7 +380,7 @@ def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_anno
 
     saveRDS(sce, file="{sce_cached}")
     """
-    script = os.path.join(temp,"finalize_{}.R".format(sampleid))
+    script = os.path.join(path,"finalize_{}.R".format(sampleid))
     output = open(script,"w")
     output.write(rcode.format(sce=sce_celltype, sce_exhaustion=sce_exhaustion, sce_hrd=sce_hrd, sce_cached=sce_annotated_cached))
     output.close()
