@@ -53,9 +53,9 @@ class CellAssign(object):
 
     @staticmethod
     def script(rdata, rho_csv, results, B, min_delta, script_prefix=""):
-        filtered_sce = os.path.join(os.path.split(rdata)[0],"sce_cas.rdata")
-        filtered_rho = os.path.join(os.path.split(rdata)[0],"rho_cas.rdata")
-        matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
+        filtered_sce = os.path.join(os.path.split(rdata)[0],"{}sce_cas.rdata".format(script_prefix))
+        filtered_rho = os.path.join(os.path.split(rdata)[0],"{}rho_cas.rdata".format(script_prefix))
+        matched_results = os.path.join(os.path.split(results)[0],"{}cell_types.tsv".format(script_prefix))
         configured = open("{}/{}run_cellassign.R".format(os.path.split(rdata)[0],script_prefix),"w")
         configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho,B=B,min_delta=min_delta))
         configured.close()

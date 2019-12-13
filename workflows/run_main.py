@@ -287,9 +287,9 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     umap_cached = os.path.join(config.jobpath, "results","exhaustion_umap_{}.png".format(sampleid))
 
     temp = os.path.split(sce)[0]
-    _rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_exhaustion.csv")
+    _rho_csv = os.path.join(os.path.split(sce)[0],"exhaustion_rho_csv.csv")
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub_exhaustion.pkl")
-    _filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas_exhaustion.rdata")
+    _filtered_sce = os.path.join(os.path.split(sce)[0],"exhaustion_sce_cas.rdata")
 
     if not os.path.exists(rdata_cached):
         rho = "/codebase/exhaustion.yaml"
@@ -322,9 +322,9 @@ def RunHRD(custom_input, sce, rdata, umap):
     umap_cached = os.path.join(config.jobpath, "results","hrd_umap_{}.png".format(sampleid))
 
     temp = os.path.split(sce)[0]
-    rho_csv = os.path.join(os.path.split(sce)[0],"rho_csv_hrd.csv")
+    rho_csv = os.path.join(os.path.split(sce)[0],"hrd_rho_csv.csv")
     fit = os.path.join(os.path.split(sce)[0],"fit_sub_hrd.pkl")
-    filtered_sce = os.path.join(os.path.split(sce)[0],"sce_cas_hrd.rdata")
+    filtered_sce = os.path.join(os.path.split(sce)[0],"hrd_sce_cas.rdata")
 
     if not os.path.exists(rdata_cached):
         rho = "/codebase/hrd.yaml"
