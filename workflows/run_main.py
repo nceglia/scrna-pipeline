@@ -356,8 +356,7 @@ def RunHRD(custom_input, sce, rdata, umap):
     output = open(qc_script,"w")
     output.write(rcode.format(sce=rdata_cached, umap=umap_cached, sample=sampleid, fit=fit))
     output.close()
-    if not os.path.exists(exprs_plot):
-        subprocess.call(["Rscript","{}".format(qc_script)])
+    subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(rdata_cached, rdata)
     shutil.copyfile(umap_cached, umap)
 
@@ -387,8 +386,7 @@ def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_anno
     output = open(script,"w")
     output.write(rcode.format(sce=sce_celltype, sce_exhaustion=sce_exhaustion, sce_hrd=sce_hrd, sce_cached=sce_annotated_cached))
     output.close()
-    if not os.path.exists(exprs_plot):
-        subprocess.call(["Rscript","{}".format(qc_script)])
+    subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(sce_annotated_cached, sce_annotated)
 
 def RunMain(workflow):
