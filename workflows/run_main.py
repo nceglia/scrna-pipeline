@@ -377,7 +377,7 @@ def RunAnnotateSCE(custom_input, sce_celltype, sce_exhaustion, sce_hrd, sce_anno
     sce$repairtype <- "Other"
     sce$Exhaustion_prob <- 0.0
     sce[,colnames(sce_hrd)]$repairtype <- sce_hrd$repairtype
-    sce[,colnames(sce)] <- sce_exhaustion$Exhaustion_prob
+    sce[,colnames(sce_exhaustion)]$Exhaustion_prob <- sce_exhaustion$Exhaustion_prob
 
     saveRDS(sce, file="{sce_cached}")
     """
