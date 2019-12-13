@@ -35,8 +35,8 @@ class CellAssign(object):
         assert os.path.exists(rho_csv)
         CellAssign.cmd(rdata, rho_csv, results, lsf=lsf, B=B, min_delta=min_delta, script_prefix=script_prefix)
         print ("CellAssign finished.")
-        matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
-        pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")
+        matched_results = os.path.join(os.path.split(rdata)[0],"{}cell_types.tsv".format(script_prefix))
+        pkl_fit = os.path.join(os.path.split(rdata)[0],"{}cell_types.pkl".format(script_prefix))
         lines = open(matched_results,"r").read().splitlines()
         header = lines.pop(0)
         barcodes = []
