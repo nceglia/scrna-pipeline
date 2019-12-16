@@ -26,8 +26,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
         os.makedirs("results")
     rdata = os.path.join(config.jobpath,"results","integrated_seurat_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_seurat_sce.rdata")
-    umap = os.path.join(config.jobpath,"results","integrated_seurat_tsne.rdata")
-    tsne = os.path.join(config.jobpath,"results","integrated_seurat_umap.rdata")
+    umap = os.path.join(config.jobpath,"results","integrated_seurat_umap.rdata")
     object_list = []
     rcode = """
     library(Seurat)
@@ -64,7 +63,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
     """
     integrate_script = os.path.join(".cache/integration_seurat.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached,umap=umap,tsne=tsne))
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce=sce_cached,umap=umap))
     output.close()
     subprocess.call(["Rscript","{}".format(integrate_script)])
     shutil.copyfile(rdata, integrated_seurat)
@@ -78,7 +77,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
         os.makedirs("results")
     rdata = os.path.join(config.jobpath,"results","integrated_harmony_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_harmony_sce.rdata")
-    umap = os.path.join(config.jobpath,"results","integrated_harmony_umap.rdata")
+    umap = os.path.join(config.jobpath,"results","integrated_harmony_umap.png")
     merged = os.path.join(config.jobpath,"results","sce_merged.rdata")
     object_list = []
     rcode = """
@@ -110,6 +109,10 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     saveRDS(integrated, file="{rdata}")
     sce <- as.SingleCellExperiment(integrated)
     saveRDS(sce, file="{sce_cached}")
+
+    png("{umap}")
+    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
+    dev.off()
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
     output = open(integrate_script,"w")
