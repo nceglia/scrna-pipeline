@@ -10,7 +10,7 @@ import pypeliner.managed
 
 from utils.config import Configuration
 
-from workflows.run_integration import RunCollection
+from workflows.run_integrate import RunCollection
 
 config = Configuration()
 
