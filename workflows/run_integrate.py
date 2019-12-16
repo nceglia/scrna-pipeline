@@ -111,7 +111,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     saveRDS(sce, file="{sce_cached}")
 
     png("{umap}")
-    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
+    DimPlot(object = integrated, reduction = "umap", group.by = "cell_type")
     dev.off()
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
