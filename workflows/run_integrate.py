@@ -66,11 +66,12 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
     shutil.copyfile(sce_cached, integrated_sce)
     shutil.copyfile(umap, integrated_umap)
 
-def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, integrated_tsne, integrated_umap, merged):
+def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, integrated_umap, merged):
+    if not os.path.exists(".cache"):
+        os.makedirs(".cache")
     rdata = os.path.join(config.jobpath,"results","integrated_harmony_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_harmony_sce.rdata")
-    umap = os.path.join(config.jobpath,"results","integrated_harmony_tsne.rdata")
-    tsne = os.path.join(config.jobpath,"results","integrated_harmony_umap.rdata")
+    umap = os.path.join(config.jobpath,"results","integrated_harmony_umap.rdata")
     merged = os.path.join(config.jobpath,"results","sce_merged.rdata")
     object_list = []
     rcode = """
@@ -105,13 +106,12 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,tsne=tsne,merged=merged))
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,,merged=merged))
     output.close()
     cmd = """Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
     shutil.copyfile(rdata, integrated_harmony)
     shutil.copyfile(sce_cached, integrated_sce)
-    shutil.copyfile(tsne, integrated_tsne)
     shutil.copyfile(umap, integrated_umap)
     shutil.copyfile(merged, sce_merged)
 
@@ -239,7 +239,6 @@ def RunCollection(workflow):
             all_samples,
             pypeliner.managed.TempOutputFile("integrated_seurat_seurat.rdata"),
             pypeliner.managed.TempOutputFile("integrated_seurat_sce.rdata"),
-            pypeliner.managed.TempOutputFile("integrated_seurat_tsne.png"),
             pypeliner.managed.TempOutputFile("integrated_seurat_umap.png"),
         )
     )
