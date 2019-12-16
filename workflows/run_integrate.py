@@ -93,7 +93,6 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
         sce <- readRDS("{object}")
         colnames(sce) <- colData(sce)$Barcode
         sce$sample <- "{idx}"
-        rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
         seurat{idx} <- as.Seurat(sce, counts = "counts", data = "logcounts")
         """.format(idx=idx,object=object)
         rcode += load
