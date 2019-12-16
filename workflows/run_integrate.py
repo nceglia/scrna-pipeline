@@ -24,13 +24,12 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
     sce_cached = os.path.join(config.jobpath,"results","integrated_seurat_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_seurat_tsne.rdata")
     tsne = os.path.join(config.jobpath,"results","integrated_seurat_umap.rdata")
-    sces = json.loads(open(sample_paths,"r").read())
     object_list = []
     rcode = """
     library(Seurat)
     library(SingleCellExperiment)
     """
-    for idx, object in sces.items():
+    for idx, object in sample_paths.items():
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
@@ -73,7 +72,6 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     umap = os.path.join(config.jobpath,"results","integrated_harmony_tsne.rdata")
     tsne = os.path.join(config.jobpath,"results","integrated_harmony_umap.rdata")
     merged = os.path.join(config.jobpath,"results","sce_merged.rdata")
-    sces = json.loads(open(sample_paths,"r").read())
     object_list = []
     rcode = """
     library(Seurat)
@@ -81,7 +79,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     library(harmony)
     library(scater)
     """
-    for idx, object in sces.items():
+    for idx, object in sample_paths.items():
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
