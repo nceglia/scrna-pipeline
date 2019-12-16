@@ -57,7 +57,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
     saveRDS(sce, file="{sce}")
 
     png("{umap}")
-    DimPlot(object = seurat, reduction = "umap", group.by = "cell_type")
+    DimPlot(object = integrated, reduction = "umap", group.by = "cell_type")
     dev.off()
 
     """
