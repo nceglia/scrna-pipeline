@@ -22,6 +22,8 @@ config = Configuration()
 def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integrated_umap):
     if not os.path.exists(".cache"):
         os.makedirs(".cache")
+    if not os.path.exists('results'):
+        os.makedirs("results")
     rdata = os.path.join(config.jobpath,"results","integrated_seurat_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_seurat_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_seurat_tsne.rdata")
@@ -71,6 +73,8 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
 def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, integrated_umap, merged):
     if not os.path.exists(".cache"):
         os.makedirs(".cache")
+    if not os.path.exists('results'):
+        os.makedirs("results")
     rdata = os.path.join(config.jobpath,"results","integrated_harmony_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_harmony_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_harmony_umap.rdata")
