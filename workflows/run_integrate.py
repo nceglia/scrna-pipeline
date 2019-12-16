@@ -39,6 +39,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
         load = """
     sce{id} <- readRDS("{object}")
     seurat{id} <- as.Seurat(sce{id}, counts = "counts", data = "logcounts")
+    seurat{id} <- SCTransform(seurat{id})
         """.format(id=idx,object=object)
         rcode += load
     rcode += """
@@ -108,7 +109,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     integrated <- RunUMAP(integrated, reduction = "harmony", dims = 1:50)
     saveRDS(integrated, file="{rdata}")
     sce <- as.SingleCellExperiment(integrated)
-    saveRDS(sce, file="{sce_cached}.rdata")
+    saveRDS(sce, file="{sce_cached}")
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
     output = open(integrate_script,"w")
