@@ -20,6 +20,8 @@ config = Configuration()
 
 
 def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integrated_umap):
+    if not os.path.exists(".cache"):
+        os.makedirs(".cache")
     rdata = os.path.join(config.jobpath,"results","integrated_seurat_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_seurat_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_seurat_tsne.rdata")
@@ -115,7 +117,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     shutil.copyfile(umap, integrated_umap)
     shutil.copyfile(merged, sce_merged)
 
-def RunScanoramaIntegration(merged, integrated_sce, integrated_tsne, integrated_umap):
+def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     rdata = os.path.join(config.jobpath,"results","integrated_scanorama_sce.rdata")
     umap = os.path.join(config.jobpath,"results","integrated_scanorama_tsne.rdata")
     tsne = os.path.join(config.jobpath,"results","integrated_scanorama_umap.rdata")
@@ -250,7 +252,6 @@ def RunCollection(workflow):
             all_samples,
             pypeliner.managed.TempOutputFile("integrated_harmony_seurat.rdata"),
             pypeliner.managed.TempOutputFile("integrated_harmony_sce.rdata"),
-            pypeliner.managed.TempOutputFile("integrated_harmony_tsne.png"),
             pypeliner.managed.TempOutputFile("integrated_harmony_umap.png"),
             pypeliner.managed.TempOutputFile("merged_sce.rdata"),
         )
