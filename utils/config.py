@@ -85,8 +85,6 @@ def write_config(args):
     elif subcommand == "integrate":
         sample_file = args.samples
         prefix = args.prefix
-        markers = args.markers
-        datapath = args.datapath
     elif subcommand == "pipeline":
         sample_file = args.samples
         prefix = args.sampleid
