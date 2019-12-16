@@ -238,7 +238,7 @@ def RunCollection(workflow):
         name = "seurat_integrate",
         func = RunSeuratIntegration,
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json"),
+            all_samples,
             pypeliner.managed.TempOutputFile("integrated_seurat_seurat.rdata"),
             pypeliner.managed.TempOutputFile("integrated_seurat_sce.rdata"),
             pypeliner.managed.TempOutputFile("integrated_seurat_tsne.png"),
@@ -250,7 +250,7 @@ def RunCollection(workflow):
         name = "harmony_integrate",
         func = RunHarmonyIntegration,
         args = (
-            pypeliner.managed.TempInputFile("sample_path.json"),
+            all_samples,
             pypeliner.managed.TempOutputFile("integrated_harmony_seurat.rdata"),
             pypeliner.managed.TempOutputFile("integrated_harmony_sce.rdata"),
             pypeliner.managed.TempOutputFile("integrated_harmony_tsne.png"),
