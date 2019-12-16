@@ -108,7 +108,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,,merged=merged))
+    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,merged=merged))
     output.close()
     cmd = """Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
@@ -263,7 +263,6 @@ def RunCollection(workflow):
         args = (
             pypeliner.managed.TempInputFile("merged_sce.rdata"),
             pypeliner.managed.TempOutputFile("integrated_scanorama_sce.rdata"),
-            pypeliner.managed.TempOutputFile("integrated_scanorama_tsne.png"),
             pypeliner.managed.TempOutputFile("integrated_scanorama_umap.png"),
         )
     )
