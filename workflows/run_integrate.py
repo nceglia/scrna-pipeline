@@ -97,8 +97,9 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
         seurat{idx} <- as.Seurat(sce, counts = "counts", data = "logcounts")
         """.format(idx=idx,object=object)
         rcode += load
+    init_object = object_list.pop(0)
     rcode += """
-    merged <- merge(seurat1, y = c({object_list}), project = "pipeline_run")
+    merged <- merge({init_object}, y = c({object_list}), project = "pipeline_run")
     saveRDS(merged, file="{merged}")
     merged <- NormalizeData(merged)
     merged <- FindVariableFeatures(merged)
@@ -112,7 +113,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     """
     integrate_script = os.path.join(".cache/integration_harmony.R")
     output = open(integrate_script,"w")
-    output.write(rcode.format(object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,merged=merged))
+    output.write(rcode.format(init_object=init_object,object_list=",".join(object_list), rdata=rdata, sce_cached=sce_cached,umap=umap,merged=merged))
     output.close()
     cmd = """Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
