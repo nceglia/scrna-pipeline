@@ -231,7 +231,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_tsne, integrated_
 
 
 def RunCollection(workflow):
-
+    print(config.samples)
     all_samples = json.loads(open(config.samples, "r"))
 
     workflow.transform (
