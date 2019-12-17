@@ -229,7 +229,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     script.write("""
     rowData(sce) <- rowData(merged)
     rownames(sce) <- rownames(merged)
-    saveRDS(sce, file="{sce_cached}")""".format(patient=idx))
+    saveRDS(sce, file="{sce_cached}")""".format(sce_cached=rdata))
     script.close()
     #cmd = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J "scanorama" -R "rusage[mem=4]" -R "select[type==CentOS7]" -W 03:00 -n 16 -o output -e error singularity exec /work/ceglian/images/scrna-r-base.img Rscript {script}""".format(script=integrate_script)
     cmd = """docker run --mount type=bind,source=$(pwd),target=$(pwd) -w $(pwd) nceglia/base-scrna-r:latest Rscript {script}""".format(script=integrate_script)
