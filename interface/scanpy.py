@@ -11,3 +11,6 @@ class Scanpy(object):
     def fromRData(scanpy_class, rdata):
         scanpy = Scanpy()
         return scanpy
+
+    def to_sce(self):
+        return None
