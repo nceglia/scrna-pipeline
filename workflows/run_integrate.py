@@ -198,8 +198,8 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     }
     """
     integrate_script = os.path.join(".cache/integration_scanorama.R")
-    output = open(integrate_script,"w")
-    rcode.write("""
+    script = open(integrate_script,"w")
+    script.write("""
     library(SingleCellExperiment)
     library(scater)
     library(data.table)
@@ -231,7 +231,8 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     rownames(sce) <- rownames(merged)
     saveRDS(sce, file="{sce_cached}")""".format(patient=idx))
     script.close()
-    cmd = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J "scanorama" -R "rusage[mem=4]" -R "select[type==CentOS7]" -W 03:00 -n 16 -o output -e error singularity exec /work/ceglian/images/scrna-r-base.img Rscript {script}""".format(script=integrate_script)
+    #cmd = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J "scanorama" -R "rusage[mem=4]" -R "select[type==CentOS7]" -W 03:00 -n 16 -o output -e error singularity exec /work/ceglian/images/scrna-r-base.img Rscript {script}""".format(script=integrate_script)
+    cmd = """docker run --mount type=bind,source=$(pwd),target=$(pwd) -w $(pwd) nceglia/base-scrna-r:latest Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
     shutil.copyfile(rdata, integrated_sce)
     shutil.copyfile(tsne, integrated_tsne)
