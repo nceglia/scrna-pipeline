@@ -212,8 +212,6 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     library(limma)
     library(scrna.utils)
     library(scrna.sceutils)
-    library(cellassign)
-    library(cellassign.utils)
     library(stringr)
     library(reticulate)
     use_python("/usr/lib/python")
@@ -221,7 +219,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     script.write(batch_correct_method)
     script.write("""
     merged <- readRDS("{merged}")
-    """.format(patient=idx))
+    """.format(merged=merged))
     script.write("""
     sce <- tryCatch({batch_correct(merged,"sample")},error=function(e) {batch_correct(merged,"sample")})
     print("passed")
