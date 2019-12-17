@@ -70,7 +70,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
     shutil.copyfile(sce_cached, integrated_sce)
     shutil.copyfile(umap, integrated_umap)
 
-def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, integrated_umap, merged):
+def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, integrated_umap, sce_merged):
     if not os.path.exists(".cache"):
         os.makedirs(".cache")
     if not os.path.exists('results'):
@@ -123,7 +123,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     shutil.copyfile(rdata, integrated_harmony)
     shutil.copyfile(sce_cached, integrated_sce)
     shutil.copyfile(umap, integrated_umap)
-    shutil.copyfile(merged, merged)
+    shutil.copyfile(merged, sce_merged)
 
 def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     rdata = os.path.join(config.jobpath,"results","integrated_scanorama_sce.rdata")
