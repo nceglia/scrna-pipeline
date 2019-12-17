@@ -36,7 +36,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
-    sce{id} <- readRDS("{object}")
+    sce{id} <- readRDS("{object}")*
     seurat{id} <- as.Seurat(sce{id}, counts = "counts", data = "logcounts")
     seurat{id} <- SCTransform(seurat{id})
         """.format(id=idx,object=object)
@@ -123,7 +123,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     shutil.copyfile(rdata, integrated_harmony)
     shutil.copyfile(sce_cached, integrated_sce)
     shutil.copyfile(umap, integrated_umap)
-    shutil.copyfile(merged, sce_merged)
+    shutil.copyfile(merged, merged)
 
 def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     rdata = os.path.join(config.jobpath,"results","integrated_scanorama_sce.rdata")
