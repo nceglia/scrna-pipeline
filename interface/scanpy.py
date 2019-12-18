@@ -16,7 +16,7 @@ class Scanpy(object):
 
         sce = SingleCellExperiment.fromRData(rdata)
         
-        embedding_names =["UMAP", "TSNE"]
+        embedding_names =["UMAP"]
         embeddings = {}
 
         for embedding in embedding_names:
@@ -26,8 +26,11 @@ class Scanpy(object):
         log_counts = sce.assays["logcounts"]
 
         row_data = pd.DataFrame(sce.rowData)
-        col_data = pd.DataFrame(sce.colData)
-        
+        col_data = pd.DataFrame(sce.colData) 
+
+        row_data.set_index(row_data["Symbol"])
+        col_data.set_index(col_data["Barcode"])
+
         counts_annobj = anndata.AnnData(X = counts.T, obs = col_data, var = row_data )
         logcounts_annobj = anndata.AnnData(X = log_counts.T, obs = col_data, var = row_data, uns = embeddings )
         
@@ -65,6 +68,12 @@ class Scanpy(object):
     def get_UMAP(self):
         return self.logcounts.uns["UMAP"]
 
+def test():
+    scanpy1 = Scanpy.fromRData("/home/abramsd/hack/hackathon_scrna/data/hgsoc_cd45p.rdata")
+    print(scanpy1.counts.obs.index)
+    print(scanpy1.counts.var.index)
 
-scanpy1 = Scanpy.fromRData("/home/abramsd/hack/hackathon_scrna/data/hgsoc_cd45p.rdata")
-print(scanpy1.get_cell_assignments())
+#test()
+
+#scanpy1 = Scanpy.fromRData("/home/abramsd/hack/hackathon_scrna/data/hgsoc_cd45p.rdata")
+#print(scanpy1.get_cell_assignments())
