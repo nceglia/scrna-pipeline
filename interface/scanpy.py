@@ -28,8 +28,8 @@ class Scanpy(object):
         row_data = pd.DataFrame(sce.rowData)
         col_data = pd.DataFrame(sce.colData)
         
-        counts_annobj = anndata.AnnData(X = counts, obs = row_data, var = col_data )
-        logcounts_annobj = anndata.AnnData(X = log_counts, obs = row_data, var = col_data, uns = embeddings )
+        counts_annobj = anndata.AnnData(X = counts, obs = col_data, var = row_data )
+        logcounts_annobj = anndata.AnnData(X = log_counts, obs = col_data, var = row_data, uns = embeddings )
         
         scanpy = Scanpy(counts_annobj, logcounts_annobj)
         return scanpy
@@ -44,14 +44,14 @@ class Scanpy(object):
     
     def get_genes(self):
         #counts and logcounts have same gene lists
-        return self.counts.obs["Symbol"].tolist()
+        return self.counts.var["Symbol"].tolist()
     
     def to_sce(self):
         return None
 
     def get_cell_assignments(self):
-        barcodes = self.counts.var["Barcode"]
-        cell_types = self.counts.var["cell_type"]
+        barcodes = self.counts.obs["Barcode"]
+        cell_types = self.counts.obs["cell_type"]
         assignments = {}
 
         for cell_type, barcode in zip(cell_types, barcodes):
