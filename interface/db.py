@@ -16,7 +16,7 @@ def get_celltypes(data, celltype_column, tissue_column, tissue=None):
 
 
 def get_tissues(data, column):
-    return [tissue
+    return [tissue.lower()
             for tissue in data[column].unique() if not isinstance(tissue, float)]
 
 
