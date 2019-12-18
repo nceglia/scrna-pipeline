@@ -96,16 +96,16 @@ def test_cellMarker():
     # print(abc_celltypes)
 
 
-panglao = Panglao(file='../downloads/PanglaoDB_markers_17_Dec_2019.tsv')
-# all_celltypes = panglao.celltypes()
-# print(all_celltypes)
+# panglao = Panglao(file='../downloads/PanglaoDB_markers_17_Dec_2019.tsv')
+# # all_celltypes = panglao.celltypes()
+# # print(all_celltypes)
 
-test_cellMarker()
+# # test_cellMarker()
 
-lung_celltypes = panglao.celltypes(tissue="Lungs")
-print(lung_celltypes)
-matrix = panglao.marker_matrix(lung_celltypes)
-print(matrix)
+# # lung_celltypes = panglao.celltypes(tissue="Lungs")
+# # print(lung_celltypes)
+# # matrix = panglao.marker_matrix(lung_celltypes)
+# # print(matrix)
 
 # matrix = panglao.marker_matrix(lung_celltypes, species="human")
 # print(matrix)
