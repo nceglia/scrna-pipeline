@@ -28,8 +28,8 @@ class Scanpy(object):
         row_data = pd.DataFrame(sce.rowData)
         col_data = pd.DataFrame(sce.colData)
         
-        counts_annobj = anndata.AnnData(X = counts, obs = col_data, var = row_data )
-        logcounts_annobj = anndata.AnnData(X = log_counts, obs = col_data, var = row_data, uns = embeddings )
+        counts_annobj = anndata.AnnData(X = counts.T, obs = col_data, var = row_data )
+        logcounts_annobj = anndata.AnnData(X = log_counts.T, obs = col_data, var = row_data, uns = embeddings )
         
         scanpy = Scanpy(counts_annobj, logcounts_annobj)
         return scanpy
