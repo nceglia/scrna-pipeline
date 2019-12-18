@@ -38,6 +38,7 @@ class SingleCellExperiment(RS4):
         robjects.r.assign("sce",self.rs4)
         robjects.r("saveRDS(sce, file='{}')".format(filename))
 
+
     def getReducedDims(self, method, n=None):
         if method.upper() not in self.reducedDims.keys():
             raise KeyError("{} was never computed.".format(method))
