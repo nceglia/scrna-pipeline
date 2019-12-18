@@ -28,8 +28,8 @@ class Scanpy(object):
         row_data = pd.DataFrame(sce.rowData)
         col_data = pd.DataFrame(sce.colData) 
 
-        row_data.set_index(row_data["Symbol"])
-        col_data.set_index(col_data["Barcode"])
+        row_data = row_data.set_index("Symbol")
+        col_data = col_data.set_index("Barcode")
 
         counts_annobj = anndata.AnnData(X = counts.T, obs = col_data, var = row_data )
         logcounts_annobj = anndata.AnnData(X = log_counts.T, obs = col_data, var = row_data, uns = embeddings )
