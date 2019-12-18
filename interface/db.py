@@ -23,10 +23,9 @@ class Panglao(object):
         return records["cell type"].unique()
 
     def marker_matrix(self, celltypes, species=None):
-        print(self.data["species"].unique())
         marker_dict = {}
-        records = self.data[self.data["species"]
-                            == species] if species else self.data
+        records = self.data[self.data["species"].isin(
+            self.get_species_name(species))] if species else self.data
 
         for celltype in celltypes:
             celltype_records = records.loc[records["cell type"] == celltype]
@@ -43,12 +42,12 @@ class Panglao(object):
     def filter_on_gene_specificity(species):
         pass
 
-    def get_species_name(species):
+    def get_species_name(self, species):
         species = species.lower()
         if species == "human":
-            pass
+            return ["Hs", "Mm Hs"]
         if species == "mouse":
-            pass
+            return ["Mm", "Hs Mm"]
 
 
 class CellMarker(object):
@@ -62,8 +61,10 @@ panglao = Panglao(file='../downloads/PanglaoDB_markers_17_Dec_2019.tsv')
 # print(all_celltypes)
 
 lung_celltypes = panglao.celltypes(tissue="Lungs")
-print(lung_celltypes)
 matrix = panglao.marker_matrix(lung_celltypes)
+print(matrix)
+
+matrix = panglao.marker_matrix(lung_celltypes, species="human")
 print(matrix)
 
 
