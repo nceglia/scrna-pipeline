@@ -6,8 +6,10 @@ import numpy
 def get_celltypes(data, celltype_column, tissue_column, tissue=None):
     tissues = get_tissues(data, tissue_column)
     if tissue:
+        tissue = tissue.lower()
         assert tissue in tissues, tissue + \
             " does not exist - please pick from: " + " ".join(tissues)
+        data[tissue_column] = data[tissue_column].str.lower()
         records = data[data[tissue_column] == tissue]
     else:
         records = data
@@ -79,7 +81,7 @@ class CellMarker(object):
 
 
 def test_cellMarker():
-    cm = CellMarker(file='../downloads/all_cell_markers.txt')
+    cm = CellMarker(file='./downloads/all_cell_markers.txt')
 
     # all_celltypes = cm.celltypes()
     # print(all_celltypes)
@@ -96,14 +98,14 @@ def test_cellMarker():
     # print(abc_celltypes)
 
 
-# panglao = Panglao(file='../downloads/PanglaoDB_markers_17_Dec_2019.tsv')
+panglao = Panglao(file='./downloads/PanglaoDB_markers_17_Dec_2019.tsv')
 # # all_celltypes = panglao.celltypes()
 # # print(all_celltypes)
 
 # # test_cellMarker()
 
-# # lung_celltypes = panglao.celltypes(tissue="Lungs")
-# # print(lung_celltypes)
+lung_celltypes = panglao.celltypes(tissue="Lungs")
+print(lung_celltypes)
 # # matrix = panglao.marker_matrix(lung_celltypes)
 # # print(matrix)
 
@@ -111,8 +113,8 @@ def test_cellMarker():
 # print(matrix)
 
 
-# lung_celltypes2 = panglao.celltypes(tissue="lungs")
-# print(lung_celltypes)
+lung_celltypes2 = panglao.celltypes(tissue="lungs")
+print(lung_celltypes2)
 
 # abc_celltypes = panglao.celltypes(tissue="abc")
 # print(abc_celltypes)
