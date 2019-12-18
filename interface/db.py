@@ -47,6 +47,7 @@ class Panglao(object):
         return get_marker_matrix(self.data, celltypes, "cell type", "official gene symbol", "species", species=species)
 
     def filter_on_gene_specificity(species):
+        # Specificity? Sensitvity?
         pass
 
     def get_species_name(self, species):
@@ -72,9 +73,9 @@ class CellMarker(object):
     def get_species_name(self, species):
         return [species]
 
-    def get_tissues(self):
-        return [tissue
-                for tissue in self.data["tissueType"].unique() if not isinstance(tissue, float)]
+    def filter_on_gene_specificity(species):
+        # Cell Marker doesn't have any quantitative values associated with their marker genes, so filtering can't be done.
+        pass
 
 
 def test_cellMarker():
