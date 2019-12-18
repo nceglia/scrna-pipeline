@@ -23,6 +23,7 @@ class Panglao(object):
         return records["cell type"].unique()
 
     def marker_matrix(self, celltypes, species=None):
+        print(self.data["species"].unique())
         marker_dict = {}
         records = self.data[self.data["species"]
                             == species] if species else self.data
@@ -38,6 +39,16 @@ class Panglao(object):
     def get_tissues(self):
         return [tissue
                 for tissue in self.data["organ"].unique() if not isinstance(tissue, float)]
+
+    def filter_on_gene_specificity(species):
+        pass
+
+    def get_species_name(species):
+        species = species.lower()
+        if species == "human":
+            pass
+        if species == "mouse":
+            pass
 
 
 class CellMarker(object):
