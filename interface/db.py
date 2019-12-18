@@ -3,40 +3,48 @@ import pandas as pd
 import numpy
 
 
+def get_celltypes(data, celltype_column, tissue_column, tissue=None):
+    tissues = get_tissues(data, tissue_column)
+    if tissue:
+        assert tissue in tissues, tissue + \
+            " does not exist - please pick from: " + " ".join(tissues)
+        records = data[data[tissue_column] == tissue]
+    else:
+        records = data
+
+    return records[celltype_column].unique()
+
+
+def get_tissues(data, column):
+    return [tissue
+            for tissue in data[column].unique() if not isinstance(tissue, float)]
+
+
+def get_marker_matrix(data, celltypes, celltype_column, marker_gene_column, species_column, species=None):
+    marker_dict = {}
+    records = data[data[species_column].isin(
+        species)] if species else data
+
+    for celltype in celltypes:
+        celltype_records = records.loc[records[celltype_column] == celltype]
+        marker_genes = celltype_records[marker_gene_column].unique(
+        ).tolist()
+        marker_dict[celltype] = marker_genes
+
+    return marker_dict
+
+
 class Panglao(object):
 
     def __init__(self, file):
         self.data = pd.read_csv(file, sep="\t")
 
     def celltypes(self, tissue=None):
-
-        tissues = self.get_tissues()
-        if tissue:
-            #tissue = tissue.lower()
-            assert tissue in tissues, tissue + \
-                " does not exist - please pick from: " + " ".join(tissues)
-            records = self.data[self.data["organ"] == tissue]
-        else:
-            records = self.data
-
-        return records["cell type"].unique()
+        return get_celltypes(self.data, "cell type", "organ", tissue=tissue)
 
     def marker_matrix(self, celltypes, species=None):
-        marker_dict = {}
-        records = self.data[self.data["species"].isin(
-            self.get_species_name(species))] if species else self.data
-
-        for celltype in celltypes:
-            celltype_records = records.loc[records["cell type"] == celltype]
-            marker_genes = celltype_records["official gene symbol"].unique(
-            ).tolist()
-            marker_dict[celltype] = marker_genes
-
-        return marker_dict
-
-    def get_tissues(self):
-        return [tissue
-                for tissue in self.data["organ"].unique() if not isinstance(tissue, float)]
+        species = self.get_species_name(species) if species else species
+        return get_marker_matrix(self.data, celltypes, "cell type", "official gene symbol", "species", species=species)
 
     def filter_on_gene_specificity(species):
         pass
@@ -55,30 +63,14 @@ class CellMarker(object):
         self.data = pd.read_csv(file, sep="\t")
 
     def celltypes(self, tissue=None):
-
-        tissues = self.get_tissues()
-        if tissue:
-            #tissue = tissue.lower()
-            assert tissue in tissues, tissue + \
-                " does not exist - please pick from: " + " ".join(tissues)
-            records = self.data[self.data["tissueType"] == tissue]
-        else:
-            records = self.data
-
-        return records["cellName"].unique()
+        return get_celltypes(self.data, "cellName", "tissueType", tissue=tissue)
 
     def marker_matrix(self, celltypes, species=None):
-        marker_dict = {}
-        records = self.data[self.data["speciesType"]
-                            == species] if species else self.data
+        species = self.get_species_name(species) if species else species
+        return get_marker_matrix(self.data, celltypes, "cellName", "geneSymbol", "speciesType", species=species)
 
-        for celltype in celltypes:
-            celltype_records = records.loc[records["cellName"] == celltype]
-            marker_genes = celltype_records["geneSymbol"].unique(
-            ).tolist()
-            marker_dict[celltype] = marker_genes
-
-        return marker_dict
+    def get_species_name(self, species):
+        return [species]
 
     def get_tissues(self):
         return [tissue
@@ -86,9 +78,9 @@ class CellMarker(object):
 
 
 def test_cellMarker():
-    cm = CellMarker(file='/Users/abramsd/HACK/cellMarkers.txt')
+    cm = CellMarker(file='../downloads/all_cell_markers.txt')
 
-    all_celltypes = cm.celltypes()
+    # all_celltypes = cm.celltypes()
     # print(all_celltypes)
 
     lung_celltypes = cm.celltypes(tissue="Kidney")
@@ -103,17 +95,19 @@ def test_cellMarker():
     # print(abc_celltypes)
 
 
-# panglao = Panglao(file='/Users/abramsd/HACK/cellMarkers.txt')
-# # all_celltypes = panglao.celltypes()
-# # print(all_celltypes)
+panglao = Panglao(file='../downloads/PanglaoDB_markers_17_Dec_2019.tsv')
+# all_celltypes = panglao.celltypes()
+# print(all_celltypes)
 
-# lung_celltypes = panglao.celltypes(tissue="Lungs")
-# print(lung_celltypes)
-# matrix = panglao.marker_matrix(lung_celltypes)
-# print(matrix)
+test_cellMarker()
 
-matrix = panglao.marker_matrix(lung_celltypes, species="human")
+lung_celltypes = panglao.celltypes(tissue="Lungs")
+print(lung_celltypes)
+matrix = panglao.marker_matrix(lung_celltypes)
 print(matrix)
+
+# matrix = panglao.marker_matrix(lung_celltypes, species="human")
+# print(matrix)
 
 
 # lung_celltypes2 = panglao.celltypes(tissue="lungs")
