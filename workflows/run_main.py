@@ -71,7 +71,7 @@ def RunQC(custom_output, sce, filtered_sce):
     library(Seurat)
 
     ## REMOVE ME
-    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/')
+    sce <- read10xCounts('{path}')
     ## MAKE THIS BACK TO {path}
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
@@ -113,19 +113,7 @@ def RunQC(custom_output, sce, filtered_sce):
     qclust <- quickCluster(sce, min.size = 100)
     sce <- computeSumFactors(sce, clusters = qclust)
     sce$size_factor <- sizeFactors(sce)
-    print("Running red dim")
 
-    # #FIX ME FIXED FOR TESTING
-    # colnames(sce) <- colData(sce)$Barcode
-    # rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ensembl_gene_id, rownames(sce))
-    # seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-    # seurat.downsample = subset(seurat, cells = sample(Cells(seurat), 1000))
-    # sce <- as.SingleCellExperiment(seurat.downsample)
-    # #FIX ME
-
-    # sce <- runPCA(sce, ntop = 1000, ncomponents = 50, exprs_values = "logcounts")
-    # sce <- runTSNE(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
-    # sce <- runUMAP(sce, use_dimred = "PCA", n_dimred = 50, ncomponents = 2)
     saveRDS(sce, file='{filtered}')
     """.format(raw=sce,filtered=cached_sce, path=os.path.abspath(path))
     path = os.path.split(sce)[0]
@@ -485,7 +473,6 @@ def RunMain(workflow):
             pypeliner.managed.TempOutputFile("t_cell_exhaustion.png","sample"),
         )
     )
-
 
     workflow.transform (
         name = "hrd_pathway",
