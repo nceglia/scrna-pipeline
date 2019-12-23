@@ -1,0 +1,73 @@
+Plasma cell:
+  - VIM
+  - CD79A
+  - PTPRC
+  - SDC1
+  - IGKC
+  - IGHG1
+  - IGHG2
+  - CAV1 # Many articles list CAV-1 as an expressed gene in plasma cells and as a potential target in multiple myeloma
+pDC:
+  - VIM
+  - PTPRC
+  - IL3RA
+  - CD4
+  - CLEC4C # BDCA-2
+  - IRF7 # https://www.sciencedirect.com/book/9780123741455/handbook-of-cell-signaling; https://journals.plos.org/plospathogens/article?id=10.1371/journal.ppat.1003118
+  - IRF8 # https://www.nature.com/articles/ni.3789
+  - GZMB # https://www.ncbi.nlm.nih.gov/pubmed/19965634
+  - FCER1G
+Ovarian cancer cell:
+  - EPCAM
+  - WFDC2
+  - CD24
+  - WT1
+  - CLDN3
+  - CLDN4
+  - KRT8
+  - KRT18
+  - KRT19
+  - MSLN
+  - FOLR1 # Folate receptor
+# Normal surface epithelium (mesothelial) -- markers from http://clincancerres.aacrjournals.org/content/11/18/6422, https://www.nature.com/articles/1201769.pdf, https://academic.oup.com/edrv/article/22/2/255/2424131
+Mesothelial cell: 
+  - MSLN 
+  - WFDC2
+  - WT1
+  - KRT8
+  - KRT18
+  - KRT19
+  - VIM # mesothelial cells are VIM+
+  - COL1A1
+  - COL3A1
+  - ACTA2
+  - RARRES1
+  - CAV1
+  - DAB2
+Myofibroblast:
+  - VIM
+  - ACTA2
+  - COL1A1
+  - COL3A1
+  - SDC1
+  - DAB2
+  - CAV1
+Vascular SMC:
+  - VIM
+  - ACTA2
+  - MYH11
+  - MCAM
+  - COL1A1
+  - COL3A1
+  - DAB2
+  - CAV1
+Endothelial cell:
+  - VIM
+  - EMCN
+  - CLEC14A
+  - CDH5
+  - PECAM1
+  - VWF
+  - MCAM
+  - IL3RA # Express CD123 as well, but to lower extent than DC
+  - CAV1
