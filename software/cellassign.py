@@ -11,7 +11,6 @@ class CellAssign(object):
 
     @staticmethod
     def cmd(rdata, rho_csv, results, lsf=False, B=10, min_delta=2, script_prefix=""):
-        lsf = False #REMOVE ME
         CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta, script_prefix=script_prefix)
         env = os.environ.copy()
         cwd = os.getcwd()
