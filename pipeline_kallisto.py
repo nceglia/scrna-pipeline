@@ -10,11 +10,7 @@ import pypeliner.managed
 
 from utils.config import Configuration
 
-from workflows.run_cellranger import RunCellranger
-from workflows.run_qc import RunQC
-from workflows.run_report import RunReport
-from workflows.run_cellassign import RunCellAssign
-from workflows.run_clustering import RunClustering
+from workflows.run_kallisto import RunPseudo
 
 config = Configuration()
 
@@ -22,10 +18,8 @@ def create_workflow():
     print("Creating workflow.")
     workflow = pypeliner.workflow.Workflow()
 
-    prefix   = config.prefix
-    workflow = RunQC(prefix, workflow)
-    workflow = RunCellAssign(prefix, workflow)
-    workflow = RunReport(prefix, workflow)
+    prefix = config.prefix
+    workflow = RunPseudo(prefix,workflow)
 
     return workflow
 

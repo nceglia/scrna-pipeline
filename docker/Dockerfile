@@ -23,7 +23,6 @@ RUN python3 -m pip install pandas
 RUN python3 -m pip install rpy2
 RUN python3 -m pip install networkx
 RUN python3 -m pip install dill
-RUN python3 -m pip install azure
 RUN python3 -m pip install scanpy
 RUN python3 -m pip install tzlocal
 RUN python3 -m pip install --user scipy==1.2.1
@@ -42,8 +41,6 @@ RUN R -e "install.packages('BiocManager')"
 RUN R -e "BiocManager::install('scran')"
 RUN R -e "BiocManager::install('scater')"
 RUN R -e "BiocManager::install('SingleCellExperiment')"
-RUN R -e "BiocManager::install('EnsDb.Hsapiens.v86')"
-RUN R -e "devtools::install_github('stephenturner/annotables')"
 
 RUN R -e "install.packages('XML')"
 

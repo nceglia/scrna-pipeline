@@ -26,12 +26,11 @@ kallisto_args.add_argument("--datapath", type=str, help="Path to directory holdi
 kallisto_args.add_argument("--referencepath", type=str, help="Path to reference directory with reference in dir labelled by build.", default="/reference")
 kallisto_args.add_argument("--kallisto", type=str, help="Path to kallisto bin.", default="/codebase/kallisto/")
 kallisto_args.add_argument("--bustools", type=str, help="Path to bustools.", default="/codebase/bustools/")
-kallisto_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.", default="samples.txt")
-kallisto_args.add_argument("--markers", type=str, help="Path to marker matrix.")
 
 sample_args = subparsers.add_parser('analysis')
-sample_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
-sample_args.add_argument("--markers", type=str, help="Path to marker matrix.")
+sample_args.add_argument('--sampleid', type=str, help='Sample id')
+sample_args.add_argument('--matrix', type=str, help='Path to filtered matrix.')
+sample_args.add_argument('--markers', type=str, help='Path to filtered matrix.', default="/codebase/markers.yaml")
 
 clonealign_args = subparsers.add_parser('clonealign')
 clonealign_args.add_argument('--samples', type=str, help='Sample ID linked to fastqs in scrnadata.')
@@ -42,8 +41,6 @@ clonealign_args.add_argument("--markers", type=str, help="Path to marker matrix.
 integration_args = subparsers.add_parser("integrate")
 integration_args.add_argument('--prefix', type=str, help='Analysis prefix')
 integration_args.add_argument("--samples", type=str, help="txt file with valid samples on each line.")
-integration_args.add_argument("--markers", type=str, help="Path to marker matrix.")
-integration_args.add_argument("--datapath", type=str, help="Path to directory holding fastqs.", default ="/data")
 
 integration_args = subparsers.add_parser("pipeline")
 integration_args.add_argument('--sampleid', type=str, help='Sample ID linked to fastqs in scrnadata.')
@@ -55,7 +52,7 @@ integration_args.add_argument("--cellranger", type=str, help="Path to cellranger
 
 args = parser.parse_args()
 
-if args.subparser != "clonealign" and not os.path.exists(args.samples):
+if args.subparser != "kallisto" and args.subparser != "clonealign" and args.subparser != "analysis" and not os.path.exists(args.samples):
     output = open(args.samples, "w")
     output.write(args.sampleid)
     output.close()

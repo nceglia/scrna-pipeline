@@ -10,32 +10,32 @@ from interface.genemarkermatrix import GeneMarkerMatrix
 class CellAssign(object):
 
     @staticmethod
-    def cmd(rdata, rho_csv, results, lsf=True):
-        CellAssign.script(rdata, rho_csv, results)
+    def cmd(rdata, rho_csv, results, lsf=False, B=10, min_delta=2, script_prefix=""):
+        CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta, script_prefix=script_prefix)
         env = os.environ.copy()
         cwd = os.getcwd()
         submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         if lsf:
-            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err /opt/common/CentOS_7/singularity/singularity-3.0.1/bin/singularity exec --bind /admin --bind /opt --bind {} /home/ceglian/images/scrna-pipeline-v3.img Rscript {}""".format(cwd,"{}/run_cellassign.R".format(os.path.split(rdata)[0])).split()
+            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err Rscript {}""".format(cwd,"{}/{}run_cellassign.R".format(os.path.split(rdata)[0]), script_prefix).split()
         else:
-            submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
+            submit = ["Rscript","{}/{}run_cellassign.R".format(os.path.split(rdata)[0], script_prefix)]
             print(submit)
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        submit = ["Rscript","{}/match.R".format(os.path.split(rdata)[0])]
+        submit = ["Rscript","{}/{}match.R".format(os.path.split(rdata)[0],script_prefix)]
         subprocess.call(submit, env=env)
 
     @staticmethod
-    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True):
+    def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=False, B=10, min_delta=2, script_prefix=""):
         if not os.path.exists(".cache"):
             os.makedirs(".cache")
         marker_list = GeneMarkerMatrix.read_yaml(rho_yaml)
         marker_list.write_matrix(rho_csv)
         assert os.path.exists(rho_csv)
-        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf)
+        CellAssign.cmd(rdata, rho_csv, results, lsf=lsf, B=B, min_delta=min_delta, script_prefix=script_prefix)
         print ("CellAssign finished.")
-        matched_results = os.path.join(os.path.split(rdata)[0],"cell_types.tsv")
-        pkl_fit = os.path.join(os.path.split(rdata)[0],"cell_types.pkl")
+        matched_results = os.path.join(os.path.split(rdata)[0],"{}cell_types.tsv".format(script_prefix))
+        pkl_fit = os.path.join(os.path.split(rdata)[0],"{}cell_types.pkl".format(script_prefix))
         lines = open(matched_results,"r").read().splitlines()
         header = lines.pop(0)
         barcodes = []
@@ -51,14 +51,15 @@ class CellAssign(object):
         print ("Results written.")
 
     @staticmethod
-    def script(rdata, rho_csv, results):
-        filtered_sce = os.path.join(os.path.split(rdata)[0],"sce_cas.rdata")
-        filtered_rho = os.path.join(os.path.split(rdata)[0],"rho_cas.rdata")
-        matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        configured = open("{}/run_cellassign.R".format(os.path.split(rdata)[0]),"w")
-        configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho))
+    def script(rdata, rho_csv, results, B, min_delta, script_prefix=""):
+        print(script_prefix)
+        filtered_sce = os.path.join(os.path.split(rdata)[0],"{}sce_cas.rdata".format(script_prefix))
+        filtered_rho = os.path.join(os.path.split(rdata)[0],"{}rho_cas.rdata".format(script_prefix))
+        matched_results = os.path.join(os.path.split(results)[0],"{}cell_types.tsv".format(script_prefix))
+        configured = open("{}/{}run_cellassign.R".format(os.path.split(rdata)[0],script_prefix),"w")
+        configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho,B=B,min_delta=min_delta))
         configured.close()
-        match = open("{}/match.R".format(os.path.split(rdata)[0]),"w")
+        match = open("{}/{}match.R".format(os.path.split(rdata)[0],script_prefix),"w")
         match.write(match_barcodes.format(sce=filtered_sce,fit=results,fname=matched_results))
         match.close()
 
@@ -93,7 +94,7 @@ rho <- rho[common_genes,]
 rho <- data.matrix(rho)
 s <- sizeFactors(sce)
 print('call')
-fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B=10, num_runs=3, shrinkage=TRUE)
+fit_cellassign <- cellassign(exprs_obj = sce, marker_gene_info = rho, s = s, B={B}, num_runs=1, min_delta={min_delta}, shrinkage=TRUE) ##CHANGE ME
 sce_result <- sce_result[,colnames(sce)]
 colData(sce_result)$cell_type <- fit_cellassign$cell_type
 print('save')

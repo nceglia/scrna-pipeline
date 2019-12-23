@@ -46,6 +46,7 @@ filtered_cell_cn: {filtered_cell_cn}
 sample_mapping: sample_mapping.ssv
 positive_rho_matrix: /codebase/markers_positive.yaml
 negative_rho_matrix: /codebase/markers_negative.yaml
+matrix: {matrix}
 """
 
 
@@ -66,7 +67,12 @@ def write_config(args):
     bustools = "/codebase/bustools"
     filtered_cell_cn = "none"
     copy_cell_clones = "none"
+    matrix = "none"
 
+    if subcommand == "analysis":
+        matrix = args.matrix
+        prefix = args.sampleid
+        markers = args.markers
     if subcommand == "cellranger":
         datapath = args.datapath
         referencepath = args.referencepath
@@ -79,8 +85,6 @@ def write_config(args):
     elif subcommand == "integrate":
         sample_file = args.samples
         prefix = args.prefix
-        markers = args.markers
-        datapath = args.datapath
     elif subcommand == "pipeline":
         sample_file = args.samples
         prefix = args.sampleid
@@ -89,9 +93,7 @@ def write_config(args):
         referencepath = args.referencepath
         cellranger = args.cellranger
     elif subcommand == "kallisto":
-        sample_file = args.samples
         prefix = args.sampleid
-        markers = args.markers
         datapath = args.datapath
         referencepath = args.referencepath
         kallisto = args.kallisto
@@ -115,7 +117,8 @@ def write_config(args):
                                    samples=sample_file,
                                    bustools=bustools,
                                    copy_cell_clones=copy_cell_clones,
-                                   filtered_cell_cn=filtered_cell_cn))
+                                   filtered_cell_cn=filtered_cell_cn,
+                                   matrix=matrix))
 
 class Configuration(object):
     def __init__(self):

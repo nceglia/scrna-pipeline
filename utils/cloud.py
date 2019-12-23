@@ -40,7 +40,7 @@ class SampleCollection(object):
         return self.samples
 
 
-class TenxDataStorage(object):
+class CloudTenxDataStorage(object):
 
     def __init__(self, sampleid, version="v3", software="cellranger", species="human"):
         self.species = species

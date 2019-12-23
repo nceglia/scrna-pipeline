@@ -9,23 +9,21 @@ import pypeliner.app
 import pypeliner.managed
 
 from utils.config import Configuration
+from utils.cloud import SampleCollection
 
-from workflows.run import RunPipeline
-
-import warnings
-warnings.filterwarnings("ignore")
+from workflows.run_main import RunMain
 
 config = Configuration()
 
 def create_workflow():
-    print("Creating workflow.")
+    print("Creating integration analysis workflow.")
     workflow = pypeliner.workflow.Workflow()
 
     prefix = config.prefix
-    print("\n\n\n")
-    print("***** Run: {} ******".format(prefix))
-
-    workflow = RunPipeline(workflow)
+    filtered_matrices = config.matrix
+    print("******* {} ********".format(prefix))
+    print("*** {}".format(filtered_matrices))
+    workflow = RunMain(workflow)
 
     return workflow
 

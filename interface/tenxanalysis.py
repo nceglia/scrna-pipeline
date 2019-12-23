@@ -7,7 +7,7 @@ import pandas
 import subprocess
 from software.tenx import TenX
 from utils.config import Configuration
-from utils.cloud import TenxDataStorage
+from utils.storage import TenxDataStorage
 import matplotlib.pyplot as plt
 import numpy
 import shutil

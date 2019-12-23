@@ -6,7 +6,7 @@ import sys
 import os
 
 from interface.tenxanalysis import TenxAnalysis
-from utils.cloud import TenxDataStorage
+from utils.isabl import TenxDataStorage
 from interface.qualitycontrol import QualityControl
 from utils.reporting import Results
 from utils.export import exportMD, exportUpload
