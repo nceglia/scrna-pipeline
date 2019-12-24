@@ -279,30 +279,54 @@ def RunExhaustion(custom_input, sce, rdata, umap):
     _fit = os.path.join(os.path.split(sce)[0],"fit_sub_exhaustion.pkl")
     _filtered_sce = os.path.join(os.path.split(sce)[0],"exhaustion_sce_cas.rdata")
 
+    exhaustion_failed = False
     if not os.path.exists(rdata_cached):
         rho = "/codebase/exhaustion.yaml"
         CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True,script_prefix="exhaustion_")
-        shutil.copyfile(_filtered_sce, rdata_cached)
-    shutil.copyfile(rdata_cached, rdata)
-    rcode = """
-    library(Seurat)
-    library(ggplot2)
-    sce <- readRDS("{sce}")
-    fit <- readRDS("{fit}")
+        try:
+            shutil.copyfile(_filtered_sce, rdata_cached)
+        except OSError as e:
+            exhaustion_failed = True
+    if exhaustion_failed:
+        rcode = """
+        library(Seurat)
+        library(ggplot2)
+        sce <- readRDS("{sce}")
 
-    sce$Exhaustion_prob <- fit$mle_params$gamma[,"Exhausted.T.cell"]
+        sce$Exhaustion_prob <- 0.0
+        saveRDS(sce, file="{rdata_cached}")
 
-    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-    seurat$Exhaustion_prob <- sce$Exhaustion_prob
-    png("{umap}", width=1000, height=1000)
-    FeaturePlot(object = seurat, reduction = "UMAP", features=c("Exhaustion_prob"))
-    dev.off()
-    """
-    qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
-    output = open(qc_script,"w")
-    output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid, fit=_fit))
-    output.close()
+        seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+        seurat$Exhaustion_prob <- sce$Exhaustion_prob
+        png("{umap}", width=1000, height=1000)
+        DimPlot(object = seurat, reduction = "UMAP")
+        dev.off()
+        """
+        qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
+        output = open(qc_script,"w")
+        output.write(rcode.format(sce=sce, rdata_cached=rdata_cached, umap=umap_cached, sample=sampleid))
+        output.close()
+    else:
+        rcode = """
+        library(Seurat)
+        library(ggplot2)
+        sce <- readRDS("{sce}")
+        fit <- readRDS("{fit}")
+
+        sce$Exhaustion_prob <- fit$mle_params$gamma[,"Exhausted.T.cell"]
+
+        seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+        seurat$Exhaustion_prob <- sce$Exhaustion_prob
+        png("{umap}", width=1000, height=1000)
+        FeaturePlot(object = seurat, reduction = "UMAP", features=c("Exhaustion_prob"))
+        dev.off()
+        """
+        qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
+        output = open(qc_script,"w")
+        output.write(rcode.format(sce=rdata, umap=umap_cached, sample=sampleid, fit=_fit))
+        output.close()
     subprocess.call(["Rscript","{}".format(qc_script)])
+    shutil.copyfile(rdata_cached, rdata)
     shutil.copyfile(umap_cached, umap)
 
 def RunHRD(custom_input, sce, rdata, umap):
@@ -316,32 +340,57 @@ def RunHRD(custom_input, sce, rdata, umap):
     fit = os.path.join(os.path.split(sce)[0],"fit_sub_hrd.pkl")
     filtered_sce = os.path.join(os.path.split(sce)[0],"hrd_sce_cas.rdata")
 
+    hrd_failed = False
     if not os.path.exists(rdata_cached):
         rho = "/codebase/hrd.yaml"
         CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True,script_prefix="hrd_")
-        shutil.copyfile(filtered_sce, rdata_cached)
+        try:
+            shutil.copyfile(filtered_sce, rdata_cached)
+        except OSError as e:
+            hrd_failed = True
+    if hrd_failed:
+        rcode = """
+        library(Seurat)
+        library(ggplot2)
 
-    rcode = """
-    library(Seurat)
-    library(ggplot2)
+        sce <- readRDS("{sce}")
+        sce$repairtype <- "Other"
+        sce$HRD_prob <- 0.0
+        sce$HR_prob <- 0.0
+        seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+        seurat$repairtype <- sce$repairtype
 
-    fit <- readRDS("{fit}")
-    sce <- readRDS("{sce}")
-    sce$repairtype <- fit$cell_type
-    sce$HRD_prob <- fit$mle_params$gamma[,"HRD"]
-    sce$HR_prob <- fit$mle_params$gamma[,"HR"]
-    seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-    seurat$repairtype <- sce$repairtype
+        png("{umap}", width=1000, height=1000)
+        DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+        dev.off()
+        saveRDS(sce, file="{rdata_cached}")
+        """
+        qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
+        output = open(qc_script,"w")
+        output.write(rcode.format(sce=sce, rdata_cached=rdata_cached, umap=umap_cached, sample=sampleid))
+        output.close()
+    else:
+        rcode = """
+        library(Seurat)
+        library(ggplot2)
 
-    png("{umap}", width=1000, height=1000)
-    DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
-    dev.off()
-    saveRDS(sce, file="{sce}")
-    """
-    qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
-    output = open(qc_script,"w")
-    output.write(rcode.format(sce=rdata_cached, umap=umap_cached, sample=sampleid, fit=fit))
-    output.close()
+        fit <- readRDS("{fit}")
+        sce <- readRDS("{sce}")
+        sce$repairtype <- fit$cell_type
+        sce$HRD_prob <- fit$mle_params$gamma[,"HRD"]
+        sce$HR_prob <- fit$mle_params$gamma[,"HR"]
+        seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
+        seurat$repairtype <- sce$repairtype
+
+        png("{umap}", width=1000, height=1000)
+        DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+        dev.off()
+        saveRDS(sce, file="{sce}")
+        """
+        qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
+        output = open(qc_script,"w")
+        output.write(rcode.format(sce=rdata_cached, umap=umap_cached, sample=sampleid, fit=fit))
+        output.close()
     subprocess.call(["Rscript","{}".format(qc_script)])
     shutil.copyfile(rdata_cached, rdata)
     shutil.copyfile(umap_cached, umap)
