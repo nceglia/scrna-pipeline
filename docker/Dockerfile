@@ -2,7 +2,7 @@ FROM nceglia/base-scrna-r:latest
 
 MAINTAINER Nicholas Ceglia <nickceglia@gmail.com>
 
-RUN apt-get clean && apt-get update && apt-get install -y locales
+RUN apt-get clean && apt-get update && apt-get install -y locales && apt-get install libhdf5-dev
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
@@ -17,7 +17,7 @@ RUN cd /codebase/pypeliner && python3 setup.py install
 RUN python3 -m pip install PyYAML
 RUN python3 -m pip install matplotlib
 RUN python3 -m pip install pandas
-RUN python3 -m pip install rpy2
+RUN python3 -m pip install rpy2==2.9.5
 RUN python3 -m pip install networkx
 RUN python3 -m pip install dill
 RUN python3 -m pip install scanpy
