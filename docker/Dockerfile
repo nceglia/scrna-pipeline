@@ -14,6 +14,16 @@ RUN git clone https://github.com/nceglia/scrna-pipeline.git /codebase/scrna-pipe
 RUN git clone https://github.com/shahcompbio/pypeliner.git /codebase/pypeliner/
 RUN cd /codebase/pypeliner && python3 setup.py install
 
+RUN python3 -m pip install PyYAML
+RUN python3 -m pip install matplotlib
+RUN python3 -m pip install pandas
+RUN python3 -m pip install rpy2
+RUN python3 -m pip install networkx
+RUN python3 -m pip install dill
+RUN python3 -m pip install scanpy
+RUN python3 -m pip install tzlocal
+RUN python3 -m pip install --user scipy==1.2.1
+
 ENV PYTHONPATH=/codebase/scrna-pipeline/
 
 COPY hrd.yaml /codebase/hrd.yaml
