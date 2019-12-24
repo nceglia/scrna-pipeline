@@ -1,8 +1,6 @@
 import os
 import yaml
 
-from utils.cloud import ReferenceDataStorage
-
 yaml_file = os.path.join(os.getcwd(), "settings.yaml")
 def yaml_configuration():
     if os.path.exists(yaml_file):
