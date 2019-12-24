@@ -9,7 +9,6 @@ import pypeliner.app
 import pypeliner.managed
 
 from utils.config import Configuration
-from utils.cloud import SampleCollection
 
 from workflows.run_main import RunMain
 
