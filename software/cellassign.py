@@ -14,9 +14,9 @@ class CellAssign(object):
         CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta, script_prefix=script_prefix)
         env = os.environ.copy()
         cwd = os.getcwd()
-        submit = ["Rscript","{}/run_cellassign.R".format(os.path.split(rdata)[0])]
         if lsf:
-            submit = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err Rscript {}""".format(cwd,"{}/{}run_cellassign.R".format(os.path.split(rdata)[0]), script_prefix).split()
+            lsf_prefix = "/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 40 -o out -e err".split()
+            submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(os.path.split(rdata)[0], script_prefix)]
         else:
             submit = ["Rscript","{}/{}run_cellassign.R".format(os.path.split(rdata)[0], script_prefix)]
             print(submit)
