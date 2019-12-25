@@ -37,4 +37,6 @@ COPY run_integration /bin/run_integration
 RUN chmod 777 /bin/run
 RUN chmod 777 /bin/run_integration
 
+RUN python3 -m pip install numpy
+
 CMD ["/bin/bash"]
