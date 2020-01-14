@@ -39,4 +39,5 @@ RUN chmod 777 /bin/run_integration
 
 RUN python3 -m pip install numpy
 
+ENV LD_LIBRARY_PATH="/usr/local/lib/R/lib/"
 CMD ["/bin/bash"]
