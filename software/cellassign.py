@@ -22,7 +22,8 @@ class CellAssign(object):
             tmp_path = os.path.split(rdata)[0]
             submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
             print(submit)
-        subprocess.call(submit, env=env)
+        if not os.path.exists(rdata):
+            subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
         submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}match.R".format(os.path.split(rdata)[0],script_prefix)]
         subprocess.call(submit, env=env)
