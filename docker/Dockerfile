@@ -1,4 +1,4 @@
-FROM nceglia/base-scrna-r:latest
+FROM rocker/verse:latest
 
 MAINTAINER Nicholas Ceglia <nickceglia@gmail.com>
 
@@ -6,23 +6,28 @@ RUN apt-get clean && apt-get update && apt-get install -y locales && apt-get ins
 RUN locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
-
+RUN apt-get -y install python3-dev
 RUN mkdir /codebase
 
 RUN apt-get install -y git
+RUN apt-get install -y python3-setuptools
 RUN git clone https://github.com/nceglia/scrna-pipeline.git /codebase/scrna-pipeline/
 RUN git clone https://github.com/shahcompbio/pypeliner.git /codebase/pypeliner/
 RUN cd /codebase/pypeliner && python3 setup.py install
 
+RUN apt-get install -y curl
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3 get-pip.py
+
 RUN python3 -m pip install PyYAML
 RUN python3 -m pip install matplotlib
 RUN python3 -m pip install pandas
-RUN python3 -m pip install rpy2==2.9.5
+RUN python3 -m pip install rpy2
 RUN python3 -m pip install networkx
 RUN python3 -m pip install dill
 RUN python3 -m pip install scanpy
 RUN python3 -m pip install tzlocal
-RUN python3 -m pip install --user scipy==1.2.1
+RUN python3 -m pip install scipy
 
 ENV PYTHONPATH=/codebase/scrna-pipeline/
 
@@ -38,6 +43,16 @@ RUN chmod 777 /bin/run
 RUN chmod 777 /bin/run_integration
 
 RUN python3 -m pip install numpy
+
+RUN R -e "install.packages('tensorflow')"
+RUN R -e "install.packages('Seurat')"
+RUN R -e "BiocManager::install('scater')"
+RUN R -e "BiocManager::install('scran')"
+RUN R -e "BiocManager::install('SingleCellExperiment')"
+RUN R -e "tensorflow::install_tensorflow(extra_packages='tensorflow-probability')"
+RUN R -e "install.packages('devtools')"
+RUN R -e "devtools::install_github('Irrationone/cellassign')"
+
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/R/lib/"
 CMD ["/bin/bash"]
