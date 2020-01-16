@@ -20,11 +20,11 @@ class CellAssign(object):
             submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
         else:
             tmp_path = os.path.split(rdata)[0]
-            submit = ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
+            submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
             print(submit)
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        submit = ["Rscript","{}/{}match.R".format(os.path.split(rdata)[0],script_prefix)]
+        submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}match.R".format(os.path.split(rdata)[0],script_prefix)]
         subprocess.call(submit, env=env)
 
     @staticmethod
