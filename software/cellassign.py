@@ -17,7 +17,7 @@ class CellAssign(object):
         if lsf:
             lsf_prefix = "/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 50 -o out -e err".split()
             tmp_path = os.path.split(rdata)[0]
-            submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
+            submit = lsf_prefix + ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
         else:
             tmp_path = os.path.split(rdata)[0]
             submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
