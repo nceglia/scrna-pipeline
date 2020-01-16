@@ -16,10 +16,11 @@ class CellAssign(object):
         cwd = os.getcwd()
         if lsf:
             lsf_prefix = "/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 50 -o out -e err".split()
-            submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(os.path.split(rdata)[0], script_prefix)]
+            tmp_path = os.path.split(rdata)[0]
+            submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
         else:
-            raise ValueError(rdata)
-            submit = ["Rscript","{}/{}run_cellassign.R".format(, script_prefix)]
+            tmp_path = os.path.split(rdata)[0]
+            submit = ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
             print(submit)
         subprocess.call(submit, env=env)
         matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
