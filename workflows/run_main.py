@@ -70,8 +70,9 @@ def RunQC(custom_output, sce, filtered_sce):
     library(stringr)
     library(Seurat)
 
+    ## REMOVE ME
     sce <- read10xCounts('{path}')
-
+    ## MAKE THIS BACK TO {path}
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
@@ -305,7 +306,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
         """
         qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
         output = open(qc_script,"w")
-        output.write(rcode.format(sce=sce, rdata_cached=rdata_cached, umap=umap_cached, sample=sampleid))
+        output.write(rcode.format(seurat=seurat, rdata_cached=rdata_cached, umap=umap_cached, sample=sampleid))
         output.close()
     else:
         rcode = """
