@@ -317,7 +317,7 @@ def RunExhaustion(custom_input, sce, rdata, umap):
 
         sce$Exhaustion_prob <- fit$mle_params$gamma[,"Exhausted.T.cell"]
         sce$Exhausted_state <- fit$cell_type
-        saveRDS(sce, file="{rdata_cached}")
+        saveRDS(sce, file="{sce}")
 
         seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
         seurat$Exhaustion_prob <- sce$Exhaustion_prob
