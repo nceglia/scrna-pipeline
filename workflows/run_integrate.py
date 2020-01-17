@@ -99,6 +99,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     init_object = object_list.pop(0)
     rcode += """
     merged <- merge({init_object}, y = c({object_list}), project = "pipeline_run")
+    sce <- as.SingleCellExperiment(merged)
     saveRDS(merged, file="{merged}")
     merged <- NormalizeData(merged)
     merged <- FindVariableFeatures(merged)

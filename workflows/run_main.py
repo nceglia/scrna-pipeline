@@ -70,9 +70,8 @@ def RunQC(custom_output, sce, filtered_sce):
     library(stringr)
     library(Seurat)
 
-    ## REMOVE ME
     sce <- read10xCounts('{path}')
-    ## MAKE THIS BACK TO {path}
+
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
     rowData(sce)$ensembl_gene_id <- rownames(sce)
