@@ -14,17 +14,18 @@ class CellAssign(object):
         CellAssign.script(rdata, rho_csv, results, B=B, min_delta=min_delta, script_prefix=script_prefix)
         env = os.environ.copy()
         cwd = os.getcwd()
+        lsf = False
         if lsf:
             lsf_prefix = "/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 50 -o out -e err".split()
             tmp_path = os.path.split(rdata)[0]
-            submit = lsf_prefix + ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
+            submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
         else:
             tmp_path = os.path.split(rdata)[0]
-            submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
+            submit = ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
             print(submit)
         if not os.path.exists(rdata):
             subprocess.call(submit, env=env)
-        
+
 
     @staticmethod
     def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True, B=10, min_delta=2, script_prefix=""):
@@ -49,7 +50,7 @@ class CellAssign(object):
 
 script = """
 library(reticulate)
-use_python("/home/ceglian/anaconda/bin/python3")
+use_python("/usr/bin/python3")
 library(cellassign)
 library(tensorflow)
 library(scran)

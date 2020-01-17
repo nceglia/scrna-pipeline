@@ -288,19 +288,21 @@ def RunExhaustion(custom_input, sce, rdata, umap):
         except OSError as e:
             exhaustion_failed = True
     if exhaustion_failed:
+        seurat = os.path.join(os.path.split(sce)[0],"seuret_annot_{}.rdata".format(sampleid))
         rcode = """
         library(Seurat)
         library(ggplot2)
-        sce <- readRDS("{sce}")
+        seurat <- readRDS("{seurat}")
 
-        sce$Exhaustion_prob <- 0.0
-        saveRDS(sce, file="{rdata_cached}")
+        seurat$Exhaustion_prob <- 0.0
+        seurat$Exhausted_state <- "Other"
 
-        seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-        seurat$Exhaustion_prob <- sce$Exhaustion_prob
+        Idents(seurat) <- "Exhausted_state"
         png("{umap}", width=1000, height=1000)
-        DimPlot(object = seurat, reduction = "UMAP")
+        DimPlot(object = seurat, reduction = "umap")
         dev.off()
+        sce <- as.SingleCellExperiment(seurat)
+        saveRDS(sce, file="{rdata_cached}")
         """
         qc_script = os.path.join(temp,"exhaustion_viz_{}.R".format(sampleid))
         output = open(qc_script,"w")
@@ -314,6 +316,8 @@ def RunExhaustion(custom_input, sce, rdata, umap):
         fit <- readRDS("{fit}")
 
         sce$Exhaustion_prob <- fit$mle_params$gamma[,"Exhausted.T.cell"]
+        sce$Exhausted_state <- fit$cell_type
+        saveRDS(sce, file="{rdata_cached}")
 
         seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
         seurat$Exhaustion_prob <- sce$Exhaustion_prob
@@ -349,25 +353,25 @@ def RunHRD(custom_input, sce, rdata, umap):
         except OSError as e:
             hrd_failed = True
     if hrd_failed:
+        seurat = os.path.join(os.path.split(sce)[0],"seuret_annot_{}.rdata".format(sampleid))
         rcode = """
         library(Seurat)
         library(ggplot2)
 
-        sce <- readRDS("{sce}")
-        sce$repairtype <- "Other"
-        sce$HRD_prob <- 0.0
-        sce$HR_prob <- 0.0
-        seurat <- as.Seurat(sce, counts = "counts", data = "logcounts")
-        seurat$repairtype <- sce$repairtype
+        seurat <- readRDS("{seurat}")
+        seuerat$repairtype <- "Other"
+        seuerat$HRD_prob <- 0.0
+        seuerat$HR_prob <- 0.0
 
         png("{umap}", width=1000, height=1000)
-        DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+        DimPlot(object = seurat, reduction = "umap", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample} DNA Repair")
         dev.off()
+        sce <- as.SingleCellExperiment(seurat)
         saveRDS(sce, file="{rdata_cached}")
         """
         qc_script = os.path.join(temp,"hrd_viz_{}.R".format(sampleid))
         output = open(qc_script,"w")
-        output.write(rcode.format(sce=sce, rdata_cached=rdata_cached, umap=umap_cached, sample=sampleid))
+        output.write(rcode.format(seurat=seurat, rdata_cached=rdata_cached, umap=umap_cached, sample=sampleid))
         output.close()
     else:
         rcode = """
@@ -383,7 +387,7 @@ def RunHRD(custom_input, sce, rdata, umap):
         seurat$repairtype <- sce$repairtype
 
         png("{umap}", width=1000, height=1000)
-        DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample}")
+        DimPlot(object = seurat, reduction = "UMAP", group.by = "repairtype", dark.theme=TRUE, plot.title="{sample} DNA Repair")
         dev.off()
         saveRDS(sce, file="{sce}")
         """
