@@ -16,15 +16,15 @@ class CellAssign(object):
         cwd = os.getcwd()
         if lsf:
             lsf_prefix = "/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 50 -o out -e err".split()
-            submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(os.path.split(rdata)[0], script_prefix)]
+            tmp_path = os.path.split(rdata)[0]
+            submit = lsf_prefix + ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
         else:
-            raise ValueError(rdata)
-            submit = ["Rscript","{}/{}run_cellassign.R".format(, script_prefix)]
+            tmp_path = os.path.split(rdata)[0]
+            submit = ["/home/ceglian/anaconda/bin/Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
             print(submit)
-        subprocess.call(submit, env=env)
-        matched_results = os.path.join(os.path.split(results)[0],"cell_types.tsv")
-        submit = ["Rscript","{}/{}match.R".format(os.path.split(rdata)[0],script_prefix)]
-        subprocess.call(submit, env=env)
+        if not os.path.exists(rdata):
+            subprocess.call(submit, env=env)
+        
 
     @staticmethod
     def run(rdata, rho_yaml, results, rho_csv=".cache/rho.csv",lsf=True, B=10, min_delta=2, script_prefix=""):
@@ -35,21 +35,6 @@ class CellAssign(object):
         assert os.path.exists(rho_csv)
         CellAssign.cmd(rdata, rho_csv, results, lsf=lsf, B=B, min_delta=min_delta, script_prefix=script_prefix)
         print ("CellAssign finished.")
-        matched_results = os.path.join(os.path.split(rdata)[0],"{}cell_types.tsv".format(script_prefix))
-        pkl_fit = os.path.join(os.path.split(rdata)[0],"{}cell_types.pkl".format(script_prefix))
-        lines = open(matched_results,"r").read().splitlines()
-        header = lines.pop(0)
-        barcodes = []
-        celltypes = []
-        pyfit = dict()
-        for line in lines:
-            line = [x.replace('"','') for x in line.split(",")]
-            barcodes.append(line[1])
-            celltypes.append(line[2])
-        pyfit["Barcode"] = barcodes
-        pyfit["cell_type"] = celltypes
-        pickle.dump(pyfit, open(pkl_fit,"wb"))
-        print ("Results written.")
 
     @staticmethod
     def script(rdata, rho_csv, results, B, min_delta, script_prefix=""):
@@ -60,9 +45,6 @@ class CellAssign(object):
         configured = open("{}/{}run_cellassign.R".format(os.path.split(rdata)[0],script_prefix),"w")
         configured.write(script.format(sce=rdata,rho=rho_csv,fname=results,fsce=filtered_sce,frho=filtered_rho,B=B,min_delta=min_delta))
         configured.close()
-        match = open("{}/{}match.R".format(os.path.split(rdata)[0],script_prefix),"w")
-        match.write(match_barcodes.format(sce=filtered_sce,fit=results,fname=matched_results))
-        match.close()
 
 
 script = """
@@ -102,16 +84,4 @@ print('save')
 saveRDS(fit_cellassign, file = '{fname}')
 saveRDS(sce_result, file="{fsce}")
 saveRDS(rho, file="{frho}")
-"""
-
-
-match_barcodes = """
-library(SingleCellExperiment)
-library(cellassign)
-sce = readRDS("{sce}")
-fit = readRDS("{fit}")
-
-barcodes <- data.frame(barcode=colData(sce)$Barcode,celltype=fit$cell_type)
-write.csv(barcodes, file="{fname}")
-
 """
