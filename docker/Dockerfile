@@ -47,7 +47,6 @@ RUN python3 -m pip install numpy
 RUN R -e "install.packages('tensorflow')"
 
 RUN apt-get install -y python3-venv
-RUN /root/.virtualenvs/r-reticulate/bin/python /get-pip.py
 RUN R -e "BiocManager::install('multtest',suppressUpdates=TRUE)"
 RUN R -e "install.packages('mutoss')"
 RUN R -e "install.packages('Seurat')"
@@ -59,8 +58,7 @@ RUN R -e "install.packages('devtools')"
 RUN R -e "devtools::install_github('Irrationone/cellassign',dep=FALSE)"
 RUN R -e "BiocManager::install('DropletUtils')"
 
-COPY hrd.yaml /codebase/hrd.yaml
-RUN rm -rf /codebase/scrna-pipeline/
-RUN git clone https://github.com/nceglia/scrna-pipeline.git /codebase/scrna-pipeline/
+RUN /root/.virtualenvs/r-reticulate/bin/python -m pip install tensorflow-probability==0.8.0
+
 ENV LD_LIBRARY_PATH="/usr/local/lib/R/lib/"
 CMD ["/bin/bash"]
