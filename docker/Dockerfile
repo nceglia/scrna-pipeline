@@ -57,7 +57,10 @@ RUN R -e "BiocManager::install('SingleCellExperiment')"
 RUN R -e "tensorflow::install_tensorflow(extra_packages='tensorflow-probability')"
 RUN R -e "install.packages('devtools')"
 RUN R -e "devtools::install_github('Irrationone/cellassign',dep=FALSE)"
+RUN R -e "BiocManager::install('DropletUtils')"
 
-
+COPY hrd.yaml /codebase/hrd.yaml
+RUN rm -rf /codebase/scrna-pipeline/
+RUN git clone https://github.com/nceglia/scrna-pipeline.git /codebase/scrna-pipeline/
 ENV LD_LIBRARY_PATH="/usr/local/lib/R/lib/"
 CMD ["/bin/bash"]

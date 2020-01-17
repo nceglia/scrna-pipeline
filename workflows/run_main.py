@@ -347,7 +347,7 @@ def RunHRD(custom_input, sce, rdata, umap):
     hrd_failed = False
     if not os.path.exists(rdata_cached):
         rho = "/codebase/hrd.yaml"
-        CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True,script_prefix="hrd_")
+        CellAssign.run(sce, rho, fit, rho_csv=rho_csv,lsf=True,script_prefix="hrd_",min_delta=0.1)
         try:
             shutil.copyfile(filtered_sce, rdata_cached)
         except OSError as e:
