@@ -71,7 +71,7 @@ def RunQC(custom_output, sce, filtered_sce):
     library(Seurat)
 
     ## REMOVE ME
-    sce <- read10xCounts('{path}')
+    sce <- read10xCounts('/Users/ceglian/Development/isabl_dev_environment/test_matrices/')
     ## MAKE THIS BACK TO {path}
     sce <- sce[,colSums(counts(sce))>0]
     sce <- sce[rowSums(counts(sce))>0,]
