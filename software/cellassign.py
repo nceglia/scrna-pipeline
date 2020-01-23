@@ -16,15 +16,17 @@ class CellAssign(object):
         cwd = os.getcwd()
         lsf = False
         if lsf:
+            raise ValueError("should not run lsf")
             lsf_prefix = "/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J cellassign -R rusage[mem=1] -n 20 -We 50 -o out -e err".split()
             tmp_path = os.path.split(rdata)[0]
             submit = lsf_prefix + ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
         else:
             tmp_path = os.path.split(rdata)[0]
-            submit = ["Rscript","{}/{}run_cellassign.R".format(tmp_path, script_prefix)]
+            submit = ["Rscript",os.path.abspath("{}/{}run_cellassign.R".format(tmp_path, script_prefix))]
             print(submit)
-        if not os.path.exists(rdata):
-            subprocess.call(submit, env=env)
+        print("CALLING")
+        #if not os.path.exists(rdata):
+        subprocess.call(submit, env=env)
 
 
     @staticmethod

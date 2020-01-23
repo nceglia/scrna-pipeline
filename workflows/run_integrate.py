@@ -36,7 +36,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
-    sce{id} <- readRDS("{object}")*
+    sce{id} <- readRDS("{object}")
     seurat{id} <- as.Seurat(sce{id}, counts = "counts", data = "logcounts")
     seurat{id} <- SCTransform(seurat{id})
         """.format(id=idx,object=object)
@@ -100,7 +100,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     rcode += """
     merged <- merge({init_object}, y = c({object_list}), project = "pipeline_run")
     sce <- as.SingleCellExperiment(merged)
-    saveRDS(merged, file="{merged}")
+    saveRDS(sce, file="{merged}")
     merged <- NormalizeData(merged)
     merged <- FindVariableFeatures(merged)
     merged <- ScaleData(merged)
@@ -127,9 +127,9 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     shutil.copyfile(merged, sce_merged)
 
 def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
-    rdata = os.path.join(config.jobpath,"results","integrated_scanorama_sce.rdata")
-    umap = os.path.join(config.jobpath,"results","integrated_scanorama_tsne.rdata")
-    tsne = os.path.join(config.jobpath,"results","integrated_scanorama_umap.rdata")
+    rdata = os.path.abspath(os.path.join(config.jobpath,"results","integrated_scanorama_sce.rdata"))
+    umap = os.path.abspath(os.path.join(config.jobpath,"results","integrated_scanorama_umap.png"))
+    merged = os.path.abspath(merged)
     batch_correct_method = """
     batch_correct <- function(sce, batch_col, method = "scanorama") {
       ## Feature selection
@@ -189,7 +189,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
         print("here")
         sce@metadata$batchcor_pca_res <- pca_res
         sce@metadata$batchcor_genes <- chosen
-        saveRDS(sce_sel,file="SPECTRUM-OV-009-OMENT-ALL.rdata")
+        saveRDS(sce_sel,file="integrated.rdata")
         print("done")
       } else {
         stop("Other methods not implemented.")
@@ -198,7 +198,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
       return(sce)
     }
     """
-    integrate_script = os.path.join(".cache/integration_scanorama.R")
+    integrate_script = os.path.abspath(os.path.join(".cache/integration_scanorama.R"))
     script = open(integrate_script,"w")
     script.write("""
     library(SingleCellExperiment)
@@ -213,13 +213,17 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     library(limma)
     library(scrna.utils)
     library(scrna.sceutils)
+    library(cellassign)
+    library(cellassign.utils)
     library(stringr)
     library(reticulate)
+    library(Seurat)
     use_python("/usr/lib/python")
     """)
     script.write(batch_correct_method)
     script.write("""
     merged <- readRDS("{merged}")
+    merged <- as.SingleCellExperiment(merged)
     """.format(merged=merged))
     script.write("""
     sce <- tryCatch({batch_correct(merged,"sample")},error=function(e) {batch_correct(merged,"sample")})
@@ -228,19 +232,36 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     script.write("""
     rowData(sce) <- rowData(merged)
     rownames(sce) <- rownames(merged)
-    saveRDS(sce, file="{sce_cached}")""".format(sce_cached=rdata))
+
+    png({umap},width=700,height=700)
+    plotReducedDim(sce, use_dimred = "UMAP", colour_by = "cell_type") +
+    xlab("UMAP-1") +
+    ylab("UMAP-2") +
+    guides(fill = guide_legend(title = "Cell Type",override.aes = list(size=14)))   +
+    theme_bw() +
+    theme_nature() +
+    theme_Publication() + scale_fill_manual(values=c("gold2","#9d65ff","#f4005f","#98e024","#fa8419","#58d1eb","#000000","navy","firebrick4","olivedrab4","darkgreen","gray42","red")) + ggtitle("Scanorama Integration") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=14, face = "bold"),axis.title.y=element_text(size=14, face = "bold"), legend.text=element_text(size=10, face = "bold"),axis.text.y = element_text(face="bold",size=14),axis.text.x = element_text(face="bold",size=14),legend.title=element_text(size=0))
+    dev.off()
+    
+
+
+    saveRDS(sce, file="{sce_cached}")""".format(sce_cached=rdata,umap=umap))
     script.close()
     #cmd = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J "scanorama" -R "rusage[mem=4]" -R "select[type==CentOS7]" -W 03:00 -n 16 -o output -e error singularity exec /work/ceglian/images/scrna-r-base.img Rscript {script}""".format(script=integrate_script)
-    cmd = """docker run --mount type=bind,source=$(pwd),target=$(pwd) -w $(pwd) nceglia/base-scrna-r:latest Rscript {script}""".format(script=integrate_script)
+    cmd = """docker run --mount type=bind,source=/Users/ceglian/,target=/Users/ceglian/ -w /Users/ceglian/ nceglia/base-r-scrna:latest Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
     shutil.copyfile(rdata, integrated_sce)
-    shutil.copyfile(tsne, integrated_tsne)
     shutil.copyfile(umap, integrated_umap)
 
 
 def RunCollection(workflow):
     print(config.samples)
-    all_samples = json.loads(open(config.samples, "r").read())
+    _all_samples = open(config.samples, "r").read().splitlines()
+    all_samples = dict()
+    for sample in _all_samples:
+        sample, sce = sample.split("\t")
+        all_samples[sample] = sce
+
 
     workflow.transform (
         name = "seurat_integrate",
@@ -269,7 +290,7 @@ def RunCollection(workflow):
         name = "scanorama_integrate",
         func = RunScanoramaIntegration,
         args = (
-            pypeliner.managed.TempInputFile("merged_sce.rdata"),
+            pypeliner.managed.TempInputFile("integrated_harmony_seurat.rdata"),
             pypeliner.managed.TempOutputFile("integrated_scanorama_sce.rdata"),
             pypeliner.managed.TempOutputFile("integrated_scanorama_umap.png"),
         )

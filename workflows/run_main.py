@@ -136,7 +136,7 @@ def RunCellAssign(custom_output, sce, annot_sce):
     filtered_sce = os.path.join(config.jobpath,"results","sce_cas_{}.rdata".format(sampleid))
     if not os.path.exists(filtered_sce):
         rho = os.path.join(config.jobpath,config.rho_matrix)
-        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=True)
+        CellAssign.run(sce, rho, _fit, rho_csv=_rho_csv,lsf=False)
         shutil.copyfile(_filtered_sce, filtered_sce)
     shutil.copyfile(filtered_sce, annot_sce)
 
