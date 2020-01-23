@@ -233,7 +233,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     rowData(sce) <- rowData(merged)
     rownames(sce) <- rownames(merged)
 
-    png("{umap}"",width=700,height=700)
+    png("{umap}",width=700,height=700)
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "cell_type") +
     xlab("UMAP-1") +
     ylab("UMAP-2") +
