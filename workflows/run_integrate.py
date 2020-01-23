@@ -233,7 +233,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     rowData(sce) <- rowData(merged)
     rownames(sce) <- rownames(merged)
 
-    png({umap},width=700,height=700)
+    png("{umap}"",width=700,height=700)
     plotReducedDim(sce, use_dimred = "UMAP", colour_by = "cell_type") +
     xlab("UMAP-1") +
     ylab("UMAP-2") +
@@ -242,7 +242,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
     theme_nature() +
     theme_Publication() + scale_fill_manual(values=c("gold2","#9d65ff","#f4005f","#98e024","#fa8419","#58d1eb","#000000","navy","firebrick4","olivedrab4","darkgreen","gray42","red")) + ggtitle("Scanorama Integration") + theme(plot.title=element_text(size=19, face = "bold"),axis.title.x=element_text(size=14, face = "bold"),axis.title.y=element_text(size=14, face = "bold"), legend.text=element_text(size=10, face = "bold"),axis.text.y = element_text(face="bold",size=14),axis.text.x = element_text(face="bold",size=14),legend.title=element_text(size=0))
     dev.off()
-    
+
 
 
     saveRDS(sce, file="{sce_cached}")""".format(sce_cached=rdata,umap=umap))
