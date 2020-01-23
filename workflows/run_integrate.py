@@ -26,7 +26,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
         os.makedirs("results")
     rdata = os.path.join(config.jobpath,"results","integrated_seurat_seurat.rdata")
     sce_cached = os.path.join(config.jobpath,"results","integrated_seurat_sce.rdata")
-    umap = os.path.join(config.jobpath,"results","integrated_seurat_umap.rdata")
+    umap = os.path.join(config.jobpath,"results","integrated_seurat_umap.png")
     object_list = []
     rcode = """
     library(Seurat)
