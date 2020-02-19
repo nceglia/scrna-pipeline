@@ -33,6 +33,7 @@ def RunSeuratIntegration(sample_paths, integrated_seurat, integrated_sce, integr
     library(SingleCellExperiment)
     """
     for idx, object in sample_paths.items():
+        idx = idx.replace("-","_")
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
@@ -87,6 +88,7 @@ def RunHarmonyIntegration(sample_paths, integrated_harmony, integrated_sce, inte
     library(scater)
     """
     for idx, object in sample_paths.items():
+        idx = idx.replace("-","_")
         seurat_obj = "seurat{}".format(idx)
         object_list.append(seurat_obj)
         load = """
@@ -247,7 +249,7 @@ def RunScanoramaIntegration(merged, integrated_sce, integrated_umap):
 
     saveRDS(sce, file="{sce_cached}")""".format(sce_cached=rdata,umap=umap))
     script.close()
-    #cmd = """/admin/lsf/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J "scanorama" -R "rusage[mem=4]" -R "select[type==CentOS7]" -W 03:00 -n 16 -o output -e error singularity exec /work/ceglian/images/scrna-r-base.img Rscript {script}""".format(script=integrate_script)
+    #cmd = '/common/juno/OS7/10.1/linux3.10-glibc2.17-x86_64/bin/bsub -K -J scanorama -R rusage[mem=4] -W 03:00 -n 16 -o output -e error /opt/local/singularity/3.3.0/bin/singularity  exec --bind /juno/work:/work  /work/shah/images/base_scrna_r.img Rscript {script}'.format(script=integrate_script)
     cmd = """docker run --mount type=bind,source=/Users/ceglian/,target=/Users/ceglian/ -w /Users/ceglian/ nceglia/base-r-scrna:latest Rscript {script}""".format(script=integrate_script)
     subprocess.call(cmd.split())
     shutil.copyfile(rdata, integrated_sce)
@@ -262,7 +264,7 @@ def RunCollection(workflow):
         sample, sce = sample.split("\t")
         all_samples[sample] = sce
 
-
+    """
     workflow.transform (
         name = "seurat_integrate",
         func = RunSeuratIntegration,
@@ -273,6 +275,7 @@ def RunCollection(workflow):
             pypeliner.managed.TempOutputFile("integrated_seurat_umap.png"),
         )
     )
+    """
 
     workflow.transform (
         name = "harmony_integrate",
