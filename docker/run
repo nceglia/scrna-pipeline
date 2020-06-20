@@ -1,4 +1,0 @@
-#!/bin/bash
-export PYTHONPATH=$PYTHONPATH:/codebase/scrna-pipeline/
-python3 /codebase/scrna-pipeline/generate_config.py --jobpath $(pwd) analysis  $* 
-python3 /codebase/scrna-pipeline/pipeline_main.py --submit local --maxjobs=100
