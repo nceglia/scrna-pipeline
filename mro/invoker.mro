@@ -1,0 +1,13 @@
+@include "pipeline.mro"
+
+call RNASCP(
+    project = "Test 1",
+    image  = "/work/shah/images/scrna-pipeline-v6.img",
+    runtime = "singularity",
+    inventory = "/juno/work/shah/ceglian/rnascp/samples.tsv",
+    mito = 25,
+    score = 0.25,
+    gmt = "/juno/work/shah/ceglian/rnascp/lib/python/h.all.v7.0.symbols.gmt",
+    yaml = "/juno/work/shah/ceglian/rnascp/hgsc_v5_major.yaml",
+    subtypes = "/juno/work/shah/ceglian/rnascp/resources/exhausted.csv",
+)

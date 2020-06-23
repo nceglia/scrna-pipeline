@@ -1,0 +1,352 @@
+filetype rds;
+filetype html;
+filetype png;
+filetype svg;
+
+stage SAMPLE_SETUP(
+    in  path inventory,
+    out map samples,
+    out map batch,
+    src py "stages/sample_setup",
+)
+
+stage RUN_QC(
+    in  map samples,
+    in  int mito,
+    in  path image,
+    in  string runtime,
+    out map seurat,
+    out map sce,
+    out map raw_sce,
+    src py "stages/qc",
+) split using (
+    in  map samples,
+) using (
+    threads = 4,
+)
+
+stage CELLTYPE_MARKERS(
+    in  path yaml,
+    in  path image,
+    in  string runtime,
+    out path marker_csv,
+    src py   "stages/celltype_markers",
+) using (
+    threads = 1,
+)
+
+stage DETECT_DOUBLETS(
+    in  map sce,
+    in  path image,
+    in  string runtime,
+    out map csv,
+    src py "stages/detect_doublets",
+) split using (
+    in  map sces,
+) using (
+    threads = 2,
+)
+
+stage SUMMARIZE_SAMPLE_QC(
+    in  map qcd_scored_seurat,
+    in  map csv,
+    in  map sce,
+    in  path markers,
+    in  int mito,
+    in  float score,
+    in  path image,
+    in  string runtime,
+    out map qc_report,
+    src py "stages/summarize_sample_qc",
+) split using (
+    in  map qcd_scored_seurat,
+) using (
+    threads = 8,
+)
+
+stage FILTER_DOUBLETS(
+    in  map seurat,
+    in  map csv,
+    in  path image,
+    in  string runtime,
+    in  float score,
+    out map qcd_seurat,
+    src py   "stages/filter_doublets",
+) split using (
+    in  map seurat,
+    in  map csv,
+) using (
+    threads = 4,
+)
+
+stage CELLCYCLE_SCORE(
+    in  map qcd_seurat,
+    in  path image,
+    in  string runtime,
+    out map qcd_scored_seurat,
+    src py   "stages/cellcyclescore",
+) split using (
+    in  map qcd_seurat,
+) using (
+    threads = 4,
+)
+
+stage MERGE_SAMPLES(
+    in  map qcd_scored_seurat,
+    in  map batch,
+    in  path image,
+    in  string runtime,
+    out map merged_seurat,
+    out map merged_tsv,
+    src py   "stages/merge_samples",
+) split using (
+    in  map batch,
+) using (
+    threads = 12,
+)
+
+stage ASSIGN_CELLTYPES(
+    in  map merged_seurat,
+    in  path marker_csv,
+    in  path image,
+    in  string runtime,
+    out map probabilities,
+    out map annotated_seurat,
+    out map batch_report,
+    out map batch_csv,
+    src py   "stages/assign_celltypes",
+) split using (
+    in  map merged_seurat,
+) using (
+    threads = 30,
+)
+
+stage MERGE_BATCHES(
+    in  map annotated_seurat,
+    in  path image,
+    in  string runtime,
+    out rds batch_merged_seurat,
+    out path batch_tsv,
+    out path celltype_csv,
+    out string[] celltypes,
+    src py   "stages/merge_batch",
+) using (
+    threads = 16,
+)
+
+stage BATCH_CORRECTION(
+    in  rds batch_merged_seurat,
+    in  path image,
+    in  string runtime,
+    out rds integrated_seurat,
+    out svg project_figure,
+    out path ct_markers,
+    src py   "stages/batch_correction",
+) using (
+    threads = 16,
+)
+
+stage SUBSET_CELLTYPES(
+    in  rds batch_merged_seurat,
+    in  string[] celltypes,
+    in  path image,
+    in  string runtime,
+    out map celltype_seurat,
+    out map cell_umap,
+    out map markers,
+    src py   "stages/splitcelltypes",
+) split using (
+    in  string[] celltypes,
+) using (
+    threads = 12,
+)
+
+stage SUBTYPE_SCORE(
+    in string[] celltypes,
+    in  map celltype_seurat,
+    in  path subtypes,
+    in  path image,
+    in  string runtime,
+    out map subtype_scores,
+    src py   "stages/subtype_score",
+) split using (
+    in  map celltype_seurat,
+) using (
+    threads = 12,
+)
+
+stage ENRICHMENT_NETWORK(
+    in  path ct_markers,
+    in  path gmt,
+    in  path image,
+    in  string runtime,
+    out map pathway_network,
+    out map enriched_pathways,
+    src py   "stages/enrichment_network",
+) split using (
+    in  map markers,
+) using (
+    threads = 4,
+)
+
+stage CELL_CELL_INTERACTIONS(
+    in string[] celltypes,
+    in  map celltype_seurat,
+    in  path gmt,
+    in  path image,
+    in  string runtime,
+    out map interactions,
+    src py   "stages/cell_cell_interactions",
+) split using (
+    in  map celltype_seurat,
+) using (
+    threads = 12,
+)
+
+stage GENERATE_REPORT(
+    in  string project,
+    in  map qc_report,
+    in  map batch_report,
+    in  svg project_figure,
+    in  map celltype_umaps,
+    in  map interactions,
+    in  map networks,
+    in  map markers,
+    in  map batch_markers,
+    in  map subtype_scores,
+    in  path image,
+    in  map enriched_pathways,
+    in  path ct_markers,
+    in  string runtime,
+    out html report,
+    src py   "stages/generate_report",
+) using (
+    threads = 12,
+)
+
+pipeline RNASCP(
+    in path image,
+    in string runtime,
+    in path inventory,
+    in int mito,
+    in float score,
+    in path yaml,
+    in path gmt,
+    in string project,
+    in string subtypes,
+    out rds integrated_seurat,
+    out rds batch_merged_seurat,
+    out html report,
+)
+{
+    call SAMPLE_SETUP(
+        inventory  = self.inventory,
+    )
+    call RUN_QC(
+        samples = SAMPLE_SETUP.samples,
+        image   = self.image,
+        runtime = self.runtime,
+        mito    = self.mito,
+    )
+    call DETECT_DOUBLETS(
+        sce     = RUN_QC.sce,
+        image   = self.image,
+        runtime = self.runtime,
+    )
+    call FILTER_DOUBLETS(
+        seurat    = RUN_QC.seurat,
+        csv       = DETECT_DOUBLETS.csv,
+        image     = self.image,
+        runtime   = self.runtime,
+        score     = self.score,
+    )
+    call CELLTYPE_MARKERS(
+        yaml    = self.yaml,
+        image   = self.image,
+        runtime = self.runtime,
+    )
+    call CELLCYCLE_SCORE(
+        qcd_seurat      = FILTER_DOUBLETS.qcd_seurat,
+        image           = self.image,
+        runtime         = self.runtime,
+    )
+    call MERGE_SAMPLES(
+        qcd_scored_seurat = CELLCYCLE_SCORE.qcd_scored_seurat,
+        batch             = SAMPLE_SETUP.batch,
+        image             = self.image,
+        runtime           = self.runtime,
+    )
+    call ASSIGN_CELLTYPES(
+        merged_seurat  = MERGE_SAMPLES.merged_seurat,
+        marker_csv     = CELLTYPE_MARKERS.marker_csv,
+        image          = self.image,
+        runtime        = self.runtime,
+    )
+    call SUMMARIZE_SAMPLE_QC(
+        qcd_scored_seurat = CELLCYCLE_SCORE.qcd_scored_seurat,
+        sce               = RUN_QC.raw_sce,
+        csv               = DETECT_DOUBLETS.csv,
+        score             = self.score,
+        mito              = self.mito,
+        markers           = CELLTYPE_MARKERS.marker_csv,
+        image             = self.image,
+        runtime           = self.runtime,
+    )
+    call MERGE_BATCHES(
+        annotated_seurat = ASSIGN_CELLTYPES.annotated_seurat,
+        image            = self.image,
+        runtime          = self.runtime,
+    )
+    call SUBSET_CELLTYPES(
+        batch_merged_seurat = BATCH_CORRECTION.integrated_seurat,
+        celltypes           = MERGE_BATCHES.celltypes,
+        image               = self.image,
+        runtime             = self.runtime,
+    )
+    call BATCH_CORRECTION(
+        batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
+        image               = self.image,
+        runtime             = self.runtime,
+    )
+    call ENRICHMENT_NETWORK(
+        ct_markers    = BATCH_CORRECTION.ct_markers,
+        gmt        = self.gmt,
+        image      = self.image,
+        runtime    = self.runtime,
+    )
+    call CELL_CELL_INTERACTIONS(
+        celltypes       = MERGE_BATCHES.celltypes,
+        celltype_seurat = SUBSET_CELLTYPES.celltype_seurat,
+        gmt             = self.gmt,
+        image           = self.image,
+        runtime         = self.runtime,
+    )
+    call SUBTYPE_SCORE(
+        celltypes       = MERGE_BATCHES.celltypes,
+        celltype_seurat = SUBSET_CELLTYPES.celltype_seurat,
+        subtypes        = self.subtypes,
+        image           = self.image,
+        runtime         = self.runtime,
+    )
+    call GENERATE_REPORT(
+        project               = self.project,
+        qc_report             = SUMMARIZE_SAMPLE_QC.qc_report,
+        batch_report          = ASSIGN_CELLTYPES.batch_report,
+        project_figure        = BATCH_CORRECTION.project_figure,
+        celltype_umaps        = SUBSET_CELLTYPES.cell_umap,
+        interactions          = CELL_CELL_INTERACTIONS.interactions,
+        networks              = ENRICHMENT_NETWORK.pathway_network,
+        markers               = SUBSET_CELLTYPES.markers,
+        enriched_pathways     = ENRICHMENT_NETWORK.enriched_pathways,
+        batch_markers         = ASSIGN_CELLTYPES.batch_csv,
+        subtype_scores        = SUBTYPE_SCORE.subtype_scores,
+        ct_markers            = BATCH_CORRECTION.ct_markers,
+        image                 = self.image,
+        runtime               = self.runtime,
+    )
+    return (
+        integrated_seurat   = BATCH_CORRECTION.integrated_seurat,
+        batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
+        report              = GENERATE_REPORT.report,
+    )
+}
