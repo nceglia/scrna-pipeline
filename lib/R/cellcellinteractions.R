@@ -10,6 +10,10 @@ library(ggpubr)
 ligand_target_matrix = readRDS("/work/shah/ceglian/interactions/ligand_target_matrix.rds")
 lr_network = readRDS("/work/shah/ceglian/interactions/lr_network.rds")
 weighted_networks = readRDS("/work/shah/ceglian/interactions/weighted_networks.rds")
+ligand_tf_matrix = readRDS("/work/shah/ceglian/interactions/ligand_tf_matrix.rds")
+sig_network = readRDS("/work/shah/ceglian/interactions/signaling_network.rds")
+gr_network = readRDS("/work/shah/ceglian/interactions/gr_network.rds")
+
 weighted_networks_lr = weighted_networks$lr_sig %>% inner_join(lr_network %>% distinct(from,to), by = c("from","to"))
 
 args = commandArgs(trailingOnly=TRUE)
@@ -125,4 +129,22 @@ figure <- plot_grid(figures_without_legend,
           rel_heights = c(10,3), nrow = 2, align = "hv")
 
 
-ggsave(png, figure, width=14, height=6)
+ligands_all = order_ligands
+targets_all = order_targets
+active_signaling_network = get_ligand_signaling_path(ligand_tf_matrix = ligand_tf_matrix, ligands_all = ligands_all, targets_all = targets_all, weighted_networks = weighted_networks)
+active_signaling_network_min_max = active_signaling_network
+active_signaling_network_min_max$sig = active_signaling_network_min_max$sig %>% mutate(weight = ((weight-min(weight))/(max(weight)-min(weight))) + 0.75)
+active_signaling_network_min_max$gr = active_signaling_network_min_max$gr %>% mutate(weight = ((weight-min(weight))/(max(weight)-min(weight))) + 0.75)
+
+graph_min_max = diagrammer_format_signaling_graph(signaling_graph_list = active_signaling_network_min_max, ligands_all = ligands_all, targets_all = targets_all, sig_color = "indianred", gr_color = "steelblue")
+
+graph <- DiagrammeR::render_graph(graph_min_max, layout = "tree", as_svg=TRUE)
+
+seurat <- AddModuleScore(object = sender_obj, features = geneset_oi, ctrl = 5, name = "subtype_score")
+subfig <- FeaturePlot(seurat,reduction="umapcelltype",features="subtype_score1") + ggtitle(paste0(pathway, " Score")) + theme(plot.title=element_text(face="bold")) + xlab("UMAP-1") + ylab("UMAP-2")
+
+top <- plot_grid(graph,subfig,nrow=1,align="h")
+
+allfigure <- plot_grid(top,figure,nrow=2,ncol=1)
+
+ggsave(png, allfigure, width=14, height=12)

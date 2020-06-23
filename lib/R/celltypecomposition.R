@@ -17,9 +17,9 @@ batch_summary <- summarise(group_by(df,cell_type,batch),count =n())
 batch_summary <- data.frame(batch_summary)
 
 
-fig <- ggplot(sample_summary, aes(factor(sample), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Sample") + ylab("Cell Type") + theme(legend.title = element_blank()) + ggtitle("")
-ggsave(sample_composition, fig,width=4,height=3)
+fig <- ggplot(sample_summary, aes(factor(sample), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Sample") + ylab("Cell Type") + theme(legend.title = element_blank()) + ggtitle("Sample - Celltypes")
+ggsave(sample_composition, fig,width=2,height=1.5, scale=2)
 
 
-fig <- ggplot(batch_summary, aes(factor(batch), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Batch") + ylab("Cell Type") + theme(legend.title = element_blank()) + ggtitle("")
-ggsave(batch_composition, fig,width=4,height=3)
+fig <- ggplot(batch_summary, aes(factor(batch), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Batch") + ylab("Cell Type") + theme(legend.title = element_blank()) + ggtitle("Batch - Celltypes")
+ggsave(batch_composition, fig,width=2,height=1.5, scale=2)

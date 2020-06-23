@@ -4,10 +4,11 @@ import martian
 
 __MRO__ = '''
 stage BATCH_CORRECTION(
-    in  path integrated_seurat,
+    in  rds batch_merged_seurat,
     in  path image,
     in  string runtime,
     out rds integrated_seurat,
+    out svg project_figure,
     src py   "stages/batch_correction",
 ) using (
     threads = 16,

@@ -9,26 +9,30 @@ import matplotlib
 import matplotlib.gridspec as gridspec
 import numpy
 import sys
+from gseapy.plot import barplot
+
+plt.rcParams['svg.fonttype'] = 'none'
 
 logger = logging.getLogger("Pathway Analysis")
 logger.setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO)
 
 csv = sys.argv[1]
-fdr = 0.01
+fdr = 0.05
 minfc = 0.25
 adjp = 0.05
 minedge = 1
 cluster = sys.argv[2]
 gmt = sys.argv[3]
 png = sys.argv[4]
+barplotsvg = sys.argv[5]
 assert ".gmt" in gmt, gmt
 assert ".svg" in png, png
 
 logger.info("Reading CSV file")
 deg = pandas.read_csv(csv)
 print(deg)
-deg = deg[deg["cluster"]==int(cluster)]
+deg = deg[deg["cluster"]==cluster]
 
 deg = deg[abs(deg["p_val_adj"]) < float(fdr)]
 fig = plt.figure(figsize=(10,7))
@@ -54,6 +58,16 @@ try:
 except Exception as e:
     open(png,"w").close()
     exit(0)
+
+enr2 = gp.enrichr(gene_list=data["gene"].tolist(),
+                 description=cluster,
+                 gene_sets=gmt,
+                 background=10000,
+                 outdir='test/enrichr_hallmark',
+                 cutoff=0.5, # only used for testing.
+                 verbose=True)
+
+barplot(enr2.res2d, title=cluster, ofname=barplotsvg)
 
 print(pre_res.res2d.sort_index().head())
 result = pre_res.res2d
@@ -112,17 +126,17 @@ node_order = _node_order
 node_size = _node_size
 node_color = _node_color
 print(len(node_order), len(node_size), len(G.nodes()))
-pos=nx.spring_layout(G,k=0.6,scale=0.05,fixed=None)
-axes[0].set_title(png.split("/")[-1].replace(".png","").replace("_"," ").replace("network",""), fontsize=16,fontweight="bold")
+pos=nx.spring_layout(G,k=0.8,scale=0.03,fixed=None)
+axes[0].set_title(png.split("/")[-1].replace(".svg","").replace("_"," ").replace("network",""), fontsize=16)
 axes[0].axis('equal')
-nx.draw(G,pos,ax=axes[0], nodelist=node_order, node_size=node_size, vmin=minnes, vmax=maxnes,edgelist=edge_order, node_color=node_color, edge_color=edge_color, cmap=plt.cm.Wistia, edge_cmap=plt.cm.Greys, edge_vmin=0, edge_vmax=maxvedge, with_labels=True, width=2, font_weight='bold',font_size=11, alpha=0.9)
+nx.draw(G,pos,ax=axes[0], nodelist=node_order, node_size=node_size, vmin=minnes, vmax=maxnes,edgelist=edge_order, node_color=node_color, edge_color=edge_color, cmap=plt.cm.Wistia, edge_cmap=plt.cm.Greys, edge_vmin=0, edge_vmax=maxvedge, with_labels=True, width=2,font_size=11)
 
 cmap = matplotlib.cm.Wistia
 norm = matplotlib.colors.Normalize(vmin=-8, vmax=18)
 cb1 = matplotlib.colorbar.ColorbarBase(axes[1], cmap=cmap,
                                         norm=norm,
                                         orientation='horizontal')
-axes[1].set_title("Normalized Enrichment Score",fontsize=13,fontweight="bold")
+axes[1].set_title("Normalized Enrichment Score",fontsize=13)
 if overlaps == []:
     overlaps.append(12)
 
@@ -132,6 +146,6 @@ cb2 = matplotlib.colorbar.ColorbarBase(axes[2], cmap=cmap2,
                                         norm=norm2,
                                         orientation='vertical', drawedges=False)
 cb2.set_ticks(list(range(0,maxvedge,1)))
-axes[2].set_title("Common Genes",fontsize=10,fontweight="bold")
+axes[2].set_title("Common Genes",fontsize=10)
 plt.tight_layout()
-plt.savefig(png,format="svg")
+plt.savefig(png)

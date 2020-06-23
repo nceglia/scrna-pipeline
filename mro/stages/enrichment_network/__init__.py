@@ -31,20 +31,20 @@ def clusters(csv):
 
 def split(args):
     chunks = []
-    for celltype, csv in args.markers.items():
-        cluster_labels = clusters(csv)
-        for cluster in cluster_labels:
-            chunk_def = {}
-            chunk_def['markers'] = csv
-            chunk_def['celltype'] = celltype
-            chunk_def['cluster'] = cluster
-            chunk_def['__threads'] = 4
-            chunks.append(chunk_def)
+    cluster_labels = clusters(args.ct_markers)
+    for cluster in cluster_labels:
+        chunk_def = {}
+        chunk_def['markers'] = args.ct_markers
+        chunk_def['celltype'] = cluster
+        chunk_def['__threads'] = 4
+        chunks.append(chunk_def)
     return {'chunks': chunks}
 
 def main(args, outs):
-    png = "{}_{}_network.svg".format(args.celltype, args.cluster)
+    png = "{}_network.svg".format(args.celltype)
     outs.pathway_network = martian.make_path(png)
+    png = "{}_enriched.svg".format(args.celltype)
+    outs.enriched_pathways = martian.make_path(png)
     scripts = scriptmanager.ScriptManager()
     script = scripts.enrichmentnetwork()
     con = container.Container()
@@ -54,8 +54,8 @@ def main(args, outs):
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.pathway_network = dict()
+    outs.enriched_pathways = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
-        if arg.celltype not in outs.pathway_network:
-            outs.pathway_network[arg.celltype] = dict()
         if os.path.exists(out.pathway_network) and not os.stat(out.pathway_network).st_size == 0:
-            outs.pathway_network[arg.celltype][arg.cluster] = out.pathway_network
+            outs.pathway_network[arg.celltype] = out.pathway_network
+            outs.enriched_pathways[arg.celltype] = out.enriched_pathways

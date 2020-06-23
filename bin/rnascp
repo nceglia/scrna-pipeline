@@ -1,4 +1,35 @@
 #!/usr/bin/env python
 
-import argparse
+import click
+import os
+import subprocess
 
+logger = logging.getLogger("RNASCP")
+logger.setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO)
+
+@click.command()
+@click.option('--project', prompt='Project name.', help='Project name for pipeline run.')
+@click.option('--mito', prompt='Percent reads mitochondrial threshold.', help='Maximum percent reads mitochondrial')
+@click.option('--doublet', prompt='Scrublet score threshold.', help='Maximum scrublet score')
+@click.option('--image', prompt='docker or singularity image.', help='Image name (nceglia/scrna-pipeline:latest, scrna-pipeline.img, etc...)')
+@click.option('--runtime', type=int, prompt='docker or singularity.', help='Whether to run sub tasks with docker or singularity command.')
+@click.option('--gmt', prompt='GMT file for pathway analysis.', help='GMT used for pathway enrichment.')
+@click.option('--yaml', prompt='YAML cell type markers.', help='YAML file with cell type and gene markers (see resources/markers.yaml)')
+@click.option('--jobs', prompt='Max jobs.', help='Number of parallel jobs.')
+@click.option('--mode', prompt='Job mode (local, lsf, sge, etc.)', help='Job mode provided to martian.')
+
+def network_analysis(project, mito, doublet, image, runtime, gmt, yaml, jobs, mode):
+    output = open("__{}.mro".format(project),"w")
+    output.write('@include "pipeline.mro"\n\n')
+    output.write('call RNASCP(\n')
+    output.write('\tproject = "{}",'.format(project))
+    output.write('\tmito = {},'.format(mito))
+    output.write('\tscore = {},'.format(doublet))
+    output.write('\timage = "{}",'.format(image))
+    output.write('\truntime = "{}",'.format(runtime))
+    output.write('\tgmt = "{}",'.format(gmt))
+    output.write('\tyaml = "{}",'.format(yaml))
+    output.write(')\n')
+    cmd = "mrp mro/invoker.mro {} --jobmode={} --maxjobs={}".format(project, mode, jobs)
+    subprocess.call(cmd.split())

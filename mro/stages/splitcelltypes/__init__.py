@@ -3,17 +3,19 @@ import scriptmanager
 import martian
 
 __MRO__ = '''
-stage SPLIT_CELLTYPES(
+stage SUBSET_CELLTYPES(
     in  rds batch_merged_seurat,
     in  string[] celltypes,
     in  path image,
     in  string runtime,
     out map celltype_seurat,
+    out map cell_umap,
+    out map markers,
     src py   "stages/splitcelltypes",
 ) split using (
     in  string[] celltypes,
 ) using (
-    threads = 16,
+    threads = 12,
 )
 '''
 
@@ -22,7 +24,8 @@ def split(args):
     for celltype in args.celltypes:
         chunk_def = {}
         chunk_def['celltype'] = celltype
-        chunk_def['__threads'] = 4
+        chunk_def['__threads'] = 16
+        chunk_def['__memgb'] = 4
         chunks.append(chunk_def)
     return {'chunks': chunks}
 
@@ -31,6 +34,8 @@ def main(args, outs):
     outs.celltype_seurat = martian.make_path(rds)
     svg = "{}_celltype.svg".format(args.celltype)
     outs.cell_umap = martian.make_path(svg)
+    csv = "{}_clusters.csv".format(args.celltype)
+    outs.markers = martian.make_path(csv)
     scripts = scriptmanager.ScriptManager()
     script = scripts.subsetcelltype()
     con = container.Container()
@@ -41,6 +46,8 @@ def main(args, outs):
 def join(args, outs, chunk_defs, chunk_outs):
     outs.celltype_seurat = dict()
     outs.cell_umap = dict()
+    outs.markers = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
         outs.celltype_seurat[arg.celltype] = out.celltype_seurat
         outs.cell_umap[arg.celltype] = out.cell_umap
+        outs.markers[arg.celltype] = out.markers

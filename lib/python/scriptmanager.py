@@ -79,13 +79,6 @@ class ScriptManager(object):
         script.set_path(os.path.join(self.current,"../R/mergebatches.R"))
         return script
 
-    def celltypemarkers(self):
-        script = Script("celltypemarkers")
-        script.set_args(1, "yaml")
-        script.set_outs(2, "marker_csv")
-        script.set_path(os.path.join(self.current,"../python/parseyaml.py"))
-        return script
-
     def assigncelltypes(self):
         script = Script("assigncelltypes")
         script.set_args(1, "merged_seurat")
@@ -93,6 +86,7 @@ class ScriptManager(object):
         script.set_outs(3, "probabilities")
         script.set_outs(4, "annotated_seurat")
         script.set_outs(5, "batch_report")
+        script.set_outs(6, "batch_csv")
         script.set_path(os.path.join(self.current,"../R/cellassign.R"))
         return script
 
@@ -100,23 +94,18 @@ class ScriptManager(object):
         script = Script("batchcorrection")
         script.set_args(1, "batch_merged_seurat")
         script.set_outs(2, "integrated_seurat")
+        script.set_outs(3, "project_figure")
+        script.set_outs(4, "ct_markers")
         script.set_path(os.path.join(self.current,"../R/batchcorrection.R"))
-        return script
-
-    def celltypecomposition(self):
-        script = Script("celltypecomposition")
-        script.set_args(1, "batch_merged_seurat")
-        script.set_outs(2, "batch_composition")
-        script.set_outs(3, "sample_composition")
-        script.set_path(os.path.join(self.current,"../R/celltypecomposition.R"))
         return script
 
     def enrichmentnetwork(self):
         script = Script("enrichmentnetwork")
-        script.set_args(1, "markers")
-        script.set_args(2, "cluster")
+        script.set_args(1, "ct_markers")
+        script.set_args(2, "celltype")
         script.set_outs(3, "pathway_network")
         script.set_args(4, "gmt")
+        script.set_outs(5, "enriched_pathways")
         script.set_path(os.path.join(self.current,"../python/pathwayanalysis.py"))
         return script
 
@@ -126,6 +115,7 @@ class ScriptManager(object):
         script.set_args(2, "celltype")
         script.set_outs(3, "celltype_seurat")
         script.set_outs(4, "cell_umap")
+        script.set_outs(5, "markers")
         script.set_path(os.path.join(self.current,"../R/subsetcelltype.R"))
         return script
 
@@ -141,25 +131,21 @@ class ScriptManager(object):
         script.set_path(os.path.join(self.current,"../R/cellcellinteractions.R"))
         return script
 
-    def subcelltypemarkers(self):
-        script = Script("subcelltypemarkers")
-        script.set_args(1, "celltype_seurat")
-        script.set_outs(2, "markers")
-        script.set_path(os.path.join(self.current,"../R/subtypemarkers.R"))
+
+    def subtypescores(self):
+        script = Script("subtypescores")
+        script.set_args(1, "celltype_obj")
+        script.set_args(2, "subtype")
+        script.set_args(3, "geneset")
+        script.set_outs(7, "subtype_scores")
+        script.set_path(os.path.join(self.current,"../R/subtypescores.R"))
         return script
 
-    def runumap(self):
-        script = Script("runumap")
-        script.set_args(1, "seurat")
-        script.set_outs(2, "umap")
-        script.set_path(os.path.join(self.current,"../R/umap.R"))
-        return script
-
-    def summarizebatch(self):
-        script = Script("generatereport")
-
-        script.set_outs(3, "report")
-        script.set_path(os.path.join(self.current,"../python/report.py"))
+    def celltypemarkers(self):
+        script = Script("celltypemarkers")
+        script.set_args(1, "yaml")
+        script.set_outs(2, "marker_csv")
+        script.set_path(os.path.join(self.current,"../python/parseyaml.py"))
         return script
 
     def generatereport(self):
@@ -167,15 +153,16 @@ class ScriptManager(object):
         script.set_args(1, "qc_report")
         script.set_args(2, "project")
         script.set_args(3, "batch_report")
-        script.set_args(4, "sample_composition")
-        script.set_args(5, "batch_composition")
-        script.set_args(6, "umap_integrated")
-        script.set_args(7, "umap_merged")
+        script.set_args(4, "project_figure")
         script.set_args(8, "celltype_umaps")
         script.set_args(9, "interactions")
         script.set_args(10, "networks")
         script.set_args(11, "markers")
-        script.set_outs(12, "report")
+        script.set_args(12, "batch_markers")
+        script.set_args(13, "subtype_scores")
+        script.set_args(14, "enriched_pathways")
+        script.set_args(15, "ct_markers")
+        script.set_outs(16, "report")
         script.set_path(os.path.join(self.current,"../python/report.py"))
         return script
 

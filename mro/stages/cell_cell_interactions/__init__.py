@@ -2,6 +2,7 @@ import container
 import scriptmanager
 import martian
 import itertools
+import os
 
 __MRO__ = '''
 stage CELL_CELL_INTERACTIONS(
@@ -22,24 +23,23 @@ stage CELL_CELL_INTERACTIONS(
 def split(args):
     chunks = []
     geneset_oi = dict()
-    # raise ValueError(args)
+    pathways_of_interest = {"HALLMARK_DNA_REPAIR":["Endothelial.cell","Endothelial.cell"],
+                            "HALLMARK_INTERFERON_GAMMA_RESPONSE":["B.cell","Endothelial.cell"],
+                            "HALLMARK_INFLAMMATORY_RESPONSE":["B.cell","Endothelial.cell"]}
     pathways = open(args.gmt,"r")
     for pathway in pathways:
         pathway = pathway.split()
-        if "SIGNALING" in pathway[0]:
-            geneset_oi[pathway[0].replace("HALLMARK_","")] = pathway[2:]
-    interactors_permutations = itertools.permutations(args.celltypes, 2)
-    for interactors in interactors_permutations:
-        for pathway, geneset in geneset_oi.items():
-            chunk_def = {}
-            chunk_def["sender"]   = interactors[0]
-            chunk_def["receiver"] = interactors[1]
-            chunk_def["sender_obj"]        = args.celltype_seurat[interactors[0]]
-            chunk_def["receiver_obj"]      = args.celltype_seurat[interactors[1]]
-            chunk_def["geneset"]       = geneset
-            chunk_def["pathway"]       = pathway
-            chunk_def['__threads'] = 8
-            chunks.append(chunk_def)
+        geneset_oi[pathway[0].replace("HALLMARK_","")] = pathway[2:]
+    for pathway, interactors in pathways_of_interest.items():
+        chunk_def = {}
+        chunk_def["sender"]   = interactors[0]
+        chunk_def["receiver"] = interactors[1]
+        chunk_def["sender_obj"]        = args.celltype_seurat[interactors[0]]
+        chunk_def["receiver_obj"]      = args.celltype_seurat[interactors[1]]
+        chunk_def["geneset"]       = geneset_oi[pathway.replace("HALLMARK_","")]
+        chunk_def["pathway"]       = pathway.replace("HALLMARK_","")
+        chunk_def['__threads'] = 8
+        chunks.append(chunk_def)
     return {'chunks': chunks}
 
 def main(args, outs):
@@ -56,17 +56,12 @@ def main(args, outs):
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    try:
-        con.run(script, args, outs)
-    except Exception as e:
-        pass
+    con.run(script, args, outs)
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.interactions = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
-        if arg.sender not in outs.interactions:
-            outs.interactions[arg.sender] = dict()
-        if arg.receiver not in outs.interactions[arg.sender]:
-            outs.interactions[arg.sender][arg.receiver] = dict()
+        if arg.pathway not in outs.interactions:
+            outs.interactions[arg.pathway] = []
         if os.path.exists(out.interactions):
-            outs.interactions[arg.sender][arg.receiver][arg.pathway] = out.interactions
+            outs.interactions[arg.pathway].append({"sender":arg.sender,"receiver":arg.receiver,"svg":out.interactions})
