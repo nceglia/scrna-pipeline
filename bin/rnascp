@@ -1,12 +1,7 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 import click
 import os
 import subprocess
-
-logger = logging.getLogger("RNASCP")
-logger.setLevel(logging.INFO)
-logging.basicConfig(level=logging.INFO)
 
 @click.command()
 @click.option('--project', prompt='Project name.', help='Project name for pipeline run.')
@@ -18,8 +13,9 @@ logging.basicConfig(level=logging.INFO)
 @click.option('--yaml', prompt='YAML cell type markers.', help='YAML file with cell type and gene markers (see resources/markers.yaml)')
 @click.option('--jobs', prompt='Max jobs.', help='Number of parallel jobs.')
 @click.option('--mode', prompt='Job mode (local, lsf, sge, etc.)', help='Job mode provided to martian.')
-
-def network_analysis(project, mito, doublet, image, runtime, gmt, yaml, jobs, mode):
+def rnascp(project, mito, doublet, image, runtime, gmt, yaml, jobs, mode):
+    """*** scrna-pipeline ***"""
+    click.echo(project)
     output = open("__{}.mro".format(project),"w")
     output.write('@include "pipeline.mro"\n\n')
     output.write('call RNASCP(\n')
@@ -31,5 +27,5 @@ def network_analysis(project, mito, doublet, image, runtime, gmt, yaml, jobs, mo
     output.write('\tgmt = "{}",'.format(gmt))
     output.write('\tyaml = "{}",'.format(yaml))
     output.write(')\n')
-    cmd = "mrp mro/invoker.mro {} --jobmode={} --maxjobs={}".format(project, mode, jobs)
+    cmd = "mrp __{0}.mro {0} --jobmode={1} --maxjobs={2}".format(project, mode, jobs)
     subprocess.call(cmd.split())
