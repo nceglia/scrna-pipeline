@@ -1,9 +1,10 @@
 # Single Cell RNA-Seq Pipeline #
 
 
-
-
 Pipeline for running single cell rna-seq analysis.
+
+![workflow](resources/rnascp.png)
+
 
 # Running with Docker #
 
