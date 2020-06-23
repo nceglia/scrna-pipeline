@@ -54,7 +54,7 @@ CSV in the format (genes separated by semicolon).
 ## Running ##
 
 ```
-rnascp --project awesome --mito 25 --doublet 0.25 --image "nceglia/scrna-pipeline:latest" --runtime singularity --mode lsf --gmt resources/h.all.v7.0.symbols.gmt --yaml resources/hgsc_v5_major.yaml --jobs 40
+rnascp --project awesome --mito 25 --doublet 0.25 --image "nceglia/scrna-pipeline:latest" --runtime singularity --mode lsf --gmt resources/h.all.v7.0.symbols.gmt --yaml resources/hgsc_v5_major.yaml --jobs 40 --mempercore=12
 ```
 
 
