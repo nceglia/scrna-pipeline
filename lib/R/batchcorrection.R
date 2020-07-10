@@ -43,7 +43,7 @@ batch_summary <- data.frame(batch_summary)
 
 ct <- ggplot(batch_summary, aes(factor(batch), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Batch") + ylab("Cell Type") + theme(legend.title = element_blank(),axis.text.x=element_text(angle=90)) + ggtitle("Celltypes")
 
-totalct <- ggplot(df, aes(cell_type))+ geom_bar() + ggtitle("Cell Types") + xlab('') + ylab('Cells')
+totalct <- ggplot(df, aes(cell_type))+ geom_bar() + ggtitle("Cell Types") + xlab('') + ylab('Cells')+theme(legend.title = element_blank(),axis.text.x=element_text(angle=90))
 
 figure <- plot_grid(int, sam, ct, totalct, nrow = 2, ncol=2, align = "h") + theme(text=element_text(size=12, family="Helvetica"))
 ggsave(project_figure,figure,width=6,height=4, scale=2)

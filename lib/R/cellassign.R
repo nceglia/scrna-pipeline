@@ -39,12 +39,12 @@ genes <- intersect(rownames(sce_markers),rownames(rho))
 rho <- rho[genes,]
 s <- sizeFactors(sce_markers)
 rho <- data.matrix(rho)
-# design <- data.frame(id=colnames(sce_markers),sample=sce_markers$sample)
-# design <- as.data.table(design)
-# design <- model.matrix(~sample, data = design)
+design <- data.frame(id=colnames(sce_markers),sample=sce_markers$sample)
+design <- as.data.table(design)
+design <- model.matrix(~sample, data = design)
 
-#res <- cellassign(exprs_obj = sce_markers, X = design, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-4, num_runs=1)
-res <- cellassign(exprs_obj = sce_markers, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-4, num_runs=1)
+res <- cellassign(exprs_obj = sce_markers, X = design, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-5, num_runs=1)
+#res <- cellassign(exprs_obj = sce_markers, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-5, num_runs=1)
 saveRDS(res, file=probabilities)
 
 sce$cell_type <- "Other"

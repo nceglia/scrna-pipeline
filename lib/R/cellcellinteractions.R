@@ -6,6 +6,7 @@ library(SingleCellExperiment)
 library(ggplot2)
 library(cowplot)
 library(ggpubr)
+library(igraph)
 
 ligand_target_matrix = readRDS("/work/shah/ceglian/interactions/ligand_target_matrix.rds")
 lr_network = readRDS("/work/shah/ceglian/interactions/lr_network.rds")
@@ -25,7 +26,9 @@ read_genes <- read.csv(args[5])
 geneset_oi <- as.character(read_genes$genes)
 pathway <- args[6]
 png <- args[7]
-print(geneset_oi)
+weighted_network_tmp <- args[8]
+network_svg <- args[9]
+
 combined <- merge(sender_obj, y = receiver_obj, project = "RNASCP")
 sce <- as.SingleCellExperiment(combined)
 expression <- logcounts(sce)
@@ -138,11 +141,34 @@ active_signaling_network_min_max$gr = active_signaling_network_min_max$gr %>% mu
 
 graph_min_max = diagrammer_format_signaling_graph(signaling_graph_list = active_signaling_network_min_max, ligands_all = ligands_all, targets_all = targets_all, sig_color = "indianred", gr_color = "steelblue")
 
-graph <- DiagrammeR::render_graph(graph_min_max, layout = "tree", as_svg=TRUE)
+bind_rows(active_signaling_network$sig %>% mutate(layer = "signaling"), active_signaling_network$gr %>% mutate(layer = "regulatory")) %>% write_tsv(weighted_network_tmp) 
+
+df <- read.csv(weighted_network_tmp,sep="\t",stringsAsFactors=F)
+dfx <- df[(df$layer=="regulatory" & df$weight > 0.1) | (df$layer=="signaling" & df$weight > 0.9),]
+g <- graph_from_data_frame(dfx)
+colors = c()
+i <- 1
+for (layer in E(g)$layer) {
+  if (layer == "regulatory") {
+    colors[[i]] <- "tomato"
+  } else {
+    colors[[i]] <- "gray50"
+  }
+  i <- i + 1
+}
+E(g)$color <- colors
+E(g)$width <- E(g)$weight * 4
+
+svg(network_svg,width=10,height=10)
+plot(g,layout=layout_with_fr, vertex.size=5, edge.curved=.1, vertex.frame.color="#FFFFFF",vertex.color="gray70", vertex.label.color="black",vertex.label.cex=1.2,main=pathway)
+legend(x=-1, y=-1, c("Regulatory","Signaling"), pch=21, col="#777777", pt.bg=c("tomato","gray50"), pt.cex=3, cex=2, bty="n", ncol=1)
+dev.off()
+
 
 seurat <- AddModuleScore(object = sender_obj, features = geneset_oi, ctrl = 5, name = "subtype_score")
 subfig <- FeaturePlot(seurat,reduction="umapcelltype",features="subtype_score1") + ggtitle(paste0(pathway, " Score")) + theme(plot.title=element_text(face="bold")) + xlab("UMAP-1") + ylab("UMAP-2")
 
+graph <- NULL
 top <- plot_grid(graph,subfig,nrow=1,align="h")
 
 allfigure <- plot_grid(top,figure,nrow=2,ncol=1)
