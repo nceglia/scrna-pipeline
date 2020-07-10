@@ -10,6 +10,8 @@ library(cowplot)
 library(ggplot2)
 library(tidyverse)
 library(dplyr)
+library(scater)
+library(schex)
 
 args = commandArgs(trailingOnly=TRUE)
 merged_file      <- args[1]
@@ -17,12 +19,14 @@ marker_csv       <- args[2]
 probabilities    <- args[3]
 annotated_seurat <- args[4]
 batch_figure     <- args[5]
-batch_csv     <- args[6]
+batch_csv        <- args[6]
 
-merged <- readRDS(merged_file)
+merged <- readRDS(merged_File)
+groups <- merged$group
 
 DefaultAssay(object = merged) <- "RNA"
 sce <- as.SingleCellExperiment(merged)
+sce$group <- groups
 counts(sce) <- data.matrix(counts(sce))
 sce <- computeSumFactors(sce)
 sce$size_factor <- sizeFactors(sce)
@@ -39,16 +43,25 @@ genes <- intersect(rownames(sce_markers),rownames(rho))
 rho <- rho[genes,]
 s <- sizeFactors(sce_markers)
 rho <- data.matrix(rho)
-design <- data.frame(id=colnames(sce_markers),sample=sce_markers$sample)
-design <- as.data.table(design)
-design <- model.matrix(~sample, data = design)
 
-res <- cellassign(exprs_obj = sce_markers, X = design, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-5, num_runs=1)
-#res <- cellassign(exprs_obj = sce_markers, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-5, num_runs=1)
+if (length(unique(sce_markers$sample)) > 1) {
+    design <- data.frame(id=colnames(sce_markers),sample=sce_markers$sample)
+    design <- as.data.table(design)
+    design <- model.matrix(~sample, data = design)
+    res <- cellassign(exprs_obj = sce_markers, X = design, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-5, num_runs=1)
+} else {
+    res <- cellassign(exprs_obj = sce_markers, s = s, marker_gene_info = rho, B = 20, shrinkage = TRUE, verbose = TRUE, rel_tol_em = 1e-5, num_runs=1)
+}
+
 saveRDS(res, file=probabilities)
 
 sce$cell_type <- "Other"
 sce[,colnames(sce_markers)]$cell_type <- res$cell_type
+
+# cancer <- sce[,sce$cell_type == "Cancer.cell"]
+# cancer$cell_type <- as.character(lapply(cancer$group, function(x) {paste0(x,"-Cancer.Cell")}))
+# sce[,colnames(cancer)]$cell_type <- cancer$cell_type
+
 merged$cell_type <- sce$cell_type
 
 merged <- FindVariableFeatures(merged)
@@ -58,7 +71,14 @@ merged <- RunUMAP(merged, dims = 1:50)
 
 merged <- FindNeighbors(object = merged)
 merged <- FindClusters(object = merged, resolution=0.2)
+
+# if (length(unique(merged$cell_type)) > 1) {
+#     Idents(merged) <- "cell_type"
+#     markers <- FindAllMarkers(merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+# } else {
 markers <- FindAllMarkers(merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+# }
+
 marker_table <- markers %>% group_by(cluster) %>% top_n(n = 20, wt = avg_logFC)
 marker_table <- as.data.frame(marker_table)
 marker_table <- marker_table[c("p_val","avg_logFC","pct.1","pct.2","p_val_adj","cluster","gene")]
@@ -70,21 +90,17 @@ df <- data.frame(cell_type=merged$cell_type, sample=merged$sample)
 sample_summary <- summarise(group_by(df,cell_type,sample),count =n())
 sample_summary <- data.frame(sample_summary)
 
-fig <- ggplot(sample_summary, aes(factor(sample), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Sample") + ylab("Cell Type") + theme(legend.title = element_blank(),plot.title=element_text(face="bold")) + ggtitle("Composition")
+fig <- ggplot(sample_summary, aes(factor(sample), count, fill = cell_type)) + geom_bar(stat="identity",position="fill") + xlab("Sample") + ylab("Cell Type") + theme(legend.title = element_blank(),plot.title=element_text(face="bold"),axis.text.x=element_text(size=6,angle=90)) + ggtitle("Composition") + scale_fill_manual(values=c("#9d65ff","#fa8419","#98e024","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))
 
-mplot <- DotPlot(merged, features = genes) + RotatedAxis() + ggtitle("Cell Type Markers")
+merged_slim <- merged[,merged$cell_type=="Cancer.cell"]
+binned <- make_hexbin(merged_slim, nbins=50, dimension_reduction = "umap")
+ctumap <- plot_hexbin_meta(binned, col="cell_type", action="majority") + xlab("UMAP-1") + ylab("UMAP-2") + guides(fill = guide_legend(title = ""),override.aes = list(size=9)) + scale_fill_manual(values=c("#9d65ff","#fa8419","#98e024","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Cell Type") + theme(plot.title=element_text(size=15, face = "bold"),axis.title.x=element_text(size=9, face = "bold"),axis.title.y=element_text(size=9, face = "bold"), legend.text=element_text(size=9, face = "bold"),axis.text.y = element_text(face="bold",size=9),axis.text.x = element_text(face="bold",size=9))
 
+binned <- make_hexbin(merged, nbins=50, dimension_reduction = "umap")
+sumap <- plot_hexbin_meta(binned, col="sample", action="majority") + xlab("UMAP-1") + ylab("UMAP-2") + guides(fill = guide_legend(title = ""),override.aes = list(size=9)) + scale_fill_manual(values=c("#9d65ff","#fa8419","#98e024","#f4005f","gray","#58d1eb","#98e024","#000000","navy"))  + ggtitle("Sample") + theme(plot.title=element_text(size=15, face = "bold"),axis.title.x=element_text(size=9, face = "bold"),axis.title.y=element_text(size=9, face = "bold"), legend.text=element_text(size=9, face = "bold"),axis.text.y = element_text(face="bold",size=9),axis.text.x = element_text(face="bold",size=9))
 
-Idents(merged) <- "cell_type"
-ctumap <- DimPlot(merged,reduction="umap") + ggtitle("Cell Type") + xlab('UMAP-1') + ylab('UMAP-2')
-Idents(merged) <- "sample"
-sumap <- DimPlot(merged,reduction="umap")  + ggtitle("Sample") + xlab('UMAP-1') + ylab('UMAP-2')
-Idents(merged) <- "seurat_clusters"
-clust <- DimPlot(merged,reduction="umap")  + ggtitle("Cluster") + xlab('UMAP-1') + ylab('UMAP-2')
+clust <- plot_hexbin_meta(binned, col="seurat_clusters", action="majority") + xlab("UMAP-1") + ylab("UMAP-2") + guides(fill = guide_legend(title = ""),override.aes = list(size=9)) + ggtitle("Cluster") + theme(plot.title=element_text(size=15, face = "bold"),axis.title.x=element_text(size=9, face = "bold"),axis.title.y=element_text(size=9, face = "bold"), legend.text=element_text(size=9, face = "bold"),axis.text.y = element_text(face="bold",size=9),axis.text.x = element_text(face="bold",size=9))
 
+top <- plot_grid(ctumap, sumap, fig, clust, nrow = 2, ncol=2, align = "vh")
 
-top <- plot_grid(ctumap, sumap, fig, nrow = 1, ncol=3, align = "h")
-bottom <- plot_grid(clust, mplot, nrow = 1, ncol=2, rel_widths=c(1,2), align = "h")
-
-figure <- plot_grid(top, bottom, nrow = 2, ncol=1, align = "v") + theme(text=element_text(size=12, family="Helvetica"))
-ggsave(batch_figure,figure,width=8,height=4, scale=2)
+ggsave(batch_figure,top,width=7,height=7, scale=2)

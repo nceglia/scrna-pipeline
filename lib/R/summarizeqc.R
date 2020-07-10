@@ -7,6 +7,7 @@ library(cowplot)
 library(ggpubr)
 library(gridExtra)
 library(grid)
+library(schex)
 
 args = commandArgs(trailingOnly=TRUE)
 seurat   <- readRDS(args[1])
@@ -35,19 +36,25 @@ doub <- ggplot(ddf, aes(x=doublet_score)) + geom_histogram() + xlab('Doublet Sco
 seurat <- RunPCA(seurat)
 seurat <- RunUMAP(seurat, dims=1:50)
 
-# genes <- FeaturePlot(seurat,reduction="umap", features=markers$X)
-
 sce_qc = as.SingleCellExperiment(seurat)
 sce_qc$pct_counts_mitochondrial <- sce[,colnames(sce_qc)]$pct_counts_mitochondrial
+
 sce_qc = calculateQCMetrics(sce_qc, exprs_values = "counts")
-umi = plotReducedDim(sce_qc,dimred="UMAP",colour_by="total_counts") + ggtitle("UMI Counts") + theme(legend.title = element_blank())
-dumap = plotReducedDim(sce_qc,dimred="UMAP",colour_by="doublet_score") + ggtitle("Doublet Score") + theme(legend.title = element_blank())
-ccumap = plotReducedDim(sce_qc,dimred="UMAP",colour_by="Phase") + ggtitle("Cell Cycle Phase") + theme(legend.title = element_blank())
-mitomap = plotReducedDim(sce_qc,dimred="UMAP",colour_by="pct_counts_mitochondrial") + ggtitle("Mito Percentage") + theme(legend.title = element_blank())
+
+binned <- make_hexbin(sce_qc, nbins=30, dimension_reduction = "UMAP")
+
+umi = plot_hexbin_meta(binned, col="log10_total_counts", action="median")  + ggtitle("UMI Log Counts") + theme(legend.title = element_blank())
+features = plot_hexbin_meta(binned, col="log10_total_features_by_counts", action="median") + ggtitle("Total Features by Counts") + theme(legend.title = element_blank())
+dumap = plot_hexbin_meta(binned, col="doublet_score", action="median") + ggtitle("Doublet Score") + theme(legend.title = element_blank())
+ccumap = plot_hexbin_meta(binned, col="Phase", action="majority") + ggtitle("Cell Cycle Phase") + theme(legend.title = element_blank()) +scale_fill_manual(values=c("#9d65ff","#fa8419","#98e024"))
+mitomap = plot_hexbin_meta(binned, col="pct_counts_mitochondrial", action="median") + ggtitle("Mito Percentage") + theme(legend.title = element_blank())
 
 summary_stats = data.frame(Metric=c("Cells","Median Counts per Cell","Median Genes per Cell"), Value=c(length(colnames(seurat)),median(seurat$nCount_RNA),median(seurat$nFeature_RNA)))
-stat <- ggtexttable(summary_stats, rows = NULL, theme = ttheme("mBlue")) + theme(text=element_text(size=30))
+stat <- ggtexttable(summary_stats, rows = NULL, theme = ttheme(base_style="mOrange", base_size=20))
 
-figure <- plot_grid(stat, mito, ribo, doub, umi, dumap, ccumap, mitomap, nrow = 2, ncol=4, align = "vh") + theme(text=element_text(size=12, family="Helvetica"))
+cvm <- plotColData(sce, x = "log10_total_features_by_counts", y="pct_counts_mitochondrial")  + ggtitle("Feature vs. Percent Mito")
 
-ggsave(report,figure,width=8,height=4, scale=2)
+
+figure <- plot_grid(stat, mito, ribo, doub, umi, dumap, ccumap, mitomap, cvm, features, nrow = 5, ncol=2, align = "vh")
+
+ggsave(report, figure, width=8,height=16, scale=1.5)

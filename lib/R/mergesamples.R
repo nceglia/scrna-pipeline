@@ -8,18 +8,27 @@ object_file <- args[2]
 i <- 0
 rdata <- as.character(paths$path)
 samples <- as.character(paths$sample)
+groups <- as.character(paths$group)
 seurats <- vector("list", length(rdata)-1)
 
 init_seurat <- readRDS(rdata[[1]])
 init_seurat <- RenameCells(object = init_seurat, add.cell.id = samples[1])
 DefaultAssay(object = init_seurat) <- "RNA"
-init_seurat$sample <-samples[1]
-for (i in 2:length(rdata)) {
-  seurat <- readRDS(rdata[i])
-  seurat <- RenameCells(object = seurat, add.cell.id = samples[i])
-  DefaultAssay(object = seurat) <- "RNA"
-  seurat$sample <- samples[i]
-  seurats[[i-1]] <- seurat
+init_seurat$sample <- samples[1]
+init_seurat$group <- groups[[1]]
+
+if (length(samples) == 1) {
+  merged <- init_seurat
+} else {
+  for (i in 2:length(rdata)) {
+    seurat <- readRDS(rdata[i])
+    seurat <- RenameCells(object = seurat, add.cell.id = samples[i])
+    DefaultAssay(object = seurat) <- "RNA"
+    seurat$sample <- samples[i]
+    seurat$group <- groups[i]
+    seurats[[i-1]] <- seurat
+  }
+  merged <- merge(init_seurat, y = seurats, project = "RNASCP")
 }
-merged <- merge(init_seurat, y = seurats, project = "RNASCP")
+
 saveRDS(merged, file=object_file)

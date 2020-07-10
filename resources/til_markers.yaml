@@ -1,0 +1,30 @@
+CD8.Exhausted:
+ - ENTPD1
+ - HAVCR2
+ - TIGIT
+ - LAG3
+ - PDCD1
+ - BAFF
+ - TOX
+ - ID2
+CD8.Effector:
+ - CCL3
+ - PRF1
+ - FASL
+ - GZMB
+ - GZMK
+ - CCL5
+CD8.Naive.Memory:
+ - LY6C2
+ - CXCR3
+ - ID3
+ - SLAMF6
+ - IL2RA
+ - XCL1
+ - CD44
+ - TCF7
+ - CCR7
+ - S1PR1
+ - LEF1
+ - IL7R
+ - SELL

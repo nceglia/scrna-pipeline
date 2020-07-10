@@ -34,6 +34,7 @@ def main(args, outs):
     outs.seurat = martian.make_path(seurat)
     outs.sce    = martian.make_path(sce)
     outs.raw_sce    = martian.make_path(raw_sce)
+    outs.matrix = martian.make_path("matrix")
     scripts = scriptmanager.ScriptManager()
     script = scripts.qc()
     con = container.Container()

@@ -26,5 +26,6 @@ merged <- RunPCA(merged, verbose = TRUE)
 merged <- RunUMAP(merged, dims = 1:50)
 
 saveRDS(merged, file=object_file)
+# merged <- readRDS(object_file)
 
 write.csv(data.frame(table(merged$cell_type)), file=celltype_csv)

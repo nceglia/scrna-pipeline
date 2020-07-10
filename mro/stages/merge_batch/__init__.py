@@ -17,13 +17,13 @@ stage MERGE_BATCHES(
 )
 '''
 
-
 def main(args, outs):
     output = open(outs.batch_tsv,"w")
     output.write("batch_id\tpath\n")
     for batch_id, path in args.annotated_seurat.items():
         output.write("{}\t{}\n".format(batch_id,path))
     output.close()
+    outs.batch_merged_seurat = "/juno/work/shah/ceglian/rnascp/signatures_seurats/batch_merged_seurat.rds"
     scripts = scriptmanager.ScriptManager()
     script = scripts.mergebatches()
     con = container.Container()

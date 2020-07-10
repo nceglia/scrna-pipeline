@@ -12,13 +12,13 @@ rdata = eval(sys.argv[1])
 celltype = sys.argv[2]
 output = sys.argv[3]
 svg = sys.argv[4]
-# looms = eval(sys.argv[5])
+looms = eval(sys.argv[5])
 
 reduction = "UMAPCELLTYPE"
 
 print("Loading SCE...")
 sce = SingleCellExperiment.fromRData(rdata[celltype])
-# looms = eval(looms)
+looms = eval(looms)
 looms = glob.glob("/juno/work/shah/ceglian/rnascp/velocity/velocity*.loom")
 loompy.combine(list(looms), output, key="Accession")
 print("Loading Combined Loom...")

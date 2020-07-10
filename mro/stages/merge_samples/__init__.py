@@ -20,9 +20,14 @@ stage MERGE_SAMPLES(
 def split(args):
     chunks = []
     for batch_id, samples in args.batch.items():
+        if batch_id == "group": continue
         chunk_def = {}
         chunk_def['batched_samples'] = samples
         chunk_def['batch'] = batch_id
+        if "group" in args.batch:
+            chunk_def["group"] = args.batch["group"]
+        else:
+            chunk_def["group"] = dict()
         chunk_def['__threads'] = 12
         chunks.append(chunk_def)
     return {'chunks': chunks}
@@ -33,10 +38,14 @@ def main(args, outs):
     outs.merged_seurat = martian.make_path(merged_batch)
     outs.merged_tsv = martian.make_path(merged_tsv)
     output = open(outs.merged_tsv,"w")
-    output.write("sample_id\tpath\n")
+    output.write("sample_id\tpath\tgroup\n")
     for sample, path in args.qcd_scored_seurat.items():
         if sample in args.batched_samples:
-            output.write("{}\t{}\n".format(sample,path))
+            if sample in args.group:
+                group = args.group[sample]
+            else:
+                group = "None"
+            output.write("{}\t{}\t{}\n".format(sample,path,group))
     output.close()
     scripts = scriptmanager.ScriptManager()
     script = scripts.mergesamples()

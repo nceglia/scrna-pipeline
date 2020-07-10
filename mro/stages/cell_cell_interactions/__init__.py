@@ -6,12 +6,13 @@ import os
 
 __MRO__ = '''
 stage CELL_CELL_INTERACTIONS(
-    in  string[] celltypes,
+    in string[] celltypes,
     in  map celltype_seurat,
     in  path gmt,
     in  path image,
     in  string runtime,
     out map interactions,
+    out map network_svg,
     src py   "stages/cell_cell_interactions",
 ) split using (
     in  map celltype_seurat,
@@ -23,23 +24,28 @@ stage CELL_CELL_INTERACTIONS(
 def split(args):
     chunks = []
     geneset_oi = dict()
-    pathways_of_interest = {"HALLMARK_DNA_REPAIR":["Endothelial.cell","Endothelial.cell"],
-                            "HALLMARK_INTERFERON_GAMMA_RESPONSE":["B.cell","Endothelial.cell"],
-                            "HALLMARK_INFLAMMATORY_RESPONSE":["B.cell","Endothelial.cell"]}
-    pathways = open(args.gmt,"r")
+    pathways_of_interest = {"HALLMARK_TNFA_SIGNALING_VIA_NFKB":["CD8.Effector","CD8.Effector"],
+                            "HALLMARK_IL6_JAK_STAT3_SIGNALING":["CD8.Effector","CD8.Effector"],
+                            "HALLMARK_INTERFERON_ALPHA_RESPONSE":["CD8.Effector","CD8.Effector"],
+                            "HALLMARK_INTERFERON_GAMMA_RESPONSE":["CD8.Effector","CD8.Effector"],
+                            "HALLMARK_INFLAMMATORY_RESPONSE":["CD8.Effector","CD8.Effector"]}
+    pathways = open(args.gmt,"r").read().splitlines()
     for pathway in pathways:
         pathway = pathway.split()
         geneset_oi[pathway[0].replace("HALLMARK_","")] = pathway[2:]
-    for pathway, interactors in pathways_of_interest.items():
-        chunk_def = {}
-        chunk_def["sender"]   = interactors[0]
-        chunk_def["receiver"] = interactors[1]
-        chunk_def["sender_obj"]        = args.celltype_seurat[interactors[0]]
-        chunk_def["receiver_obj"]      = args.celltype_seurat[interactors[1]]
-        chunk_def["geneset"]       = geneset_oi[pathway.replace("HALLMARK_","")]
-        chunk_def["pathway"]       = pathway.replace("HALLMARK_","")
-        chunk_def['__threads'] = 8
-        chunks.append(chunk_def)
+    groups = ["HRD-Dup","FBI"]
+    for batch in groups:
+        for pathway, interactors in pathways_of_interest.items():
+            chunk_def = {}
+            chunk_def["sender"]   = interactors[0]
+            chunk_def["receiver"] = interactors[1]
+            chunk_def["sender_obj"]        = args.celltype_seurat[interactors[0]]
+            chunk_def["receiver_obj"]      = args.celltype_seurat[interactors[1]]
+            chunk_def["geneset"]       = geneset_oi[pathway.replace("HALLMARK_","")]
+            chunk_def["pathway"]       = pathway.replace("HALLMARK_","")
+            chunk_def["batch_label"] = batch
+            chunk_def['__threads'] = 8
+            chunks.append(chunk_def)
     return {'chunks': chunks}
 
 def main(args, outs):
@@ -49,8 +55,12 @@ def main(args, outs):
     output.write("\n".join(["genes"] + args.geneset))
     output.close()
     args.geneset = geneset_csv
-    png = "{}_{}_{}_interactions.svg".format(args.pathway, args.sender, args.receiver)
+    png = "{}_{}_{}_interactions.svg".format(args.pathway, args.sender, args.receiver, args.batch_label)
     outs.interactions = martian.make_path(png)
+    network_svg = "{}_{}_{}_network.svg".format(args.pathway, args.sender, args.receiver, args.batch_label)
+    outs.network_svg = martian.make_path(network_svg)
+    weighted_tmp = "{}_{}_{}_weighted_tmp.txt".format(args.pathway, args.sender, args.receiver, args.batch_label)
+    outs.weighted_tmp = martian.make_path(weighted_tmp)
     scripts = scriptmanager.ScriptManager()
     script = scripts.cellcellinteractions()
     con = container.Container()
@@ -58,10 +68,16 @@ def main(args, outs):
     con.set_image(args.image)
     con.run(script, args, outs)
 
+
 def join(args, outs, chunk_defs, chunk_outs):
     outs.interactions = dict()
+    outs.network_svg = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
-        if arg.pathway not in outs.interactions:
-            outs.interactions[arg.pathway] = []
         if os.path.exists(out.interactions):
-            outs.interactions[arg.pathway].append({"sender":arg.sender,"receiver":arg.receiver,"svg":out.interactions})
+            if arg.pathway not in outs.interactions:
+                outs.interactions[arg.pathway] = dict()
+            outs.interactions[arg.pathway][arg.batch_label] = {"sender":arg.sender,"receiver":arg.receiver,"svg":out.interactions}
+        if os.path.exists(out.network_svg):
+            if arg.pathway not in outs.network_svg:
+                outs.network_svg[arg.pathway] = dict()
+            outs.network_svg[arg.pathway][arg.batch_label] = {"sender":arg.sender,"receiver":arg.receiver,"svg":out.network_svg}

@@ -17,7 +17,7 @@ stage ENRICHMENT_NETWORK(
     threads = 4,
 )
 '''
-#"","p_val","avg_logFC","pct.1","pct.2","p_val_adj","cluster","gene"
+
 def clusters(csv):
     lines = open(csv,"r").read().splitlines()
     header = lines.pop(0)
@@ -31,13 +31,15 @@ def clusters(csv):
 
 def split(args):
     chunks = []
-    cluster_labels = clusters(args.ct_markers)
-    for cluster in cluster_labels:
-        chunk_def = {}
-        chunk_def['markers'] = args.ct_markers
-        chunk_def['celltype'] = cluster
-        chunk_def['__threads'] = 4
-        chunks.append(chunk_def)
+    for celltype, csv in args.ct_markers.items():
+        cluster_labels = clusters(csv)
+        for cluster in cluster_labels:
+            chunk_def = {}
+            chunk_def['markers'] = csv
+            chunk_def['cluster'] = cluster
+            chunk_def['celltype'] = celltype
+            chunk_def['__threads'] = 4
+            chunks.append(chunk_def)
     return {'chunks': chunks}
 
 def main(args, outs):
@@ -57,5 +59,10 @@ def join(args, outs, chunk_defs, chunk_outs):
     outs.enriched_pathways = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
         if os.path.exists(out.pathway_network) and not os.stat(out.pathway_network).st_size == 0:
-            outs.pathway_network[arg.celltype] = out.pathway_network
-            outs.enriched_pathways[arg.celltype] = out.enriched_pathways
+            if arg.celltype not in outs.pathway_network:
+                outs.pathway_network[arg.celltype] = []
+            outs.pathway_network[arg.celltype].append({"cluster": arg.cluster, "svg": out.pathway_network})
+        if os.path.exists(out.enriched_pathways) and not os.stat(out.enriched_pathways).st_size == 0:
+            if arg.celltype not in outs.enriched_pathways:
+                outs.enriched_pathways[arg.celltype] = []
+            outs.enriched_pathways[arg.celltype].append({"cluster":arg.cluster, "svg": out.enriched_pathways})

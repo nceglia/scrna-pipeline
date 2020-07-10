@@ -26,6 +26,7 @@ def split(args):
         chunk_def['merged_seurat'] = path
         chunk_def['batch'] = batch_id
         chunk_def['__threads'] = 30
+        chunk_def['__memgb'] = 16
         chunks.append(chunk_def)
     return {'chunks': chunks}
 
@@ -36,6 +37,7 @@ def main(args, outs):
     batch_markers = "{}_markers.csv".format(outs.batch_csv)
     outs.batch_report = martian.make_path(batch_report)
     outs.batch_csv = martian.make_path(batch_markers)
+    #outs.annotated_seurat = "/juno/work/shah/ceglian/rnascp/signatures_seurats/{}_annotated.rds".format(args.batch)
     outs.annotated_seurat = martian.make_path(annotated_seurat)
     outs.probabilities = martian.make_path(probabilities)
     scripts = scriptmanager.ScriptManager()

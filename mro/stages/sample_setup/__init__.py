@@ -13,11 +13,15 @@ def main(args, outs):
     outs.samples = dict()
     outs.batch = dict()
     samples = open(args.inventory, "r").read().splitlines()
-    samples.pop(0)
+    header = samples.pop(0).split(",")
     for sample in samples:
-        sample_id, batch_id, matrix = sample.split(",")
-        outs.samples[sample_id] = matrix
-        if batch_id not in outs.batch:
-            outs.batch[batch_id] = []
-        outs.batch[batch_id].append(sample_id)
+        sample = dict(zip(header,sample.split(",")))
+        outs.samples[sample["sample"]] = sample["path"]
+        if sample["batch"] not in outs.batch:
+            outs.batch[sample["batch"]] = []
+        outs.batch[sample["batch"]].append(sample["sample"])
+        if "group" in sample:
+            if "group" not in outs.batch:
+                outs.batch["group"] = dict()
+            outs.batch["group"][sample["sample"]] = sample["group"]
             

@@ -31,6 +31,8 @@ def split(args):
 def main(args, outs):
     seurat = "{}_qcd_scored_seurat.rds".format(args.sample)
     outs.qcd_scored_seurat = martian.make_path(seurat)
+    sce = "{}_qcd_scored_sce.rds".format(args.sample)
+    outs.qcd_scored_sce = martian.make_path(sce)
     scripts = scriptmanager.ScriptManager()
     script = scripts.cellcyclescore()
     con = container.Container()
@@ -40,5 +42,7 @@ def main(args, outs):
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.qcd_scored_seurat = dict()
+    outs.qcd_scored_sce = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
         outs.qcd_scored_seurat[arg.sample] = out.qcd_scored_seurat
+        outs.qcd_scored_sce[arg.sample] = out.qcd_scored_sce

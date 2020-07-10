@@ -44,13 +44,6 @@ def main(args, outs):
     con.run(script, args, outs)
 
 def join(args, outs, chunk_defs, chunk_outs):
-    # cwd = os.path.dirname(os.path.abspath(__file__))
-    # template = Template(open(os.path.join(cwd,"../../../lib/html/report.html"),"r").read())
-    # sample_results = []
     outs.qc_report = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
         outs.qc_report[arg.sample] = out.qc_report
-    # html = template.render(samples=sample_results)
-    # output = open(outs.qc_report,"w")
-    # output.write(html)
-    # output.close()
