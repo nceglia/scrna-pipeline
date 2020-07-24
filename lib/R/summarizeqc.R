@@ -55,6 +55,6 @@ stat <- ggtexttable(summary_stats, rows = NULL, theme = ttheme(base_style="mOran
 cvm <- plotColData(sce, x = "log10_total_features_by_counts", y="pct_counts_mitochondrial")  + ggtitle("Feature vs. Percent Mito")
 
 
-figure <- plot_grid(stat, mito, ribo, doub, umi, dumap, ccumap, mitomap, cvm, features, nrow = 5, ncol=2, align = "vh")
+figure <- plot_grid(stat, mito, ribo, doub, umi, dumap, features, mitomap, ccumap, cvm, nrow = 5, ncol=2, align = "vh")
 
 ggsave(report, figure, width=8,height=16, scale=1.5)

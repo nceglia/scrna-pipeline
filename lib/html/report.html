@@ -11,6 +11,7 @@
     <link href="https://getbootstrap.com/docs/4.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.4.456/build/pdf.min.js"></script>
     <style>
       .batch_cluster_search {
         width: 49%; /* Full-width */
@@ -130,6 +131,8 @@
                     <div class="tab-pane" id="{{batch.name}}">
                       <h5>{{ batch.name }}</h5>
                       <hr><br>{{ batch.svg }}<br>
+                      <br>{{ batch.copy_number }}<br>
+                      <br>{{ batch.clone }}<br>
                       <h5>Cluster Markers</h5>
                       <input type="text" class="batch_cluster_search" id="batch_cluster_search_{{ batch.name }}" onkeyup="batchClusterSearch('{{ batch.id }}', 'batch_cluster_search_{{ batch.name }}')" placeholder="Search for cluster">
                       <input type="text" class="batch_gene_search" id="batch_gene_search_{{ batch.name }}" onkeyup="batchGeneSearch('{{ batch.id }}', 'batch_gene_search_{{ batch.name }}')" placeholder="Search for gene">
@@ -172,6 +175,7 @@
                       <br>{{ celltype.svg }}<br>
                       <br>{{ celltype.enrichment_svg }}<br>
                       <br>{{ celltype.pathway_svg }}<br>
+                      <br>{{ celltype.velocity }}<br>
                       <!-- {% for network in celltype.clusters %}
                       <button class="btn btn-dark" type="button" data-toggle="collapse" data-target="#collapseExample_{{ network.cluster }}">
                         Enrichment Network - Cluster {{network.cluster}}
@@ -211,8 +215,10 @@
                   {% for pathway in pathways %}
                     <div class="tab-pane" id="{{pathway.pathway}}">
                       <h5>{{ pathway.pathway }}</h5>
-                      {% for svgs in pathway.svgs %}
-                        <hr><br>{{ svgs }}<br>
+                      {% for result in pathway.results %}
+                        <h5>{{ result.batch }}</h5>
+                        <hr><br>{{ result.svg }}<br>
+                        <br>{{ result.svg_net }}<br>
                       {% endfor %}
                     </div>
                   {% endfor %}
@@ -292,7 +298,6 @@
         }
       }
     }
-
     </script>
 
 </html>

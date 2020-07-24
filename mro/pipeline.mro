@@ -25,6 +25,22 @@ stage RUN_QC(
     threads = 4,
 )
 
+stage VELOCITY(
+    in  map samples,
+    in  map raw_sce,
+    in  path bam_inventory,
+    in  map sce,
+    in  path image,
+    in  string runtime,
+    out map frac_svg,
+    out map looms,
+    src py "stages/velocity",
+) split using (
+    in  map samples,
+) using (
+    threads = 4,
+)
+
 stage CELLTYPE_MARKERS(
     in  path yaml,
     in  path image,
@@ -84,6 +100,7 @@ stage CELLCYCLE_SCORE(
     in  path image,
     in  string runtime,
     out map qcd_scored_seurat,
+    out map qcd_scored_sce,
     src py   "stages/cellcyclescore",
 ) split using (
     in  map qcd_seurat,
@@ -102,7 +119,7 @@ stage MERGE_SAMPLES(
 ) split using (
     in  map batch,
 ) using (
-    threads = 12,
+    threads = 16,
 )
 
 stage ASSIGN_CELLTYPES(
@@ -152,6 +169,7 @@ stage SUBSET_CELLTYPES(
     in  path image,
     in  string runtime,
     out map celltype_seurat,
+    out map celltype_sce,
     out map cell_umap,
     out map markers,
     src py   "stages/splitcelltypes",
@@ -161,8 +179,51 @@ stage SUBSET_CELLTYPES(
     threads = 12,
 )
 
+stage COPY_NUMBER(
+    in  map annotated_seurat,
+    in  path cn_ref_genes,
+    in  path cn_reference,
+    in  path image,
+    in  string runtime,
+    out map cn_output,
+    src py   "stages/copy_number",
+) split using (
+    in  map annotated_seurat,
+) using (
+    threads = 60,
+)
+
+stage ASSIGN_CLONES(
+    in  map annotated_seurat,
+    in  path image,
+    in  string runtime,
+    out map clone_annotated_seurat,
+    out map clonealign_fit,
+    out map clone_umap,
+    src py   "stages/assign_clones",
+) split using (
+    in  map annotated_seurat,
+) using (
+    threads = 30,
+)
+
+stage CELLTYPE_VELOCITY(
+    in  string[] celltypes,
+    in  map celltype_sce,
+    in  map looms,
+    in  path image,
+    in  string runtime,
+    out map velocity,
+    out map celltype_loom,
+    src py   "stages/celltype_velocity",
+) split using (
+    in  map celltype_seurat,
+) using (
+    threads = 12,
+)
+
 stage SUBTYPE_SCORE(
-    in string[] celltypes,
+    in  string[] celltypes,
     in  map celltype_seurat,
     in  path subtypes,
     in  path image,
@@ -176,7 +237,7 @@ stage SUBTYPE_SCORE(
 )
 
 stage ENRICHMENT_NETWORK(
-    in  path ct_markers,
+    in  map ct_markers,
     in  path gmt,
     in  path image,
     in  string runtime,
@@ -196,6 +257,7 @@ stage CELL_CELL_INTERACTIONS(
     in  path image,
     in  string runtime,
     out map interactions,
+    out map network_svg,
     src py   "stages/cell_cell_interactions",
 ) split using (
     in  map celltype_seurat,
@@ -217,6 +279,11 @@ stage GENERATE_REPORT(
     in  path image,
     in  map enriched_pathways,
     in  path ct_markers,
+    in  map network_svg,
+    in  map frac_svg,
+    in  map cn_output,
+    in  map celltype_velocity,
+    in  map clone_umap,
     in  string runtime,
     out html report,
     src py   "stages/generate_report",
@@ -230,12 +297,18 @@ pipeline RNASCP(
     in path inventory,
     in int mito,
     in float score,
+    in path cn_reference,
+    in  path bam_inventory,
+    in path cn_ref_genes,
     in path yaml,
     in path gmt,
     in string project,
     in string subtypes,
     out rds integrated_seurat,
     out rds batch_merged_seurat,
+    out map samples,
+    out map batches,
+    out map looms,
     out html report,
 )
 {
@@ -247,6 +320,14 @@ pipeline RNASCP(
         image   = self.image,
         runtime = self.runtime,
         mito    = self.mito,
+    )
+    call VELOCITY(
+        bam_inventory = self.bam_inventory,
+        samples       = SAMPLE_SETUP.samples,
+        raw_sce       = RUN_QC.raw_sce,
+        sce           = CELLCYCLE_SCORE.qcd_scored_sce,
+        image         = self.image,
+        runtime       = self.runtime,
     )
     call DETECT_DOUBLETS(
         sce     = RUN_QC.sce,
@@ -282,6 +363,11 @@ pipeline RNASCP(
         image          = self.image,
         runtime        = self.runtime,
     )
+    call ASSIGN_CLONES(
+        annotated_seurat  = ASSIGN_CELLTYPES.annotated_seurat,
+        image          = self.image,
+        runtime        = self.runtime,
+    )
     call SUMMARIZE_SAMPLE_QC(
         qcd_scored_seurat = CELLCYCLE_SCORE.qcd_scored_seurat,
         sce               = RUN_QC.raw_sce,
@@ -298,10 +384,24 @@ pipeline RNASCP(
         runtime          = self.runtime,
     )
     call SUBSET_CELLTYPES(
-        batch_merged_seurat = BATCH_CORRECTION.integrated_seurat,
+        batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
         celltypes           = MERGE_BATCHES.celltypes,
         image               = self.image,
         runtime             = self.runtime,
+    )
+    call CELLTYPE_VELOCITY(
+        celltypes       = MERGE_BATCHES.celltypes,
+        celltype_sce    = SUBSET_CELLTYPES.celltype_sce,
+        looms           = VELOCITY.looms,
+        image           = self.image,
+        runtime         = self.runtime,
+    )
+    call COPY_NUMBER(
+        cn_reference     = self.cn_reference,
+        cn_ref_genes     = self.cn_ref_genes,
+        annotated_seurat = ASSIGN_CELLTYPES.annotated_seurat,
+        image            = self.image,
+        runtime          = self.runtime,
     )
     call BATCH_CORRECTION(
         batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
@@ -309,7 +409,7 @@ pipeline RNASCP(
         runtime             = self.runtime,
     )
     call ENRICHMENT_NETWORK(
-        ct_markers    = BATCH_CORRECTION.ct_markers,
+        ct_markers = SUBSET_CELLTYPES.markers,
         gmt        = self.gmt,
         image      = self.image,
         runtime    = self.runtime,
@@ -341,6 +441,11 @@ pipeline RNASCP(
         batch_markers         = ASSIGN_CELLTYPES.batch_csv,
         subtype_scores        = SUBTYPE_SCORE.subtype_scores,
         ct_markers            = BATCH_CORRECTION.ct_markers,
+        network_svg           = CELL_CELL_INTERACTIONS.network_svg,
+        cn_output             = COPY_NUMBER.cn_output,
+        frac_svg              = VELOCITY.frac_svg,
+        celltype_velocity     = CELLTYPE_VELOCITY.velocity,
+        clone_umap            = ASSIGN_CLONES.clone_umap,
         image                 = self.image,
         runtime               = self.runtime,
     )
@@ -348,5 +453,8 @@ pipeline RNASCP(
         integrated_seurat   = BATCH_CORRECTION.integrated_seurat,
         batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
         report              = GENERATE_REPORT.report,
+        looms               = VELOCITY.looms,
+        batches             = ASSIGN_CELLTYPES.annotated_seurat,
+        samples             = CELLCYCLE_SCORE.qcd_scored_seurat,
     )
 }

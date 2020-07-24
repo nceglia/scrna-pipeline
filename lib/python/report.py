@@ -1,4 +1,5 @@
 from jinja2 import Template
+import subprocess
 import pandas
 import sys
 import os
@@ -15,44 +16,62 @@ batch_markers = eval(sys.argv[9])
 subtype_scores = eval(sys.argv[10])
 enriched_pathways = eval(sys.argv[11])
 ct_markers = sys.argv[12]
-report = sys.argv[13]
+network_svg = eval(sys.argv[13])
+frac_svg = eval(sys.argv[14])
+copy_numbers = eval(sys.argv[15])
+velocity = eval(sys.argv[16])
+clone = eval(sys.argv[17])
+report = sys.argv[18]
 
 ctdf = pandas.read_csv(ct_markers)
 
 sample_results = []
 for sample in samples:
     svg_content = open(samples[sample],"r").read()
-    sample_results.append({"name":sample,"svg":svg_content})
-
+    if sample in frac_svg:
+        frac = open(frac_svg[sample],"r").read()
+    else:
+        frac = ""
+    sample_results.append({"name":sample,"svg":svg_content,"frac":frac})
 batch_results = []
 for batch in batches:
     svg_content = open(batches[batch],"r").read()
     bm = batch_markers[batch]
     df = pandas.read_csv(bm)
-    batch_results.append({"name":batch, "svg":svg_content, "table": df.to_html(border=0, table_id="batch_markers_{}".format(batch), classes="batch_markers"), "id": "batch_markers_{}".format(batch)})
+    if batch in copy_numbers:
+        subprocess.check_output(["pdf2svg",copy_numbers[batch], copy_numbers[batch].replace("pdf","svg")])
+        copy_number_svg = open(copy_numbers[batch].replace("pdf","svg"),"r").read()
+    else:
+        copy_number_svg = ""
+    if batch in clone:
+        clone_svg = open(clone[batch],"r").read()
+    else:
+        clone_svg = ""
+    batch_results.append({"name":batch, "svg":svg_content, "copy_number": copy_number_svg, "table": df.to_html(border=0, table_id="batch_markers_{}".format(batch), classes="batch_markers"), "id": "batch_markers_{}".format(batch), "pdf": copy_numbers[batch], "clone": clone_svg})
 
 celltype_results = []
 for celltype in celltype_umaps:
     svg_content = open(celltype_umaps[celltype],"r").read()
+    velocity_svg = open(velocity[celltype]["svg"],"r").read()
     bm = markers[celltype]
     df = pandas.read_csv(bm)
-    if celltype in networks:
-        svg_content_network = open(networks[celltype],"r").read()
-    else:
-        svg_content_network = ""
+    clusters = []
     if celltype in enriched_pathways:
-        svg_content_pathway = open(enriched_pathways[celltype],"r").read()
-    else:
-        svg_content_pathway = ""
+        for cluster in enriched_pathways[celltype]:
+            svg_content_pathway = open(cluster["svg"],"r").read()
+            clusters.append({"cluster":cluster["cluster"],"svg":svg_content_pathway})
     celltype = celltype.replace(".","-").capitalize()
-    celltype_results.append({"name":celltype, "svg":svg_content, "table": df.to_html(border=0, classes="batch_markers", table_id="celltype_markers_{}".format(celltype)), "id":"celltype_markers_{}".format(celltype), "enrichment_svg": svg_content_network, "pathway_svg": svg_content_pathway})
+    celltype_results.append({"name":celltype, "svg":svg_content, "table": df.to_html(border=0, classes="batch_markers", table_id="celltype_markers_{}".format(celltype)), "id":"celltype_markers_{}".format(celltype), "clusters": clusters, "velocity": velocity_svg})
+    
 
 interaction_results = []
-for pathway, results in interactions.items():
-    svg_contents = []
-    for result in results:
-        svg_contents.append(open(result["svg"],"r").read())
-    interaction_results.append({"pathway":pathway,"svgs":svg_contents})
+for pathway, batches in interactions.items():
+    results = []
+    for batch, result in batches.items():
+        svg_content_pathway = open(result["svg"],"r").read()
+        svg_content_net = open(network_svg[pathway][batch]["svg"],"r").read()
+        results.append({"batch":batch, "svg":svg_content_pathway, "svg_net": svg_content_net})
+    interaction_results.append({"pathway":pathway,"results":results})
 
 subtype_results = []
 for subtype, result in subtype_scores.items():

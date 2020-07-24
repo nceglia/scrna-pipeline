@@ -46,10 +46,13 @@ def run_velocyto(matrix, gtf, mask, directory):
     os.unlink(linked_bai)
     return os.path.join(outs,"velocyto","{}.loom".format(output_name))
 
-def filter_loom(loomfile, scefile, result):
+def filter_loom(loomfile, sce, result):
     sce = SingleCellExperiment.fromRData(sce)
     vlm = vcy.VelocytoLoom(loomfile)
-    barcodes = sce.colData["Barcode"]
+    if "Barcode" in sce.colData:
+        barcodes = sce.colData["Barcode"]
+    else:
+        barcodes = sce.colnames
     valid_barcodes = [barcode.split("-")[0] for barcode in barcodes] 
     unfiltered_barcodes = [x.split(":")[1].rstrip("x") for x in vlm.ca["CellID"]]
     filtered_barcodes = [True if barcode in valid_barcodes else False for barcode in unfiltered_barcodes]
@@ -63,13 +66,17 @@ def analyze_loom(result, fraction_svg):
 if __name__=="__main__":
     sample         = sys.argv[1]
     matrix         = sys.argv[2]
-    result         = sys.argv[3]
-    frac_svg       = sys.argv[4]
-    directory      = sys.argv[5]
-    sce            = sys.argv[6]
+    sce         = sys.argv[3]
+    loomfile       = sys.argv[4]
+    frac_svg      = sys.argv[5]
+    directory            = sys.argv[6]
     loom_name      = directory.split("/")[-1]
+
     #loomfile = run_velocyto(matrix, gtf, mask, directory)
-    loomfile = os.path.join("/juno/work/shah/ceglian/rnascp/velocity/","{}.loom".format(loom_name))
+    loomfile = os.path.join("/juno/work/shah/ceglian/rnascp/velocity/","velocity_{}.loom".format(sample))
+    result = loomfile.replace(".loom",".hd5")
     if os.path.exists(loomfile):
-        filter_loom(loomfile, scefile, result)
+        filter_loom(loomfile, sce, result)
         analyze_loom(result, frac_svg)
+    else:
+        raise ValueError(loomfile)

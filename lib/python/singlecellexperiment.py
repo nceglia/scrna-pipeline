@@ -41,7 +41,10 @@ class SingleCellExperiment(RS4):
         if method.upper() not in self.reducedDims.keys():
             raise KeyError("{} was never computed.".format(method))
         embedding = self.reducedDims[method.upper()]
-        barcodes = self.colData["Barcode"]
+        if "Barcode" in self.colData:
+            barcodes = self.colData["Barcode"]
+        else:
+            barcodes = self.colnames
         return numpy.array(embedding).reshape(len(barcodes),2)
 
     @classmethod

@@ -2,22 +2,26 @@
 import click
 import os
 import subprocess
+import yaml
+import shutil
 
 @click.command()
 @click.option('--project', prompt='Project name.', help='Project name for pipeline run.')
-@click.option('--mito', prompt='Percent reads mitochondrial threshold.', help='Maximum percent reads mitochondrial')
-@click.option('--doublet', prompt='Scrublet score threshold.', help='Maximum scrublet score')
 @click.option('--image', prompt='docker or singularity image.', help='Image name (nceglia/scrna-pipeline:latest, scrna-pipeline.img, etc...)')
 @click.option('--runtime', prompt='docker or singularity.', help='Whether to run sub tasks with docker or singularity command.')
-@click.option('--gmt', prompt='GMT file for pathway analysis.', help='GMT used for pathway enrichment.')
-@click.option('--yaml', prompt='YAML cell type markers.', help='YAML file with cell type and gene markers (see resources/markers.yaml)')
+@click.option('--config', prompt='YAML cell type markers.', help='YAML file with cell type and gene markers (see resources/markers.yaml)')
 @click.option('--jobs', prompt='Max jobs.', help='Number of parallel jobs.')
+@click.option('--mem', prompt='Max jobs.', help='Memory per core.')
 @click.option('--mode', prompt='Job mode (local, lsf, sge, etc.)', help='Job mode provided to martian.')
-@click.option('--subtypes', prompt='Subtype CSV', help='Subtype CSV')
-@click.option('--subtypes', prompt='Subtype CSV', help='Subtype CSV')
 
-def rnascp(project, mito, doublet, image, runtime, gmt, yaml, jobs, mode, subtypes):
-    click.clear()
+def rnascp(project, image, runtime, config, jobs, mode, mem):
+    print("\n")
+    install_dir = os.environ["RNASCP_DIR"]
+    mro_dir = os.environ["MROPATH"]
+    mrp = shutil.which("mrp")
+    with open(config) as f:
+        params = yaml.load(f,Loader=yaml.FullLoader)
+        globals().update(params)
 
     click.echo(click.style('******** SCRNA-PIPELINE ********', fg='green'))
     click.echo(click.style('Building Config...', fg='blue'))
@@ -31,22 +35,38 @@ def rnascp(project, mito, doublet, image, runtime, gmt, yaml, jobs, mode, subtyp
     click.echo(click.style(jobs, fg='red', bold=True))
     click.echo(click.style("Job Mode: ", fg='green', bold=True),nl=False)
     click.echo(click.style(mode, fg='red', bold=True))
+    click.echo(click.style("Memory: ", fg='green', bold=True),nl=False)
+    click.echo(click.style(mem + "GB", fg='red', bold=True))
+    click.echo(click.style("RNASCP Installation: ", fg='green', bold=True),nl=False)
+    click.echo(click.style(install_dir, fg='red', bold=True))
+    click.echo(click.style("MRO: ", fg='green', bold=True),nl=False)
+    click.echo(click.style(mro_dir, fg='red', bold=True))
+    click.echo(click.style("MRP: ", fg='green', bold=True),nl=False)
+    click.echo(click.style(mrp, fg='red', bold=True))
+    click.echo(click.style("Martian Command: ", fg='green', bold=True),nl=False)
 
     output = open("__{}.mro".format(project),"w")
-    output.write('@include "pipeline.mro"\n\n')
+    output.write('@include \"pipeline.mro\"\n')
     output.write('call RNASCP(\n')
     output.write('\tproject = "{}",\n'.format(project))
     output.write('\tmito = {},\n'.format(mito))
-    output.write('\tscore = {},\n'.format(doublet))
+    output.write('\tscore = {},\n'.format(score))
     output.write('\timage = "{}",\n'.format(image))
     output.write('\truntime = "{}",\n'.format(runtime))
     output.write('\tgmt = "{}",\n'.format(gmt))
-    output.write('\tyaml = "{}",\n'.format(yaml))
+    output.write('\tyaml = "{}",\n'.format(celltype_markers))
     output.write('\tsubtypes = "{}",\n'.format(subtypes))
+    output.write('\tcn_ref_genes = "{}",\n'.format(cn_ref_genes))
+    output.write('\tcn_reference = "{}",\n'.format(cn_reference))
+    output.write('\tbam_inventory = "{}",\n'.format(bam_inventory))
+    output.write('\tinventory = "{}",\n'.format(inventory))
+
     output.write(')\n')
-    cmd = "mrp __{0}.mro {0} --jobmode={1} --maxjobs={2}".format(project, mode, jobs)
+    output.close()
+    cmd = "mrp __{0}.mro {0} --jobmode={1} --maxjobs={2} --mempercore={3}".format(project, mode, jobs, mem)
     print(cmd)
-    #subprocess.call(cmd.split())
+    print("\n")
+    subprocess.call(cmd.split())
 
 if __name__ == '__main__':
     rnascp()

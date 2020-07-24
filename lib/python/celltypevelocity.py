@@ -7,18 +7,21 @@ import igraph
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import os
+
+os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
 
 rdata = eval(sys.argv[1])
 celltype = sys.argv[2]
 output = sys.argv[3]
 svg = sys.argv[4]
-looms = eval(sys.argv[5])
+# looms = eval(sys.argv[5])
 
 reduction = "UMAPCELLTYPE"
 
 print("Loading SCE...")
 sce = SingleCellExperiment.fromRData(rdata[celltype])
-looms = eval(looms)
+# looms = eval(looms)
 looms = glob.glob("/juno/work/shah/ceglian/rnascp/velocity/velocity*.loom")
 loompy.combine(list(looms), output, key="Accession")
 print("Loading Combined Loom...")
@@ -98,7 +101,7 @@ vlm.set_clusters(clusters, cluster_colors_dict={k:colors20[v[0] % 20,:] for k,v 
 
 print("Imputing...")
 vlm.perform_PCA()
-vlm.knn_imputation(n_pca_dims=20, k=500, balanced=True, b_sight=3000, b_maxl=1500, n_jobs=16)
+vlm.knn_imputation(n_jobs=16)
 
 print("Fitting Gamma...")
 vlm.normalize_median()

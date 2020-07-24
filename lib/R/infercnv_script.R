@@ -15,21 +15,25 @@ reference_path <- args[1]
 gene_path <- args[2]
 # seurat object, patient.rdata
 observation_seurat <- args[3]
+seurat <- readRDS(observation_seurat)
+seurat$cell_type <- "Cancer.cell"
+saveRDS(seurat, file=observation_seurat)
 # directory for all infercnv output
 output_dir <- args[4]
 
 # sample cells from input seurat object. The input should be an integer or NA (selecting all cells)
 # sample_cell_num <- args[5]
 # one or multiple cell_type to be used in infercnv
-if(length(args) >= 5){
-  cell_types <- args[5:length(args)]
-}else{
-  cell_types <- "Cancer.cell"
-}
+# if(length(args) >= 5){
+#   cell_types <- args[5:length(args)]
+# }else{
+
+cell_types <- "Cancer.cell"
+# }
 
 print(paste0("reference_path: ", reference_path))
 print(paste0("gene_path: ", gene_path))
-print(paste0("observation_seurat", observation_seurat))
+print(paste0("observation_seurat: ", observation_seurat))
 print(paste0("output_dir: ", output_dir))
 
 
@@ -106,6 +110,7 @@ runInferCNV <- function(outputDir, reference = "reference"){
 
   infercnv_obj <- infercnv::CreateInfercnvObject(raw_counts_matrix= outputMatrixPath,
                                        annotations_file = cellAnnotationPath,
+                                       max_cells_per_group=25,
                                        delim = "\t",
                                        gene_order_file = geneAnnotationPath,
                                        ref_group_names = reference)
@@ -117,9 +122,8 @@ runInferCNV <- function(outputDir, reference = "reference"){
                                 out_dir= outputDir,  # dir is auto-created for storing outputs
                                 cluster_by_groups=T,   # cluster
                                 denoise=T,
-                                save_rds=F,
-			        num_threads=30,
-				output_format = "pdf",
+                                num_threads=60,
+                                output_format = "pdf",
                                 HMM=T,
                                 HMM_type = "i3",
                                 analysis_mode='subclusters')

@@ -37,8 +37,8 @@ if (sender != receiver) {
 } else {
   combined <- sender_obj
 }
-combined <- combined[,combined$group==batch_label]
-# combined <- subset(combined, subset = group == batch_label)
+#combined <- combined[,combined$batch==batch_label]
+combined <- subset(combined, subset = group == batch_label)
 
 sce <- as.SingleCellExperiment(combined)
 expression <- logcounts(sce)
