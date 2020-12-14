@@ -1,13 +1,17 @@
 @include "pipeline.mro"
 
 call RNASCP(
-    project = "Test 1",
-    image  = "/work/shah/images/scrna-pipeline-v6.img",
+    project = "Project 09666",
+    image  = "/work/shah/images/scrna-pipeline-v9.img",
     runtime = "singularity",
-    inventory = "/juno/work/shah/ceglian/rnascp/samples.tsv",
-    mito = 25,
+    inventory = "/juno/work/shah/ceglian/chow/transcriptome_analysis/valid_samples.tsv",
+    mito = 20,
     score = 0.25,
     gmt = "/juno/work/shah/ceglian/rnascp/lib/python/h.all.v7.0.symbols.gmt",
-    yaml = "/juno/work/shah/ceglian/rnascp/hgsc_v5_major.yaml",
-    subtypes = "/juno/work/shah/ceglian/rnascp/resources/exhausted.csv",
+    yaml = "/juno/work/shah/ceglian/chow/transcriptome_analysis/til_markers.yaml",
+    subtypes = "/juno/work/shah/ceglian/rnascp/resources/subtypes.csv",
+    cn_image = "/juno/work/shah/ceglian/rnascp/resources/infercnv_isabl_1.3.5.sif",
+    cn_ref_genes = "/juno/work/shah/ceglian/rnascp/resources/cn_ref_genes.txt",
+    cn_reference = "/juno/work/shah/ceglian/rnascp/spectrum_infercnv_reference_20200526.rdata",
+    bam_inventory = "/juno/work/shah/ceglian/chow/transcriptome_analysis/bams.csv",
 )

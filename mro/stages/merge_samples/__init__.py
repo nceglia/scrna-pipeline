@@ -28,6 +28,12 @@ def split(args):
             chunk_def["group"] = args.batch["group"]
         else:
             chunk_def["group"] = dict()
+        if "metadata" in args.batch and batch_id in args.batch["metadata"]:
+            chunk_def["metadata"] = args.batch["metadata"][batch_id]
+        else:
+            if batch_id == "metadata": continue
+            chunk_def["metadata"] = "None"
+            raise ValueError(batch_id + " " + str(args.batch))
         chunk_def['__threads'] = 12
         chunks.append(chunk_def)
     return {'chunks': chunks}

@@ -15,8 +15,6 @@ CD8.Effector:
  - GZMK
  - CCL5
 CD8.Naive.Memory:
- - LY6C2
- - CXCR3
  - ID3
  - SLAMF6
  - IL2RA

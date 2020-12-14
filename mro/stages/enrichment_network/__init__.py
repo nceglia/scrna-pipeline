@@ -32,6 +32,7 @@ def clusters(csv):
 def split(args):
     chunks = []
     for celltype, csv in args.ct_markers.items():
+        if not os.path.exists(csv): continue
         cluster_labels = clusters(csv)
         for cluster in cluster_labels:
             chunk_def = {}
@@ -52,7 +53,8 @@ def main(args, outs):
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    con.run(script, args, outs)
+    # con.run(script, args, outs) 
+
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.pathway_network = dict()

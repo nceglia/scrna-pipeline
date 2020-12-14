@@ -1,6 +1,5 @@
 import subprocess
 
-
 class Container(object):
 
     def __init__(self):
@@ -23,9 +22,12 @@ class Container(object):
 
     def run(self, script, args, outs):
         cmd = [script.interpreter, script.path]
+        cmd = cmd + [None for _ in range(len(script.args.keys())+len(script.outs.keys()))]
+        print(len(cmd), cmd)
         for position, name in script.args.items():
-            cmd.insert(position+2, str(getattr(args, name)))
+            print(position, name)
+            cmd[position+1] = str(getattr(args, name))
         for position, name in script.outs.items():
-            cmd.insert(position+2, str(getattr(outs, name)))
+            cmd[position+1] = str(getattr(outs, name))
         full_cmd = self.container_command + [self.image] + cmd
         subprocess.check_output(full_cmd)

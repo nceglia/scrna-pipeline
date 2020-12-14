@@ -27,12 +27,20 @@ ctdf = pandas.read_csv(ct_markers)
 
 sample_results = []
 for sample in samples:
-    svg_content = open(samples[sample],"r").read()
+    if sample in samples and os.path.exists(samples[sample]):
+        svg_content = open(samples[sample],"r").read()
+    else:
+        svg_content = ""
+        continue
     if sample in frac_svg:
         frac = open(frac_svg[sample],"r").read()
     else:
         frac = ""
-    sample_results.append({"name":sample,"svg":svg_content,"frac":frac})
+    # svg_features = open("/juno/work/shah/ceglian/ft_profiling/{}_nFeature_RNA.svg".format(sample)).read()
+    # svg_counts = open("/juno/work/shah/ceglian/ft_profiling/{}_nCount_RNA.svg".format(sample)).read()
+    svg_features = ""
+    svg_counts = ""
+    sample_results.append({"name":sample,"svg":svg_content,"frac":frac, "features": svg_features, "counts": svg_counts})
 batch_results = []
 for batch in batches:
     svg_content = open(batches[batch],"r").read()
@@ -47,12 +55,17 @@ for batch in batches:
         clone_svg = open(clone[batch],"r").read()
     else:
         clone_svg = ""
-    batch_results.append({"name":batch, "svg":svg_content, "copy_number": copy_number_svg, "table": df.to_html(border=0, table_id="batch_markers_{}".format(batch), classes="batch_markers"), "id": "batch_markers_{}".format(batch), "pdf": copy_numbers[batch], "clone": clone_svg})
+    batch_results.append({"name":batch, "svg":svg_content, "copy_number": copy_number_svg, "table": df.to_html(border=0, table_id="batch_markers_{}".format(batch), classes="batch_markers"), "id": "batch_markers_{}".format(batch), "pdf": copy_number_svg, "clone": clone_svg})
 
 celltype_results = []
 for celltype in celltype_umaps:
+    if not os.path.exists(celltype_umaps[celltype]):
+        continue
     svg_content = open(celltype_umaps[celltype],"r").read()
-    velocity_svg = open(velocity[celltype]["svg"],"r").read()
+    # if velocity[celltype]["svg"] and os.path.exists(velocity[celltype]["svg"]):
+    #     velocity_svg = open(velocity[celltype]["svg"],"r").read()
+    # else:
+    velocity_svg = ""
     bm = markers[celltype]
     df = pandas.read_csv(bm)
     clusters = []
@@ -71,7 +84,11 @@ for pathway, batches in interactions.items():
         svg_content_pathway = open(result["svg"],"r").read()
         svg_content_net = open(network_svg[pathway][batch]["svg"],"r").read()
         results.append({"batch":batch, "svg":svg_content_pathway, "svg_net": svg_content_net})
-    interaction_results.append({"pathway":pathway,"results":results})
+    if "TNF" in pathway or "INTERFERON" in pathway:
+        desc = "<b>CD8+ T-Cell</b>"
+    else:
+        desc = "<b>Monocyte Macrophage</b>"
+    interaction_results.append({"pathway":pathway,"desc":desc,"results":results})
 
 subtype_results = []
 for subtype, result in subtype_scores.items():
@@ -82,12 +99,13 @@ for subtype, result in subtype_scores.items():
 
 svg_project_figure = open(project_figure,"r").read()
 project_markers = ctdf.to_html(border=0, table_id="batch_markers_project", classes="batch_markers")
+#project_markers = ""
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 template = Template(open(os.path.join(cwd,"../html/report.html"),"r").read())
 
 html = template.render(samples=sample_results,
-                       project=project,
+                       project=project.replace("_"," "),
                        batches=batch_results,
                        project_figure=svg_project_figure,
                        celltypes=celltype_results,

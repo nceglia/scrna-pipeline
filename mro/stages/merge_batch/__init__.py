@@ -1,10 +1,11 @@
 import container
 import scriptmanager
 import martian
+import os
 
 __MRO__ = '''
 stage MERGE_BATCHES(
-    in  map annotated_seurat,
+    in  map annotated_sce,
     in  path image,
     in  string runtime,
     out rds batch_merged_seurat,
@@ -17,25 +18,17 @@ stage MERGE_BATCHES(
 )
 '''
 
+
 def main(args, outs):
     output = open(outs.batch_tsv,"w")
     output.write("batch_id\tpath\n")
-    for batch_id, path in args.annotated_seurat.items():
-        output.write("{}\t{}\n".format(batch_id,path))
+    for batch_id, path in args.annotated_sce.items():
+        if os.path.exists(path):
+            output.write("{}\t{}\n".format(batch_id,path))
     output.close()
-    outs.batch_merged_seurat = "/juno/work/shah/ceglian/rnascp/signatures_seurats/batch_merged_seurat.rds"
     scripts = scriptmanager.ScriptManager()
     script = scripts.mergebatches()
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
     con.run(script, args, outs)
-    celltypes = open(outs.celltype_csv,"r").read().splitlines()
-    celltypes.pop(0)
-    valid_celltypes = []
-    for celltype in celltypes:
-        ctype = celltype.split(",")[1].replace('"',"")
-        count = int(celltype.split(",")[2])
-        if count > 50:
-            valid_celltypes.append(ctype)
-    outs.celltypes = valid_celltypes

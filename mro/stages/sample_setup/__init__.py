@@ -16,7 +16,10 @@ def main(args, outs):
     header = samples.pop(0).split(",")
     for sample in samples:
         sample = dict(zip(header,sample.split(",")))
-        outs.samples[sample["sample"]] = sample["path"]
+        try:
+            outs.samples[sample["sample"]] = sample["path"]
+        except Exception as e:
+            raise ValueError(sample)
         if sample["batch"] not in outs.batch:
             outs.batch[sample["batch"]] = []
         outs.batch[sample["batch"]].append(sample["sample"])
@@ -24,4 +27,7 @@ def main(args, outs):
             if "group" not in outs.batch:
                 outs.batch["group"] = dict()
             outs.batch["group"][sample["sample"]] = sample["group"]
-            
+        if "metadata" in sample:
+            if "metadata" not in outs.batch:
+                outs.batch["metadata"] = dict()
+            outs.batch["metadata"][sample["batch"]] = sample["metadata"]

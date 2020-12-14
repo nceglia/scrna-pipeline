@@ -41,8 +41,10 @@ def main(args, outs):
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    con.run(script, args, outs)
-
+    try:
+        con.run(script, args, outs)
+    except Exception as e:
+        pass
 def join(args, outs, chunk_defs, chunk_outs):
     outs.qc_report = dict()
     for arg, out in zip(chunk_defs, chunk_outs):

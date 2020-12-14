@@ -31,4 +31,3 @@ def main(args, outs):
     con.set_runtime(args.runtime)
     con.set_image(args.image)
     con.run(script, args, outs)
-    raise ValueError(outs)

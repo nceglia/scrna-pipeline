@@ -16,7 +16,7 @@ gene_path <- args[2]
 # seurat object, patient.rdata
 observation_seurat <- args[3]
 seurat <- readRDS(observation_seurat)
-seurat$cell_type <- "Cancer.cell"
+
 saveRDS(seurat, file=observation_seurat)
 # directory for all infercnv output
 output_dir <- args[4]
@@ -28,7 +28,7 @@ output_dir <- args[4]
 #   cell_types <- args[5:length(args)]
 # }else{
 
-cell_types <- "Cancer.cell"
+cell_types <- "Ovarian.Cancer.cell"
 # }
 
 print(paste0("reference_path: ", reference_path))
@@ -109,11 +109,11 @@ runInferCNV <- function(outputDir, reference = "reference"){
   reference <- reference[reference %in% cellAnnotation[, 2]]
 
   infercnv_obj <- infercnv::CreateInfercnvObject(raw_counts_matrix= outputMatrixPath,
-                                       annotations_file = cellAnnotationPath,
-                                       max_cells_per_group=25,
-                                       delim = "\t",
-                                       gene_order_file = geneAnnotationPath,
-                                       ref_group_names = reference)
+                                                  annotations_file = cellAnnotationPath,
+                                                  delim = "\t",
+                                                  max_cells_per_group=1000,
+                                                  gene_order_file = geneAnnotationPath,
+                                                  ref_group_names = reference)
 
   infercnv_obj <- infercnv::run(infercnv_obj,
                                 cutoff=0.1,  # use 1 for smart-seq, 0.1 for 10x-genomics

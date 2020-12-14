@@ -46,7 +46,7 @@ vlm.filter_cells(filtered_barcodes)
 
 print("Scoring genes...")
 vlm.score_detection_levels(min_expr_counts=40, min_cells_express=30)
-vlm.score_cv_vs_mean(3000, plot=False, max_expr_avg=35)
+vlm.score_cv_vs_mean(200, plot=False)
 
 print("Normalization...")
 vlm._normalize_S(relative_size=vlm.S.sum(0),

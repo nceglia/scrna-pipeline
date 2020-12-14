@@ -48,18 +48,16 @@ def rnascp(project, image, runtime, config, jobs, mode, mem):
     output = open("__{}.mro".format(project),"w")
     output.write('@include \"pipeline.mro\"\n')
     output.write('call RNASCP(\n')
-    output.write('\tproject = "{}",\n'.format(project))
+    # output.write('\tproject = "{}",\n'.format(project))
     output.write('\tmito = {},\n'.format(mito))
+    output.write('\tncounts = {},\n'.format(ncounts))
+    output.write('\tnfeatures = {},\n'.format(nfeatures))
     output.write('\tscore = {},\n'.format(score))
     output.write('\timage = "{}",\n'.format(image))
     output.write('\truntime = "{}",\n'.format(runtime))
-    output.write('\tgmt = "{}",\n'.format(gmt))
     output.write('\tyaml = "{}",\n'.format(celltype_markers))
-    output.write('\tsubtypes = "{}",\n'.format(subtypes))
-    output.write('\tcn_ref_genes = "{}",\n'.format(cn_ref_genes))
-    output.write('\tcn_reference = "{}",\n'.format(cn_reference))
-    output.write('\tbam_inventory = "{}",\n'.format(bam_inventory))
     output.write('\tinventory = "{}",\n'.format(inventory))
+    output.write('\tsupertypes = "{}",\n'.format(supertypes))
 
     output.write(')\n')
     output.close()
@@ -67,6 +65,16 @@ def rnascp(project, image, runtime, config, jobs, mode, mem):
     print(cmd)
     print("\n")
     subprocess.call(cmd.split())
+    # print("Finalizing outputs.")
+    # outs = os.path.join(os.path.split(inventory)[0], "RNASCP/outs")
+    # if os.path.exists(outs):
+    #     tsvs = glob.glob(os.path.join(outs, "*.tsv"))
+    #     rds = glob.glob(os.path.join(outs,"*.rds"))
+    #     for o in tsvs + rds:
+    #         target = os.path.split(o)[1]
+    #         target = os.path.join(outs, target)
+    #         print("Moving {} to {}.".format(o, target))
+    #         os.rename(o,target)
 
 if __name__ == '__main__':
     rnascp()

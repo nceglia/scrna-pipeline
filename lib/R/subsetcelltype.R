@@ -6,50 +6,62 @@ library(cowplot)
 library(ggplot2)
 library(schex)
 library(SingleCellExperiment)
+library(RColorBrewer)
 
-args = commandArgs(trailingOnly=TRUE)
+args = commandArgs(trailingOnly=TRUE)    
 merged <- readRDS(args[1])
 celltype <- args[2]
 celltype_obj <- args[3]
-batch_figure <- args[4]
-marker_csv <- args[5]
-sce_obj <- args[6]
+marker_csv <- args[4]
+markers_tsv <- args[5]
+cells_tsv <- args[6]
+resolution <- as.double(args[7])
 
-Idents(merged) <- "cell_type"
-seurat <- merged[,merged$cell_type==celltype]
+message("BLAHJaasdfadsgadg")
+message(resolution)
+message("BLAFADSFSDS")
+Idents(merged) <- "super_cell_type"
+seu_obj <- merged[,merged$super_cell_type==celltype]
+if (length(colnames(seu_obj)) < 100) {
+  quit()
+}
 
-seurat <- NormalizeData(seurat)
-seurat <- FindVariableFeatures(seurat)
-seurat <- ScaleData(seurat)
-seurat <- RunPCA(seurat, verbose = TRUE)
-seurat <- RunHarmony(seurat, group.by.vars = "batch", dims.use = 1:50, assay.use = "RNA")
-seurat <- RunUMAP(seurat, dims = 1:50, reduction = "harmony", reduction.name = "umapcelltype", reduction.key = "umapcelltype_")
-saveRDS(seurat, file=celltype_obj)
+cc.genes <- read_lines("/work/shah/ceglian/isabl2/shahlab_apps/shahlab_apps/apps/cellassign/regev_lab_cell_cycle_genes.txt")
+s.genes <- cc.genes[1:43] ## s-phase genes
+g2m.genes <- cc.genes[44:97] ## g2m transition genes
+score_cc <- function(sobj) {
+sobj <- CellCycleScoring(sobj, s.genes, g2m.genes)
+sobj$CC.Diff <- sobj$S.Score - sobj$G2M.Score
+return(sobj)
+}
 
-binned <- make_hexbin(seurat, nbins=35, dimension_reduction = "umapcelltype")
-sumap <- plot_hexbin_meta(binned, col="seurat_clusters", action="majority") + theme(legend.title=element_text(size=0,face = "bold"),legend.text=element_text(size=7, face = "bold"),plot.title=element_text(size=12, face = "bold")) + ggtitle("Cluster") + xlab('UMAP-1') + ylab('UMAP-2')
+seu_obj$patient_id <- str_sub(seu_obj$sample, 0, 15)
+seu_obj <- NormalizeData(seu_obj)
+seu_obj <- FindVariableFeatures(seu_obj)
+seu_obj <- ScaleData(seu_obj)
+seu_obj <- score_cc(seu_obj)
+seu_obj <- ScaleData(seu_obj, vars.to.regress = c("CC.Diff", "percent.mt", "nCount_RNA"))
+seu_obj <- RunPCA(seu_obj, verbose = F)
+seu_obj <- RunUMAP(seu_obj, dims = 1:50)
+seu_obj <- RunHarmony(seu_obj, group.by.vars = "patient_id", dims.use = 1:50, assay.use = "RNA")
+seu_obj <- RunUMAP(seu_obj, dims = 1:50, reduction = "harmony", reduction.name = "umapharmony", reduction.key = "umapharmony_")
+seu_obj <- FindNeighbors(seu_obj, dims = 1:50, reduction = "harmony")
+seu_obj <- FindClusters(seu_obj, resolution = resolution)
 
-bumap <-  plot_hexbin_meta(binned, col="batch", action="majority") + theme(legend.title=element_text(size=0,face = "bold"),legend.text=element_text(size=7, face = "bold"),plot.title=element_text(size=12, face = "bold")) + ggtitle("Batch") + xlab('UMAP-1') + ylab('UMAP-2')
+saveRDS(seu_obj, file=celltype_obj)
 
-seurat <- FindNeighbors(object = seurat)
-seurat <- FindClusters(object = seurat, resolution=0.1)
-sce <- as.SingleCellExperiment(seurat)
-saveRDS(sce, file=sce_obj)
+sce <- as.SingleCellExperiment(seu_obj)
+if ("RNA_snn_res.0.1" %in% colnames(colData(sce))) {
+    Idents(seu_obj) <- seu_obj$RNA_snn_res.0.1
+    rescol <- "RNA_snn_res.0.1"
+} else if ("RNA_snn_res.0.2" %in% colnames(colData(sce))) {
+    Idents(seu_obj) <- seu_obj$RNA_snn_res.0.2
+    rescol <- "RNA_snn_res.0.2"
+} else if ("RNA_snn_res.0.3" %in% colnames(colData(sce))) {
+    Idents(seu_obj) <- seu_obj$RNA_snn_res.0.3
+    rescol <- "RNA_snn_res.0.3"
+}
+write_tsv(cbind(tibble(cell_id = colnames(seu_obj)), FetchData(seu_obj, c("sample", "UMAP_1", "UMAP_2", "umapharmony_1", "umapharmony_2", rescol, "cell_type"))), cells_tsv)
 
-markers <- FindAllMarkers(seurat, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
-marker_table <- markers %>% group_by(cluster) %>% top_n(n = 50, wt = avg_logFC)
-marker_table <- as.data.frame(marker_table)
-marker_table <- marker_table[c("p_val","avg_logFC","pct.1","pct.2","p_val_adj","cluster","gene")]
-marker_table <- subset(marker_table, !grepl("RPS", gene) )
-marker_table <- subset(marker_table, !grepl("RPL", gene) )
-write.csv(marker_table, file=marker_csv, row.names=FALSE)
-
-binned <- make_hexbin(seurat, nbins=60, dimension_reduction = "umapcelltype")
-cluster <-  plot_hexbin_meta(binned, col="sample", action="majority") + theme(legend.title=element_text(size=0,face = "bold"),legend.text=element_text(size=7, face = "bold"),plot.title=element_text(size=12, face = "bold")) + ggtitle("Sample") + xlab('UMAP-1') + ylab('UMAP-2')
-df <- data.frame(sample=seurat$seurat_clusters)
-
-totalsamp <- ggplot(df, aes(sample, fill=sample))+ geom_bar() + ggtitle("Cluster") + xlab('') + ylab('Cells')+theme(legend.position="none",axis.text.x=element_text(angle=90,size=7))
-
-figure <- plot_grid(sumap, bumap, cluster, totalsamp, nrow = 2, ncol=2, align = "vh")
-ggsave(batch_figure,figure,width=6,height=6, scale=2.0)
-
+seu_markers <- mutate(as_tibble(FindAllMarkers(seu_obj, only.pos = T)), resolution = resolution)
+write_tsv(seu_markers, markers_tsv)

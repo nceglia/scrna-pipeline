@@ -81,12 +81,12 @@
             <li class="nav-item">
               <a  class="nav-link btn-dark" href="#4a" data-toggle="tab">Cell Type</a>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <a  class="nav-link btn-dark" href="#6a" data-toggle="tab">Subtypes</a>
-            </li>
-            <li class="nav-item">
+            </li> -->
+            <!-- <li class="nav-item">
               <a  class="nav-link btn-dark" href="#5a" data-toggle="tab">Pathway</a>
-            </li>
+            </li> -->
           </ul>
 
       			<div class="tab-content">
@@ -108,6 +108,8 @@
                     <div class="tab-pane" id="{{sample.name}}">
                       <h5>{{sample.name}}</h5>
                       {{sample.svg}}
+                      {{sample.counts}}
+                      {{sample.features}}
                     </div>
                   {% endfor %}
                   </div>
@@ -121,18 +123,18 @@
                   <ul class="nav nav-pills nav-fill">
                   {% for batch in batches %}
                     <li class="nav-item">
-                      <a class="nav-link btn-dark" href="#{{batch.name}}" data-toggle="tab">{{batch.name}}</a>
+                      <a class="nav-link btn-dark" href="#{{batch.name}}_M" data-toggle="tab">{{batch.name}}</a>
                     </li>
                   {% endfor %}
                   </ul>
                   <br><br>
                   <div class="tab-content">
                   {% for batch in batches %}
-                    <div class="tab-pane" id="{{batch.name}}">
+                    <div class="tab-pane" id="{{batch.name}}_M">
                       <h5>{{ batch.name }}</h5>
                       <hr><br>{{ batch.svg }}<br>
-                      <br>{{ batch.copy_number }}<br>
-                      <br>{{ batch.clone }}<br>
+                      <!-- <br>{{ batch.copy_number }}<br>
+                      <br>{{ batch.clone }}<br> -->
                       <h5>Cluster Markers</h5>
                       <input type="text" class="batch_cluster_search" id="batch_cluster_search_{{ batch.name }}" onkeyup="batchClusterSearch('{{ batch.id }}', 'batch_cluster_search_{{ batch.name }}')" placeholder="Search for cluster">
                       <input type="text" class="batch_gene_search" id="batch_gene_search_{{ batch.name }}" onkeyup="batchGeneSearch('{{ batch.id }}', 'batch_gene_search_{{ batch.name }}')" placeholder="Search for gene">
@@ -146,14 +148,14 @@
                 <hr>
                 <h3>Project Level</h3>
                 <hr><br>
-                    {{ project_figure }}     
+                    {{ project_figure }}
                 <br>
                 <h5>Cell Type Markers</h5>
                 <br>
                 <input type="text" class="batch_cluster_search" id="project_cluster_search" onkeyup="batchClusterSearch('batch_markers_project', 'project_cluster_search')" placeholder="Search for cell type">
                 <input type="text" class="batch_gene_search" id="project_gene_search" onkeyup="batchGeneSearch('batch_markers_project', 'project_gene_search')" placeholder="Search for gene">
                 <br><br>
-                    {{ project_markers }}  
+                    {{ project_markers }}
       				</div>
               <div class="tab-pane" id="4a">
                 <hr>
@@ -173,10 +175,10 @@
                     <div class="tab-pane" id="{{ celltype.name }}">
                       <h5>{{ celltype.name }}</h5>
                       <br>{{ celltype.svg }}<br>
-                      <br>{{ celltype.enrichment_svg }}<br>
+                      <!-- <br>{{ celltype.enrichment_svg }}<br>
                       <br>{{ celltype.pathway_svg }}<br>
-                      <br>{{ celltype.velocity }}<br>
-                      <!-- {% for network in celltype.clusters %}
+                      <br>{{ celltype.velocity }}<br> -->
+                      {% for network in celltype.clusters %}
                       <button class="btn btn-dark" type="button" data-toggle="collapse" data-target="#collapseExample_{{ network.cluster }}">
                         Enrichment Network - Cluster {{network.cluster}}
                       </button>
@@ -187,7 +189,7 @@
                           {{ network.svg }}
                         </div>
                       </div>
-                      {% endfor %} -->
+                      {% endfor %}
                       <br>
                       <h5>Cluster Markers</h5>
                       <input type="text" class="batch_cluster_search" id="cell_cluster_search_{{ celltype.name }}" onkeyup="batchClusterSearch('{{ celltype.id }}', 'cell_cluster_search_{{ celltype.name }}')" placeholder="Search for cluster">
@@ -214,7 +216,8 @@
                   <div class="tab-content">
                   {% for pathway in pathways %}
                     <div class="tab-pane" id="{{pathway.pathway}}">
-                      <h5>{{ pathway.pathway }}</h5>
+                      <h4>{{ pathway.pathway }}</h4>
+                      <h5>{{ pathway.desc }}</h5>
                       {% for result in pathway.results %}
                         <h5>{{ result.batch }}</h5>
                         <hr><br>{{ result.svg }}<br>
@@ -263,7 +266,7 @@
       filter = input.value.toUpperCase();
       table = document.getElementById(id);
       tr = table.getElementsByTagName("tr");
-    
+
       // Loop through all table rows, and hide those who don't match the search query
       for (i = 0; i < tr.length; i++) {
         td = tr[i].getElementsByTagName("td")[5];
@@ -284,7 +287,7 @@
       filter = input.value.toUpperCase();
       table = document.getElementById(id);
       tr = table.getElementsByTagName("tr");
-    
+
       // Loop through all table rows, and hide those who don't match the search query
       for (i = 0; i < tr.length; i++) {
         td = tr[i].getElementsByTagName("td")[6];

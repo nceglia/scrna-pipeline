@@ -9,12 +9,14 @@ import numpy as np
 
 plt.rcParams['svg.fonttype'] = 'none'
 
-gtf = "/juno/work/shah/reference/transcriptomes/GRCh38/genes/genes.gtf"
-mask = "/juno/work/shah/ceglian/rnascp/Homo_sapiens.GRCh38.repeat_mask.gtf"
+gtf["HUMAN"] = "/juno/work/shah/reference/transcriptomes/GRCh38/genes/genes.gtf"
+mask["HUMAN"] = "/juno/work/shah/ceglian/rnascp/Homo_sapiens.GRCh38.repeat_mask.gtf"
+mask["MOUSE"] = "/juno/work/shah/ceglian/chow/transcriptome_analysis/"
+gtf["MOUSE"] = "/juno/work/shah/reference/transcriptomes/mm10/genes/genes.gtf"
 
 def run_velocyto(matrix, gtf, mask, directory):
-    output_name = directory.split("/")[-1]
-    outs = "/".join(matrix.split("/")[:-2])
+    output_name = directory.split("/")[2]
+    outs = "/".join(matrix.split("/")[:-1])
     try:
         os.makedirs(directory)
         os.makedirs(os.path.join(directory,"outs"))
@@ -25,10 +27,8 @@ def run_velocyto(matrix, gtf, mask, directory):
     loomfile = os.path.join(directory,"outs.loom")
     linked_bam = os.path.join(directory,"possorted_genome_bam.bam")
     linked_bai = linked_bam + ".bai"
-    try:
-        shutil.copytree(matrix,os.path.join(directory,"outs","filtered_feature_bc_matrix"))
-    except Exception as e:
-        pass
+    filtered_matrix = os.path.join(outs,"filtered_feature_bc_matrix")
+    shutil.copytree(filtered_matrix,os.path.join(directory,"outs","filtered_feature_bc_matrix"))
     try:
         os.unlink(linked_bam)
         os.unlink(linked_bai)
@@ -73,10 +73,8 @@ if __name__=="__main__":
     loom_name      = directory.split("/")[-1]
 
     #loomfile = run_velocyto(matrix, gtf, mask, directory)
-    loomfile = os.path.join("/juno/work/shah/ceglian/rnascp/velocity/","velocity_{}.loom".format(sample))
+    loomfile = os.path.join("/work/shah/ceglian/rnascp/velocity/","velocity_{}.loom".format(sample))
     result = loomfile.replace(".loom",".hd5")
-    if os.path.exists(loomfile):
-        filter_loom(loomfile, sce, result)
-        analyze_loom(result, frac_svg)
-    else:
-        raise ValueError(loomfile)
+
+    filter_loom(loomfile, sce, result)
+    analyze_loom(result, frac_svg)

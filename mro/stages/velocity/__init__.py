@@ -22,15 +22,18 @@ stage VELOCITY(
 def split(args):
     chunks = []
     outs_dirs = dict()
+    if not args.bam_inventory or args.bam_inventory == "None":
+        return {"chunks": chunks}
     rows = open(args.bam_inventory,"r").read().splitlines()
     header = rows.pop(0)
     for row in rows:
         sample, outs = row.split(",")
-        outs_dirs[sample] = outs
+        outs_dirs[sample.split("-")[0]] = outs
     for sample in args.samples:
+        if sample not in outs_dirs: continue
         chunk_def = {}
         chunk_def['sample'] = sample
-        chunk_def['matrix'] = outs_dirs[sample]
+        chunk_def['matrix'] = outs_dirs[sample.split("-")[0]]
         chunk_def['seurat'] = args.samples[sample]
         chunk_def['sce']    = args.sce[sample]
         chunk_def['__threads'] = 16
@@ -56,7 +59,8 @@ def join(args, outs, chunk_defs, chunk_outs):
     outs.frac_svg = dict()
     outs.looms    = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
-        outs.looms[arg.sample] = out.looms
+        if os.path.exists(out.looms):
+            outs.looms[arg.sample] = out.looms
         if os.path.exists(out.frac_svg):
             outs.frac_svg[arg.sample] = out.frac_svg
         

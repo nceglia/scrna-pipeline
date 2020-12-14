@@ -28,6 +28,7 @@ class GeneMarkerMatrix(object):
 
     def write_matrix(self, filename, include_other=False):
         self.indicator = []
+        include_other = False
         self.genes = list(set([gene for genelist in self.marker_list.values() for gene in genelist]))
         self.cells = list(self.marker_list.keys())
         if include_other:

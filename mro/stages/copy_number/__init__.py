@@ -2,6 +2,7 @@ import container
 import scriptmanager
 import martian
 import os
+import shutil
 
 __MRO__ = '''
 stage COPY_NUMBER(
@@ -21,6 +22,8 @@ stage COPY_NUMBER(
 
 def split(args):
     chunks = []
+    if not args.cn_ref_genes or not args.cn_ref_genes:
+        return {"chunks": chunks}
     for batch, obj in args.annotated_seurat.items():
         chunk_def = {}
         chunk_def['batch'] = batch
@@ -31,18 +34,15 @@ def split(args):
     return {'chunks': chunks}
 
 def main(args, outs):
-    path = "{}_infercnv".format(args.batch)
     args.cn_reference = "/juno/work/shah/ceglian/rnascp/resources/spectrum_infercnv_reference_20200526.rdata"
+    path = "{}_infercnv".format(args.batch)
     outs.cn_output = martian.make_path(path)
     scripts = scriptmanager.ScriptManager()
     script = scripts.infercnv()
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    # try:
-    #     con.run(script, args, outs)
-    # except Exception as e:
-    #     pass
+    # con.run(script, args, outs)
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.cn_output = dict()

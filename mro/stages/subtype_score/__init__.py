@@ -23,7 +23,7 @@ stage SUBTYPE_SCORE(
 def split(args):
     chunks = []
     subtype_genes = dict()
-    subtypes = open(args.subtypes,"r")
+    subtypes = open("/juno/work/shah/ceglian/chow/transcriptome_analysis/subtypes.csv","r").read().splitlines()
     for subtype in subtypes:
         subtype = subtype.split(",")
         if subtype[0] not in subtype_genes:
@@ -55,7 +55,10 @@ def main(args, outs):
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    con.run(script, args, outs)
+    try:
+        con.run(script, args, outs)
+    except Exception as e:
+        return
 
 
 def join(args, outs, chunk_defs, chunk_outs):

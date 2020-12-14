@@ -1,4 +1,7 @@
 filetype rds;
+filetype h5;
+filetype tsv;
+filetype mtx;
 filetype html;
 filetype png;
 filetype svg;
@@ -10,9 +13,25 @@ stage SAMPLE_SETUP(
     src py "stages/sample_setup",
 )
 
+stage BUILD_MATRIX(
+    in  path inventory,
+    in  path image,
+    in  string runtime,
+    out h5 project_matrix,
+    out mtx matrix,
+    out tsv features,
+    out tsv barcodes,
+    src py "stages/build_matrix",
+) using (
+    threads = 40,
+    mem_gb  = 10,
+)
+
 stage RUN_QC(
     in  map samples,
     in  int mito,
+    in  int ncounts,
+    in  int nfeatures,
     in  path image,
     in  string runtime,
     out map seurat,
@@ -23,22 +42,7 @@ stage RUN_QC(
     in  map samples,
 ) using (
     threads = 4,
-)
-
-stage VELOCITY(
-    in  map samples,
-    in  map raw_sce,
-    in  path bam_inventory,
-    in  map sce,
-    in  path image,
-    in  string runtime,
-    out map frac_svg,
-    out map looms,
-    src py "stages/velocity",
-) split using (
-    in  map samples,
-) using (
-    threads = 4,
+    mem_gb  = 8,
 )
 
 stage CELLTYPE_MARKERS(
@@ -49,6 +53,7 @@ stage CELLTYPE_MARKERS(
     src py   "stages/celltype_markers",
 ) using (
     threads = 1,
+    mem_gb  = 4,
 )
 
 stage DETECT_DOUBLETS(
@@ -61,23 +66,7 @@ stage DETECT_DOUBLETS(
     in  map sces,
 ) using (
     threads = 2,
-)
-
-stage SUMMARIZE_SAMPLE_QC(
-    in  map qcd_scored_seurat,
-    in  map csv,
-    in  map sce,
-    in  path markers,
-    in  int mito,
-    in  float score,
-    in  path image,
-    in  string runtime,
-    out map qc_report,
-    src py "stages/summarize_sample_qc",
-) split using (
-    in  map qcd_scored_seurat,
-) using (
-    threads = 8,
+    mem_gb  = 4,
 )
 
 stage FILTER_DOUBLETS(
@@ -93,6 +82,7 @@ stage FILTER_DOUBLETS(
     in  map csv,
 ) using (
     threads = 4,
+    mem_gb  = 4,
 )
 
 stage CELLCYCLE_SCORE(
@@ -106,6 +96,7 @@ stage CELLCYCLE_SCORE(
     in  map qcd_seurat,
 ) using (
     threads = 4,
+    mem_gb  = 4,
 )
 
 stage MERGE_SAMPLES(
@@ -120,6 +111,7 @@ stage MERGE_SAMPLES(
     in  map batch,
 ) using (
     threads = 16,
+    mem_gb = 4,
 )
 
 stage ASSIGN_CELLTYPES(
@@ -129,166 +121,72 @@ stage ASSIGN_CELLTYPES(
     in  string runtime,
     out map probabilities,
     out map annotated_seurat,
+    out map annotated_sce,
     out map batch_report,
     out map batch_csv,
     src py   "stages/assign_celltypes",
 ) split using (
     in  map merged_seurat,
 ) using (
-    threads = 30,
+    threads = 10,
+    mem_gb  = 2,
+) retain (
+    annotated_seurat,
 )
 
 stage MERGE_BATCHES(
-    in  map annotated_seurat,
+    in  map annotated_sce,
+    in  h5  project_matrix,
     in  path image,
     in  string runtime,
-    out rds batch_merged_seurat,
+    out h5 batch_merged,
     out path batch_tsv,
     out path celltype_csv,
     out string[] celltypes,
     src py   "stages/merge_batch",
 ) using (
-    threads = 16,
+    threads = 32,
+    mem_gb  = 10,
 )
 
 stage BATCH_CORRECTION(
-    in  rds batch_merged_seurat,
+    in  h5 batch_merged,
+    in  path celltype_csv,
     in  path image,
     in  string runtime,
     out rds integrated_seurat,
     out svg project_figure,
     out path ct_markers,
+    out path cell_annotations,
     src py   "stages/batch_correction",
 ) using (
-    threads = 16,
+    threads = 32,
+    mem_gb  = 10,
+) retain (
+    cell_annotations,
 )
 
 stage SUBSET_CELLTYPES(
-    in  rds batch_merged_seurat,
-    in  string[] celltypes,
+    in  rds integrated_seurat,
+    in  string celltypes,
     in  path image,
     in  string runtime,
     out map celltype_seurat,
     out map celltype_sce,
     out map cell_umap,
     out map markers,
+    out map markers_tsv,
+    out map cells_tsv,
     src py   "stages/splitcelltypes",
 ) split using (
     in  string[] celltypes,
 ) using (
-    threads = 12,
-)
-
-stage COPY_NUMBER(
-    in  map annotated_seurat,
-    in  path cn_ref_genes,
-    in  path cn_reference,
-    in  path image,
-    in  string runtime,
-    out map cn_output,
-    src py   "stages/copy_number",
-) split using (
-    in  map annotated_seurat,
-) using (
-    threads = 60,
-)
-
-stage ASSIGN_CLONES(
-    in  map annotated_seurat,
-    in  path image,
-    in  string runtime,
-    out map clone_annotated_seurat,
-    out map clonealign_fit,
-    out map clone_umap,
-    src py   "stages/assign_clones",
-) split using (
-    in  map annotated_seurat,
-) using (
-    threads = 30,
-)
-
-stage CELLTYPE_VELOCITY(
-    in  string[] celltypes,
-    in  map celltype_sce,
-    in  map looms,
-    in  path image,
-    in  string runtime,
-    out map velocity,
-    out map celltype_loom,
-    src py   "stages/celltype_velocity",
-) split using (
-    in  map celltype_seurat,
-) using (
-    threads = 12,
-)
-
-stage SUBTYPE_SCORE(
-    in  string[] celltypes,
-    in  map celltype_seurat,
-    in  path subtypes,
-    in  path image,
-    in  string runtime,
-    out map subtype_scores,
-    src py   "stages/subtype_score",
-) split using (
-    in  map celltype_seurat,
-) using (
-    threads = 12,
-)
-
-stage ENRICHMENT_NETWORK(
-    in  map ct_markers,
-    in  path gmt,
-    in  path image,
-    in  string runtime,
-    out map pathway_network,
-    out map enriched_pathways,
-    src py   "stages/enrichment_network",
-) split using (
-    in  map markers,
-) using (
-    threads = 4,
-)
-
-stage CELL_CELL_INTERACTIONS(
-    in string[] celltypes,
-    in  map celltype_seurat,
-    in  path gmt,
-    in  path image,
-    in  string runtime,
-    out map interactions,
-    out map network_svg,
-    src py   "stages/cell_cell_interactions",
-) split using (
-    in  map celltype_seurat,
-) using (
-    threads = 12,
-)
-
-stage GENERATE_REPORT(
-    in  string project,
-    in  map qc_report,
-    in  map batch_report,
-    in  svg project_figure,
-    in  map celltype_umaps,
-    in  map interactions,
-    in  map networks,
-    in  map markers,
-    in  map batch_markers,
-    in  map subtype_scores,
-    in  path image,
-    in  map enriched_pathways,
-    in  path ct_markers,
-    in  map network_svg,
-    in  map frac_svg,
-    in  map cn_output,
-    in  map celltype_velocity,
-    in  map clone_umap,
-    in  string runtime,
-    out html report,
-    src py   "stages/generate_report",
-) using (
-    threads = 12,
+    threads = 32,
+    mem_gb  = 10,
+) retain (
+    celltype_seurat,
+    markers_tsv,
+    cells_tsv,
 )
 
 pipeline RNASCP(
@@ -296,38 +194,30 @@ pipeline RNASCP(
     in string runtime,
     in path inventory,
     in int mito,
+    in int ncounts,
+    in int nfeatures,
     in float score,
-    in path cn_reference,
-    in  path bam_inventory,
-    in path cn_ref_genes,
     in path yaml,
-    in path gmt,
-    in string project,
-    in string subtypes,
+    in string supertypes,
     out rds integrated_seurat,
-    out rds batch_merged_seurat,
-    out map samples,
-    out map batches,
-    out map looms,
-    out html report,
+    out map  raw,
 )
 {
     call SAMPLE_SETUP(
         inventory  = self.inventory,
+    )
+    call BUILD_MATRIX(
+        inventory = self.inventory,
+        image     = self.image,
+        runtime   = self.runtime,
     )
     call RUN_QC(
         samples = SAMPLE_SETUP.samples,
         image   = self.image,
         runtime = self.runtime,
         mito    = self.mito,
-    )
-    call VELOCITY(
-        bam_inventory = self.bam_inventory,
-        samples       = SAMPLE_SETUP.samples,
-        raw_sce       = RUN_QC.raw_sce,
-        sce           = CELLCYCLE_SCORE.qcd_scored_sce,
-        image         = self.image,
-        runtime       = self.runtime,
+        ncounts = self.ncounts,
+        nfeatures = self.nfeatures,
     )
     call DETECT_DOUBLETS(
         sce     = RUN_QC.sce,
@@ -363,98 +253,26 @@ pipeline RNASCP(
         image          = self.image,
         runtime        = self.runtime,
     )
-    call ASSIGN_CLONES(
-        annotated_seurat  = ASSIGN_CELLTYPES.annotated_seurat,
-        image          = self.image,
-        runtime        = self.runtime,
-    )
-    call SUMMARIZE_SAMPLE_QC(
-        qcd_scored_seurat = CELLCYCLE_SCORE.qcd_scored_seurat,
-        sce               = RUN_QC.raw_sce,
-        csv               = DETECT_DOUBLETS.csv,
-        score             = self.score,
-        mito              = self.mito,
-        markers           = CELLTYPE_MARKERS.marker_csv,
-        image             = self.image,
-        runtime           = self.runtime,
-    )
     call MERGE_BATCHES(
-        annotated_seurat = ASSIGN_CELLTYPES.annotated_seurat,
-        image            = self.image,
-        runtime          = self.runtime,
-    )
-    call SUBSET_CELLTYPES(
-        batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
-        celltypes           = MERGE_BATCHES.celltypes,
-        image               = self.image,
-        runtime             = self.runtime,
-    )
-    call CELLTYPE_VELOCITY(
-        celltypes       = MERGE_BATCHES.celltypes,
-        celltype_sce    = SUBSET_CELLTYPES.celltype_sce,
-        looms           = VELOCITY.looms,
-        image           = self.image,
-        runtime         = self.runtime,
-    )
-    call COPY_NUMBER(
-        cn_reference     = self.cn_reference,
-        cn_ref_genes     = self.cn_ref_genes,
-        annotated_seurat = ASSIGN_CELLTYPES.annotated_seurat,
+        annotated_sce    = ASSIGN_CELLTYPES.annotated_sce,
+        project_matrix   = BUILD_MATRIX.project_matrix,
         image            = self.image,
         runtime          = self.runtime,
     )
     call BATCH_CORRECTION(
-        batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
+        batch_merged        = MERGE_BATCHES.batch_merged,
+        celltype_csv        = MERGE_BATCHES.celltype_csv,
         image               = self.image,
         runtime             = self.runtime,
     )
-    call ENRICHMENT_NETWORK(
-        ct_markers = SUBSET_CELLTYPES.markers,
-        gmt        = self.gmt,
-        image      = self.image,
-        runtime    = self.runtime,
-    )
-    call CELL_CELL_INTERACTIONS(
-        celltypes       = MERGE_BATCHES.celltypes,
-        celltype_seurat = SUBSET_CELLTYPES.celltype_seurat,
-        gmt             = self.gmt,
-        image           = self.image,
-        runtime         = self.runtime,
-    )
-    call SUBTYPE_SCORE(
-        celltypes       = MERGE_BATCHES.celltypes,
-        celltype_seurat = SUBSET_CELLTYPES.celltype_seurat,
-        subtypes        = self.subtypes,
-        image           = self.image,
-        runtime         = self.runtime,
-    )
-    call GENERATE_REPORT(
-        project               = self.project,
-        qc_report             = SUMMARIZE_SAMPLE_QC.qc_report,
-        batch_report          = ASSIGN_CELLTYPES.batch_report,
-        project_figure        = BATCH_CORRECTION.project_figure,
-        celltype_umaps        = SUBSET_CELLTYPES.cell_umap,
-        interactions          = CELL_CELL_INTERACTIONS.interactions,
-        networks              = ENRICHMENT_NETWORK.pathway_network,
-        markers               = SUBSET_CELLTYPES.markers,
-        enriched_pathways     = ENRICHMENT_NETWORK.enriched_pathways,
-        batch_markers         = ASSIGN_CELLTYPES.batch_csv,
-        subtype_scores        = SUBTYPE_SCORE.subtype_scores,
-        ct_markers            = BATCH_CORRECTION.ct_markers,
-        network_svg           = CELL_CELL_INTERACTIONS.network_svg,
-        cn_output             = COPY_NUMBER.cn_output,
-        frac_svg              = VELOCITY.frac_svg,
-        celltype_velocity     = CELLTYPE_VELOCITY.velocity,
-        clone_umap            = ASSIGN_CLONES.clone_umap,
-        image                 = self.image,
-        runtime               = self.runtime,
+    call SUBSET_CELLTYPES(
+        integrated_seurat   = BATCH_CORRECTION.integrated_seurat,
+        celltypes           = self.supertypes,
+        image               = self.image,
+        runtime             = self.runtime,
     )
     return (
         integrated_seurat   = BATCH_CORRECTION.integrated_seurat,
-        batch_merged_seurat = MERGE_BATCHES.batch_merged_seurat,
-        report              = GENERATE_REPORT.report,
-        looms               = VELOCITY.looms,
-        batches             = ASSIGN_CELLTYPES.annotated_seurat,
-        samples             = CELLCYCLE_SCORE.qcd_scored_seurat,
+        raw                 = RUN_QC.raw_sce,
     )
 }

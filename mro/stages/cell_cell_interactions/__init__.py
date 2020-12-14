@@ -24,18 +24,16 @@ stage CELL_CELL_INTERACTIONS(
 def split(args):
     chunks = []
     geneset_oi = dict()
-    pathways_of_interest = {"HALLMARK_TNFA_SIGNALING_VIA_NFKB":["CD8.Effector","CD8.Effector"],
-                            "HALLMARK_IL6_JAK_STAT3_SIGNALING":["CD8.Effector","CD8.Effector"],
-                            "HALLMARK_INTERFERON_ALPHA_RESPONSE":["CD8.Effector","CD8.Effector"],
-                            "HALLMARK_INTERFERON_GAMMA_RESPONSE":["CD8.Effector","CD8.Effector"],
-                            "HALLMARK_INFLAMMATORY_RESPONSE":["CD8.Effector","CD8.Effector"]}
+    pathways_of_interest = {"DNA_REPAIR":["Cancer.cell","Cancer.cell"]}
+    if not args.gmt or args.gmt == "None":
+        return {"chunks": chunks}
     pathways = open(args.gmt,"r").read().splitlines()
     for pathway in pathways:
         pathway = pathway.split()
         geneset_oi[pathway[0].replace("HALLMARK_","")] = pathway[2:]
-    groups = ["HRD-Dup","FBI"]
-    for batch in groups:
-        for pathway, interactors in pathways_of_interest.items():
+
+    for pathway, interactors in pathways_of_interest.items():
+        if interactors[0] in args.celltype_seurat and interactors[1] in args.celltype_seurat:
             chunk_def = {}
             chunk_def["sender"]   = interactors[0]
             chunk_def["receiver"] = interactors[1]
@@ -43,7 +41,7 @@ def split(args):
             chunk_def["receiver_obj"]      = args.celltype_seurat[interactors[1]]
             chunk_def["geneset"]       = geneset_oi[pathway.replace("HALLMARK_","")]
             chunk_def["pathway"]       = pathway.replace("HALLMARK_","")
-            chunk_def["batch_label"] = batch
+            chunk_def["batch_label"] = ""
             chunk_def['__threads'] = 8
             chunks.append(chunk_def)
     return {'chunks': chunks}
@@ -66,8 +64,10 @@ def main(args, outs):
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    con.run(script, args, outs)
-
+    # try:
+    # con.run(script, args, outs)
+    # except Exception as e:
+    #     pass 
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.interactions = dict()

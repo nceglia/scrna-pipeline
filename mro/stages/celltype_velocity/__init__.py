@@ -20,16 +20,16 @@ stage CELLTYPE_VELOCITY(
 )
 '''
 
-
 def split(args):
     chunks = []
-    for celltype in args.celltypes:
-        chunk_def = {}
-        chunk_def["sce"] = args.celltype_sce[celltype]
-        chunk_def["celltype"] = celltype
-        chunk_def["looms"] = args.looms
-        chunk_def['__threads'] = 8
-        chunks.append(chunk_def)
+    # for celltype in args.celltypes:
+    #     if celltype == "Other": continue
+    #     chunk_def = {}
+    #     chunk_def["sce"] = args.celltype_sce[celltype]
+    #     chunk_def["celltype"] = celltype
+    #     chunk_def["looms"] = args.looms
+    #     chunk_def['__threads'] = 8
+    #     chunks.append(chunk_def)
     return {'chunks': chunks}
 
 def main(args, outs):
@@ -47,7 +47,11 @@ def main(args, outs):
     con = container.Container()
     con.set_runtime(args.runtime)
     con.set_image(args.image)
-    con.run(script, args, outs)
+    # try:
+    #     con.run(script, args, outs)
+    # except Exception as e:
+    #     pass
+
 
 def join(args, outs, chunk_defs, chunk_outs):
     outs.velocity = dict()

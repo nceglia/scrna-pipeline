@@ -37,8 +37,8 @@ if (sender != receiver) {
 } else {
   combined <- sender_obj
 }
-#combined <- combined[,combined$batch==batch_label]
-combined <- subset(combined, subset = group == batch_label)
+# #combined <- combined[,combined$batch==batch_label]
+# combined <- subset(combined, subset = group == batch_label)
 
 sce <- as.SingleCellExperiment(combined)
 expression <- logcounts(sce)
@@ -141,7 +141,7 @@ graph_min_max = diagrammer_format_signaling_graph(signaling_graph_list = active_
 bind_rows(active_signaling_network$sig %>% mutate(layer = "signaling"), active_signaling_network$gr %>% mutate(layer = "regulatory")) %>% write_tsv(weighted_network_tmp) 
 print("net1")
 df <- read.csv(weighted_network_tmp,sep="\t",stringsAsFactors=F)
-dfx <- df[(df$layer=="regulatory" & df$weight > 0.17) | (df$layer=="signaling" & df$weight > 0.9),]
+dfx <- df[(df$layer=="regulatory" & df$weight > 0.2) | (df$layer=="signaling" & df$weight > 0.9),]
 g <- graph_from_data_frame(dfx)
 g <- induced_subgraph(g, V(g)[components(g)$membership == which.max(components(g)$csize)])
 
@@ -163,8 +163,8 @@ plot(g,layout=layout_with_fr, vertex.size=5, edge.curved=.1, vertex.frame.color=
 legend(x=-1, y=-1, c("Regulatory","Signaling"), pch=21, col="#777777", pt.bg=c("tomato","gray50"), pt.cex=3, cex=1.2, bty="n", ncol=1)
 dev.off()
 
-sender_obj <- sender_obj[,sender_obj$group==batch_label]
-receiver_obj <- receiver_obj[,receiver_obj$group==batch_label]
+# sender_obj <- sender_obj[,sender_obj$group==batch_label]
+# receiver_obj <- receiver_obj[,receiver_obj$group==batch_label]
 
 
 sender_obj <- AddModuleScore(object = sender_obj, features = order_ligands, name = "subtype_score")

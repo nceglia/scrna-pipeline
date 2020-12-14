@@ -34,22 +34,23 @@ class ScriptManager(object):
         script = Script("qc")
         script.set_args(1, "matrix")
         script.set_args(2, "mito")
-        script.set_outs(3, "seurat")
-        script.set_outs(4, "sce")
-        script.set_outs(5, "raw_sce")
-        script.set_outs(6, "matrix")
+        script.set_args(3, "ncounts")
+        script.set_outs(4, "seurat")
+        script.set_outs(5, "sce")
+        script.set_outs(6, "raw_sce")
+        script.set_outs(7, "matrix")
+        script.set_args(8, "nfeatures")
         script.set_path(os.path.join(self.current,"../R/qc.R"))
         return script
 
-    def velocity(self):
-        script = Script("velocity")
-        script.set_args(1, "sample")
-        script.set_args(2, "matrix")
-        script.set_outs(3, "looms")
-        script.set_outs(4, "frac_svg")
-        script.set_outs(5, "directory")
-        script.set_args(6, "sce")
-        script.set_path(os.path.join(self.current,"../python/velocity.py"))
+    def buildmatrix(self):
+        script = Script("buildmatrix")
+        script.set_args(1, "inventory")
+        script.set_outs(2, "matrix")
+        script.set_outs(3, "features")
+        script.set_outs(4, "barcodes")
+        script.set_outs(5, "project_matrix")
+        script.set_path(os.path.join(self.current,"../python/buildmatrix.py"))
         return script
 
     def detectdoublets(self):
@@ -77,39 +78,21 @@ class ScriptManager(object):
         script.set_path(os.path.join(self.current,"../R/cellcycle.R"))
         return script
 
-    def clonealign(self):
-        script = Script("clonealign")
-        script.set_args(1, "annotated_seurat")
-        script.set_args(2, "clone_cn")
-        script.set_outs(3, "clone_annotated_seurat")
-        script.set_outs(4, "clonealign_fit")
-        script.set_outs(5, "clone_umap")
-        script.set_path(os.path.join(self.current,"../R/clonealign.R"))
-        return script
-
     def mergesamples(self):
         script = Script("mergesamples")
         script.set_outs(1, "merged_tsv")
         script.set_outs(2, "merged_seurat")
+        script.set_args(3, "metadata")
         script.set_path(os.path.join(self.current,"../R/mergesamples.R"))
         return script
 
     def mergebatches(self):
         script = Script("mergebatches")
         script.set_outs(1, "batch_tsv")
-        script.set_outs(2, "batch_merged_seurat")
+        script.set_outs(2, "batch_merged")
         script.set_outs(3, "celltype_csv")
-        script.set_path(os.path.join(self.current,"../R/mergebatches.R"))
-        return script
-
-    def celltypevelocity(self):
-        script = Script("celltypevelocity")
-        script.set_args(1, "celltype_sce")
-        script.set_args(2, "celltype")
-        script.set_outs(3, "celltype_loom")
-        script.set_outs(4, "velocity")
-        #script.set_args(5, "looms")
-        script.set_path(os.path.join(self.current,"../python/celltypevelocity.py"))
+        script.set_args(4, "project_matrix")
+        script.set_path(os.path.join(self.current,"../python/mergebatches.py"))
         return script
 
     def assigncelltypes(self):
@@ -120,70 +103,31 @@ class ScriptManager(object):
         script.set_outs(4, "annotated_seurat")
         script.set_outs(5, "batch_report")
         script.set_outs(6, "batch_csv")
+        script.set_outs(7, "annotated_sce")
         script.set_path(os.path.join(self.current,"../R/cellassign.R"))
         return script
 
     def batchcorrection(self):
         script = Script("batchcorrection")
-        script.set_args(1, "batch_merged_seurat")
+        script.set_args(1, "batch_merged")
         script.set_outs(2, "integrated_seurat")
         script.set_outs(3, "project_figure")
         script.set_outs(4, "ct_markers")
+        script.set_outs(5, "cell_annotations")
+        script.set_args(6, "celltype_csv")
         script.set_path(os.path.join(self.current,"../R/batchcorrection.R"))
-        return script
-
-    def enrichmentnetwork(self):
-        script = Script("enrichmentnetwork")
-        script.set_args(1, "markers")
-        script.set_args(2, "cluster")
-        script.set_outs(3, "pathway_network")
-        script.set_args(4, "gmt")
-        script.set_outs(5, "enriched_pathways")
-        script.set_path(os.path.join(self.current,"../python/pathwayanalysis.py"))
         return script
 
     def subsetcelltype(self):
         script = Script("subsetcelltype")
-        script.set_args(1, "batch_merged_seurat")
+        script.set_args(1, "integrated_seurat")
         script.set_args(2, "celltype")
         script.set_outs(3, "celltype_seurat")
-        script.set_outs(4, "cell_umap")
-        script.set_outs(5, "markers")
-        script.set_outs(6, "celltype_sce")
+        script.set_outs(4, "markers")
+        script.set_outs(5, "markers_tsv")
+        script.set_outs(6, "cells_tsv")
+        script.set_args(7, "resolution")
         script.set_path(os.path.join(self.current,"../R/subsetcelltype.R"))
-        return script
-
-    def infercnv(self):
-        script = Script("infercnv")
-        script.set_args(1, "cn_reference")
-        script.set_args(2, "cn_ref_genes")
-        script.set_args(3, "seurat")
-        script.set_outs(4, "cn_output")
-        script.set_path(os.path.join(self.current,"../R/infercnv_script.R"))
-        return script
-
-    def cellcellinteractions(self):
-        script = Script("cellcellinteractions")
-        script.set_args(1, "sender")
-        script.set_args(2, "receiver")
-        script.set_args(3, "sender_obj")
-        script.set_args(4, "receiver_obj")
-        script.set_args(5, "geneset")
-        script.set_args(6, "pathway")
-        script.set_outs(7, "interactions")
-        script.set_outs(8, "weighted_tmp")
-        script.set_outs(9, "network_svg")
-        script.set_args(10, "batch_label")
-        script.set_path(os.path.join(self.current,"../R/cellcellinteractions.R"))
-        return script
-
-    def subtypescores(self):
-        script = Script("subtypescores")
-        script.set_args(1, "celltype_obj")
-        script.set_args(2, "subtype")
-        script.set_args(3, "geneset")
-        script.set_outs(7, "subtype_scores")
-        script.set_path(os.path.join(self.current,"../R/subtypescores.R"))
         return script
 
     def celltypemarkers(self):
@@ -191,29 +135,6 @@ class ScriptManager(object):
         script.set_args(1, "yaml")
         script.set_outs(2, "marker_csv")
         script.set_path(os.path.join(self.current,"../python/parseyaml.py"))
-        return script
-
-    def generatereport(self):
-        script = Script("generatereport")
-        script.set_args(1, "qc_report")
-        script.set_args(2, "project")
-        script.set_args(3, "batch_report")
-        script.set_args(4, "project_figure")
-        script.set_args(8, "celltype_umaps")
-        script.set_args(9, "interactions")
-        script.set_args(10, "networks")
-        script.set_args(11, "markers")
-        script.set_args(12, "batch_markers")
-        script.set_args(13, "subtype_scores")
-        script.set_args(14, "enriched_pathways")
-        script.set_args(15, "ct_markers")
-        script.set_args(16, "network_svg")
-        script.set_args(17, "frac_svg")
-        script.set_args(18, "cn_output")
-        script.set_args(19, "celltype_velocity")
-        script.set_args(20, "clone_umap")
-        script.set_outs(21, "report")
-        script.set_path(os.path.join(self.current,"../python/report.py"))
         return script
 
     def summarizeqc(self):

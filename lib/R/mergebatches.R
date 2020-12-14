@@ -10,7 +10,7 @@ i <- 0
 rdata <- as.character(paths$path)
 batches <- as.character(paths$batch_id)
 seurats <- vector("list", length(rdata)-1)
-
+print(rdata[[1]])
 init_seurat <- readRDS(rdata[[1]])
 init_seurat$batch <-batches[1]
 for (i in 2:length(rdata)) {
@@ -19,11 +19,14 @@ for (i in 2:length(rdata)) {
   seurats[[i-1]] <- seurat
 }
 merged <- merge(init_seurat, y = seurats, project = "RNASCP")
+cell_types_super <- c(T.cell = "T.super", B.cell = "B.super", Plasma.cell = "B.super", Mast.cell = "Myeloid.super", Dendritic.cell = "Myeloid.super", Monocyte = "Myeloid.super", Fibroblast = "Stromal.super", Endothelial.cell = "Stromal.super", Ovarian.cancer.cell = "Ovarian.cancer.super", Other = "Other.super")
+merged$cell_type_super <- cell_types_super[merged$cell_type]
 
-merged <- FindVariableFeatures(merged)
-merged <- ScaleData(merged, vars.to.regress = c("CC.Diff", "percent.mt", "nCount_RNA"))
-merged <- RunPCA(merged, verbose = TRUE)
-merged <- RunUMAP(merged, dims = 1:50)
+
+# merged <- FindVariableFeatures(merged)
+# merged <- ScaleData(merged, vars.to.regress = c("CC.Diff", "percent.mt", "nCount_RNA"))
+# merged <- RunPCA(merged, verbose = TRUE)
+# merged <- RunUMAP(merged, dims = 1:50)
 
 saveRDS(merged, file=object_file)
 # merged <- readRDS(object_file)
