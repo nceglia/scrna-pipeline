@@ -13,20 +13,6 @@ stage SAMPLE_SETUP(
     src py "stages/sample_setup",
 )
 
-stage BUILD_MATRIX(
-    in  path inventory,
-    in  path image,
-    in  string runtime,
-    out h5 project_matrix,
-    out mtx matrix,
-    out tsv features,
-    out tsv barcodes,
-    src py "stages/build_matrix",
-) using (
-    threads = 40,
-    mem_gb  = 10,
-)
-
 stage RUN_QC(
     in  map samples,
     in  int mito,
@@ -34,159 +20,13 @@ stage RUN_QC(
     in  int nfeatures,
     in  path image,
     in  string runtime,
-    out map seurat,
-    out map sce,
-    out map raw_sce,
+    out map scanpy,
     src py "stages/qc",
 ) split using (
     in  map samples,
 ) using (
     threads = 4,
     mem_gb  = 8,
-)
-
-stage CELLTYPE_MARKERS(
-    in  path yaml,
-    in  path image,
-    in  string runtime,
-    out path marker_csv,
-    src py   "stages/celltype_markers",
-) using (
-    threads = 1,
-    mem_gb  = 4,
-)
-
-stage DETECT_DOUBLETS(
-    in  map sce,
-    in  path image,
-    in  string runtime,
-    out map csv,
-    src py "stages/detect_doublets",
-) split using (
-    in  map sces,
-) using (
-    threads = 2,
-    mem_gb  = 4,
-)
-
-stage FILTER_DOUBLETS(
-    in  map seurat,
-    in  map csv,
-    in  path image,
-    in  string runtime,
-    in  float score,
-    out map qcd_seurat,
-    src py   "stages/filter_doublets",
-) split using (
-    in  map seurat,
-    in  map csv,
-) using (
-    threads = 4,
-    mem_gb  = 4,
-)
-
-stage CELLCYCLE_SCORE(
-    in  map qcd_seurat,
-    in  path image,
-    in  string runtime,
-    out map qcd_scored_seurat,
-    out map qcd_scored_sce,
-    src py   "stages/cellcyclescore",
-) split using (
-    in  map qcd_seurat,
-) using (
-    threads = 4,
-    mem_gb  = 4,
-)
-
-stage MERGE_SAMPLES(
-    in  map qcd_scored_seurat,
-    in  map batch,
-    in  path image,
-    in  string runtime,
-    out map merged_seurat,
-    out map merged_tsv,
-    src py   "stages/merge_samples",
-) split using (
-    in  map batch,
-) using (
-    threads = 16,
-    mem_gb = 4,
-)
-
-stage ASSIGN_CELLTYPES(
-    in  map merged_seurat,
-    in  path marker_csv,
-    in  path image,
-    in  string runtime,
-    out map probabilities,
-    out map annotated_seurat,
-    out map annotated_sce,
-    out map batch_report,
-    out map batch_csv,
-    src py   "stages/assign_celltypes",
-) split using (
-    in  map merged_seurat,
-) using (
-    threads = 10,
-    mem_gb  = 2,
-) retain (
-    annotated_seurat,
-)
-
-stage MERGE_BATCHES(
-    in  map annotated_sce,
-    in  h5  project_matrix,
-    in  path image,
-    in  string runtime,
-    out h5 batch_merged,
-    out path batch_tsv,
-    out path celltype_csv,
-    out string[] celltypes,
-    src py   "stages/merge_batch",
-) using (
-    threads = 32,
-    mem_gb  = 10,
-)
-
-stage BATCH_CORRECTION(
-    in  h5 batch_merged,
-    in  path celltype_csv,
-    in  path image,
-    in  string runtime,
-    out rds integrated_seurat,
-    out svg project_figure,
-    out path ct_markers,
-    out path cell_annotations,
-    src py   "stages/batch_correction",
-) using (
-    threads = 32,
-    mem_gb  = 10,
-) retain (
-    cell_annotations,
-)
-
-stage SUBSET_CELLTYPES(
-    in  rds integrated_seurat,
-    in  string celltypes,
-    in  path image,
-    in  string runtime,
-    out map celltype_seurat,
-    out map celltype_sce,
-    out map cell_umap,
-    out map markers,
-    out map markers_tsv,
-    out map cells_tsv,
-    src py   "stages/splitcelltypes",
-) split using (
-    in  string[] celltypes,
-) using (
-    threads = 32,
-    mem_gb  = 10,
-) retain (
-    celltype_seurat,
-    markers_tsv,
-    cells_tsv,
 )
 
 pipeline RNASCP(
@@ -198,18 +38,11 @@ pipeline RNASCP(
     in int nfeatures,
     in float score,
     in path yaml,
-    in string supertypes,
-    out rds integrated_seurat,
-    out map  raw,
+    out map scanpy_h5ad,
 )
 {
     call SAMPLE_SETUP(
         inventory  = self.inventory,
-    )
-    call BUILD_MATRIX(
-        inventory = self.inventory,
-        image     = self.image,
-        runtime   = self.runtime,
     )
     call RUN_QC(
         samples = SAMPLE_SETUP.samples,
@@ -219,60 +52,7 @@ pipeline RNASCP(
         ncounts = self.ncounts,
         nfeatures = self.nfeatures,
     )
-    call DETECT_DOUBLETS(
-        sce     = RUN_QC.sce,
-        image   = self.image,
-        runtime = self.runtime,
-    )
-    call FILTER_DOUBLETS(
-        seurat    = RUN_QC.seurat,
-        csv       = DETECT_DOUBLETS.csv,
-        image     = self.image,
-        runtime   = self.runtime,
-        score     = self.score,
-    )
-    call CELLTYPE_MARKERS(
-        yaml    = self.yaml,
-        image   = self.image,
-        runtime = self.runtime,
-    )
-    call CELLCYCLE_SCORE(
-        qcd_seurat      = FILTER_DOUBLETS.qcd_seurat,
-        image           = self.image,
-        runtime         = self.runtime,
-    )
-    call MERGE_SAMPLES(
-        qcd_scored_seurat = CELLCYCLE_SCORE.qcd_scored_seurat,
-        batch             = SAMPLE_SETUP.batch,
-        image             = self.image,
-        runtime           = self.runtime,
-    )
-    call ASSIGN_CELLTYPES(
-        merged_seurat  = MERGE_SAMPLES.merged_seurat,
-        marker_csv     = CELLTYPE_MARKERS.marker_csv,
-        image          = self.image,
-        runtime        = self.runtime,
-    )
-    call MERGE_BATCHES(
-        annotated_sce    = ASSIGN_CELLTYPES.annotated_sce,
-        project_matrix   = BUILD_MATRIX.project_matrix,
-        image            = self.image,
-        runtime          = self.runtime,
-    )
-    call BATCH_CORRECTION(
-        batch_merged        = MERGE_BATCHES.batch_merged,
-        celltype_csv        = MERGE_BATCHES.celltype_csv,
-        image               = self.image,
-        runtime             = self.runtime,
-    )
-    call SUBSET_CELLTYPES(
-        integrated_seurat   = BATCH_CORRECTION.integrated_seurat,
-        celltypes           = self.supertypes,
-        image               = self.image,
-        runtime             = self.runtime,
-    )
     return (
-        integrated_seurat   = BATCH_CORRECTION.integrated_seurat,
-        raw                 = RUN_QC.raw_sce,
+        sample_h5ad    = RUN_QC.scanpy_h5ad,
     )
 }

@@ -65,16 +65,6 @@ def rnascp(project, image, runtime, config, jobs, mode, mem):
     print(cmd)
     print("\n")
     subprocess.call(cmd.split())
-    # print("Finalizing outputs.")
-    # outs = os.path.join(os.path.split(inventory)[0], "RNASCP/outs")
-    # if os.path.exists(outs):
-    #     tsvs = glob.glob(os.path.join(outs, "*.tsv"))
-    #     rds = glob.glob(os.path.join(outs,"*.rds"))
-    #     for o in tsvs + rds:
-    #         target = os.path.split(o)[1]
-    #         target = os.path.join(outs, target)
-    #         print("Moving {} to {}.".format(o, target))
-    #         os.rename(o,target)
 
 if __name__ == '__main__':
     rnascp()

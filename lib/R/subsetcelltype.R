@@ -9,7 +9,7 @@ library(SingleCellExperiment)
 library(RColorBrewer)
 
 args = commandArgs(trailingOnly=TRUE)    
-merged <- readRDS(args[1])
+merged <- ReadH5AD(args[1])
 celltype <- args[2]
 celltype_obj <- args[3]
 marker_csv <- args[4]
@@ -17,14 +17,12 @@ markers_tsv <- args[5]
 cells_tsv <- args[6]
 resolution <- as.double(args[7])
 
-message("BLAHJaasdfadsgadg")
 message(resolution)
-message("BLAFADSFSDS")
-Idents(merged) <- "super_cell_type"
-seu_obj <- merged[,merged$super_cell_type==celltype]
-if (length(colnames(seu_obj)) < 100) {
-  quit()
-}
+# Idents(merged) <- "super_cell_type"
+# seu_obj <- merged[,merged$super_cell_type==celltype]
+# if (length(colnames(seu_obj)) < 100) {
+#   quit()
+# }
 
 cc.genes <- read_lines("/work/shah/ceglian/isabl2/shahlab_apps/shahlab_apps/apps/cellassign/regev_lab_cell_cycle_genes.txt")
 s.genes <- cc.genes[1:43] ## s-phase genes

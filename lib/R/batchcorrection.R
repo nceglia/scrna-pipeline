@@ -30,7 +30,7 @@ seurat <- AddMetaData(seurat, df$percent.rb, col.name = "percent.rb")
 seurat <- AddMetaData(seurat, df$doublet, col.name = "doublet")
 seurat <- AddMetaData(seurat, df$doublet_score, col.name = "doublet_score")
 seurat <- AddMetaData(seurat, df$sample, col.name = "sample")
-seurat <- AddMetaData(seurat, df$Phase, col.name = "Phase")
+
 seurat <- AddMetaData(seurat, df$batch, col.name = "batch")
 
 
