@@ -4,6 +4,7 @@ import os
 import subprocess
 import yaml
 import shutil
+import glob
 
 @click.command()
 @click.option('--project', prompt='Project name.', help='Project name for pipeline run.')
@@ -19,6 +20,8 @@ def rnascp(project, image, runtime, config, jobs, mode, mem):
     install_dir = os.environ["RNASCP_DIR"]
     mro_dir = os.environ["MROPATH"]
     mrp = shutil.which("mrp")
+    if not mrp:
+        raise ValueError("No 'mrp' executable found.")
     with open(config) as f:
         params = yaml.load(f,Loader=yaml.FullLoader)
         globals().update(params)
@@ -52,19 +55,45 @@ def rnascp(project, image, runtime, config, jobs, mode, mem):
     output.write('\tmito = {},\n'.format(mito))
     output.write('\tncounts = {},\n'.format(ncounts))
     output.write('\tnfeatures = {},\n'.format(nfeatures))
-    output.write('\tscore = {},\n'.format(score))
+    output.write('\tscrublet_score = {},\n'.format(scrublet_score))
     output.write('\timage = "{}",\n'.format(image))
     output.write('\truntime = "{}",\n'.format(runtime))
-    output.write('\tyaml = "{}",\n'.format(celltype_markers))
+    output.write('\tcelltype_markers_yaml = "{}",\n'.format(celltype_markers_yaml))
     output.write('\tinventory = "{}",\n'.format(inventory))
-    output.write('\tsupertypes = "{}",\n'.format(supertypes))
+    output.write('\tmincells = {},\n'.format(mincells))
+    output.write('\tcell_cycle_genes = "{}",\n'.format(cell_cycle_genes))
 
     output.write(')\n')
     output.close()
     cmd = "mrp __{0}.mro {0} --jobmode={1} --maxjobs={2} --mempercore={3}".format(project, mode, jobs, mem)
     print(cmd)
     print("\n")
-    subprocess.call(cmd.split())
+    try:
+        subprocess.call(cmd.split())
+    except Exception as e:
+        print(e)
+        exit(0)
+
+    outs_path = "RNASCP/RNASCP/fork0/_outs"
+    assert os.path.exists(outs_path), "Pipeline had errors. See above."
+    results = eval(open(outs_path,"r").read())
+    print("\n")
+    if not os.path.exists("results"):
+        os.makedirs("results")
+    for result, files in results.items():
+        subfolder = "results/{}".format(result)
+        if not os.path.exists(subfolder):
+            os.makedirs(subfolder)
+        for key, path in files.items():
+            subfolder_key = "results/{}/{}/".format(result,key)
+            filename = os.path.split(path)[1]
+            target = os.path.join(subfolder_key, filename)
+            if not os.path.exists(subfolder_key):
+                os.makedirs(subfolder_key)
+            shutil.copyfile(path,target)
+            print("Saving - {}".format(filename))
+    print("\n")
+    print("Completed!")
 
 if __name__ == '__main__':
     rnascp()

@@ -13,20 +13,62 @@ stage SAMPLE_SETUP(
     src py "stages/sample_setup",
 )
 
+stage PARSE_CELLTYPE_MARKERS(
+    in  path yaml,
+    in  path image,
+    in  string runtime,
+    out path marker_csv,
+    src py   "stages/celltype_markers",
+) using (
+    threads = 1,
+)
+
 stage RUN_QC(
     in  map samples,
     in  int mito,
     in  int ncounts,
     in  int nfeatures,
+    in  int mincells,
+    in  float scrublet_score,
+    in  string cell_cycle_genes,
     in  path image,
     in  string runtime,
-    out map scanpy,
+    out map scanpy_h5ad,
     src py "stages/qc",
 ) split using (
     in  map samples,
 ) using (
+    threads = 1,
+    volatile = strict,
+)
+
+stage MERGE_SAMPLES(
+    in  map scanpy_h5ad,
+    in  map batch,
+    in  path image,
+    in  string runtime,
+    out map batch_h5ad,
+    src py   "stages/merge_samples",
+) split using (
+    in  map batch,
+) using (
     threads = 4,
-    mem_gb  = 8,
+    volatile = strict,
+)
+
+stage ASSIGN_CELLTYPES(
+    in  map batch_h5ad,
+    in  path marker_csv,
+    in  path image,
+    in  string runtime,
+    out map probabilities,
+    out map annotated_batch_h5ad,
+    src py   "stages/assign_celltypes",
+) split using (
+    in  map batch_h5ad,
+) using (
+    threads = 30,
+    volatile = strict,
 )
 
 pipeline RNASCP(
@@ -36,23 +78,49 @@ pipeline RNASCP(
     in int mito,
     in int ncounts,
     in int nfeatures,
-    in float score,
-    in path yaml,
-    out map scanpy_h5ad,
+    in int mincells,
+    in float scrublet_score,
+    in string cell_cycle_genes,
+    in string celltype_markers_yaml,
+    out map sample_h5ad,
+    out map batch_h5ad,
+    out map annotated_batch_h5ad,
 )
 {
     call SAMPLE_SETUP(
-        inventory  = self.inventory,
+        inventory             = self.inventory,
     )
     call RUN_QC(
-        samples = SAMPLE_SETUP.samples,
-        image   = self.image,
-        runtime = self.runtime,
-        mito    = self.mito,
-        ncounts = self.ncounts,
-        nfeatures = self.nfeatures,
+        samples               = SAMPLE_SETUP.samples,
+        image                 = self.image,
+        runtime               = self.runtime,
+        mito                  = self.mito,
+        ncounts               = self.ncounts,
+        mincells              = self.mincells,
+        nfeatures             = self.nfeatures,
+        scrublet_score        = self.scrublet_score,
+        cell_cycle_genes      = self.cell_cycle_genes,
+    )
+    call PARSE_CELLTYPE_MARKERS(
+        yaml                  = self.celltype_markers_yaml,
+        image                 = self.image,
+        runtime               = self.runtime,
+    )
+    call MERGE_SAMPLES(
+        scanpy_h5ad           = RUN_QC.scanpy_h5ad,
+        batch                 = SAMPLE_SETUP.batch,
+        image                 = self.image,
+        runtime               = self.runtime,
+    )
+    call ASSIGN_CELLTYPES(
+        batch_h5ad            = MERGE_SAMPLES.batch_h5ad,
+        marker_csv            = PARSE_CELLTYPE_MARKERS.marker_csv,
+        image                 = self.image,
+        runtime               = self.runtime,
     )
     return (
-        sample_h5ad    = RUN_QC.scanpy_h5ad,
+        sample_h5ad           = RUN_QC.scanpy_h5ad,
+        batch_h5ad            = MERGE_SAMPLES.batch_h5ad,
+        annotated_batch_h5ad  = ASSIGN_CELLTYPES.annotated_batch_h5ad,
     )
 }

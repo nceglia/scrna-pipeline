@@ -55,7 +55,6 @@ def main(args, outs):
     con.set_image(args.image)
     # con.run(script, args, outs) 
 
-
 def join(args, outs, chunk_defs, chunk_outs):
     outs.pathway_network = dict()
     outs.enriched_pathways = dict()

@@ -1,68 +1,66 @@
 import container
 import scriptmanager
 import martian
+import scanpy as sc
+import pandas
+import numpy
+import sys
 
 __MRO__ = '''
 stage MERGE_SAMPLES(
-    in  map qcd_scored_seurat,
+    in  map scanpy_h5ad,
     in  map batch,
     in  path image,
     in  string runtime,
-    out map merged_seurat,
-    out map merged_tsv,
+    out map batch_h5ad,
     src py   "stages/merge_samples",
 ) split using (
     in  map batch,
 ) using (
-    threads = 12,
+    threads = 4,
+    volatile = strict,
 )
 '''
 def split(args):
     chunks = []
     for batch_id, samples in args.batch.items():
-        if batch_id == "group": continue
         chunk_def = {}
         chunk_def['batched_samples'] = samples
         chunk_def['batch'] = batch_id
-        if "group" in args.batch:
-            chunk_def["group"] = args.batch["group"]
-        else:
-            chunk_def["group"] = dict()
-        if "metadata" in args.batch and batch_id in args.batch["metadata"]:
-            chunk_def["metadata"] = args.batch["metadata"][batch_id]
-        else:
-            if batch_id == "metadata": continue
-            chunk_def["metadata"] = "None"
-            raise ValueError(batch_id + " " + str(args.batch))
-        chunk_def['__threads'] = 12
         chunks.append(chunk_def)
     return {'chunks': chunks}
 
 def main(args, outs):
-    merged_batch = "{}_merged.rds".format(args.batch)
-    merged_tsv = "{}_batch_samples.tsv".format(args.batch)
-    outs.merged_seurat = martian.make_path(merged_batch)
+    batch_h5ad = "{}.h5ad".format(args.batch)
+    merged_tsv = "{}_samples.tsv".format(args.batch)
+    outs.batch_h5ad = martian.make_path(batch_h5ad)
     outs.merged_tsv = martian.make_path(merged_tsv)
+
+    adatas = []
+
     output = open(outs.merged_tsv,"w")
-    output.write("sample_id\tpath\tgroup\n")
-    for sample, path in args.qcd_scored_seurat.items():
+    output.write("sample_id\tpath\n")
+    for sample, path in args.scanpy_h5ad.items():
         if sample in args.batched_samples:
-            if sample in args.group:
-                group = args.group[sample]
-            else:
-                group = "None"
-            output.write("{}\t{}\t{}\n".format(sample,path,group))
+            output.write("{}\t{}\n".format(sample,path))
+            adata = sc.read(path)
+            adata.obs["sample"] = sample
+            adatas.append(adata)
     output.close()
-    scripts = scriptmanager.ScriptManager()
-    script = scripts.mergesamples()
-    con = container.Container()
-    con.set_runtime(args.runtime)
-    con.set_image(args.image)
-    con.run(script, args, outs)
+
+    combined = adatas[0].concatenate(*adatas[1:], batch_key="sample")
+    sc.pp.filter_cells(combined, min_counts=1)
+    sc.pp.calculate_qc_metrics(combined, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+    sc.pp.normalize_total(combined)
+    sc.pp.log1p(combined)
+    combined.X = numpy.nan_to_num(combined.X)
+    sc.tl.pca(combined, svd_solver='arpack')
+    sc.pp.neighbors(combined, n_neighbors=10, n_pcs=50)
+    sc.tl.umap(combined)
+
+    combined.write(outs.batch_h5ad.decode())
 
 def join(args, outs, chunk_defs, chunk_outs):
-    outs.merged_seurat = dict()
-    outs.merged_tsv = dict()
+    outs.batch_h5ad = dict()
     for arg, out in zip(chunk_defs, chunk_outs):
-        outs.merged_seurat[arg.batch] = out.merged_seurat
-        outs.merged_tsv[arg.batch] = out.merged_tsv
+        outs.batch_h5ad[arg.batch] = out.batch_h5ad

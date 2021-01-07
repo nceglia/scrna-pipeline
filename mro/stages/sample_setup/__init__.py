@@ -23,11 +23,3 @@ def main(args, outs):
         if sample["batch"] not in outs.batch:
             outs.batch[sample["batch"]] = []
         outs.batch[sample["batch"]].append(sample["sample"])
-        if "group" in sample:
-            if "group" not in outs.batch:
-                outs.batch["group"] = dict()
-            outs.batch["group"][sample["sample"]] = sample["group"]
-        if "metadata" in sample:
-            if "metadata" not in outs.batch:
-                outs.batch["metadata"] = dict()
-            outs.batch["metadata"][sample["batch"]] = sample["metadata"]
